@@ -1,0 +1,16 @@
+{
+    "name": "joaquin/iterall",
+    "description": "Plataforma de gestion de versiones para artistas digitales.",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Joaquin Villalon",
+            "email": "jvemillapele@outlook.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "cloudinary/cloudinary_php": "^3.1"
+    }
+}
