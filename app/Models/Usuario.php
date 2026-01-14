@@ -33,7 +33,7 @@ class Usuario {
         }
         public function autenticar($email, $password) {
             $sql = "SELECT * FROM usuarios WHERE email = ?";
-            $stmtAuth = $this->db->conn->prepare($sql);
+            $stmtAuth = $this->db->prepare($sql);
             $stmtAuth->execute([$email]);
             $usuario = $stmtAuth->fetch(PDO::FETCH_ASSOC);
 
