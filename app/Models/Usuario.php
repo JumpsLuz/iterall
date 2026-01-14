@@ -44,7 +44,7 @@ class Usuario {
         }
         public function actualizarPerfil($usuario_id, $nombre_artistico, $biografia, $redes_sociales) {
             try {
-                $sql = "UPDATE perfiles SET nombre_artistico = ?, biografia = ?, redes_sociales = ? WHERE usuario_id = ?";
+                $sql = "UPDATE perfiles SET nombre_artistico = ?, biografia = ?, redes_sociales_json = ? WHERE usuario_id = ?";
                 
                 $stmtActu = $this->db->prepare($sql);
                 $redesJson = json_encode($redes_sociales);
