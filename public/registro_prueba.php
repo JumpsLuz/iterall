@@ -3,7 +3,7 @@
 <html>
     <body>
         <h2>Registro de Usuario</h2>
-        <form action="procesar_registro.php" method="POST">
+        <form action="procesador.php?action=registrar" method="POST">
             <input type="email" name="email" placeholder="tucorreo@aqui.com" required><br><br>
             <input type="password" name="password" placeholder="Contraseña" required><br><br>
 
