@@ -2,7 +2,7 @@
 session_start();
 require_once '../vendor/autoload.php';
 require_once '../app/Models/Usuario.php';
-require_once '../app/Models/Database.php';
+require_once '../app/Config/Database.php';
 require_once '../app/Controllers/UsuarioController.php';
 
 $controller = new UsuarioController();
