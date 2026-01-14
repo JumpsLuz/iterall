@@ -21,6 +21,6 @@ class Database {
         if (!self::$instance) {
             self::$instance = new Database();
         }
-        return self::$instance;
+        return self::$instance->conn;
     }
 }
