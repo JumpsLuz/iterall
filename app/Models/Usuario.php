@@ -33,13 +33,25 @@ class Usuario {
         }
         public function autenticar($email, $password) {
             $sql = "SELECT * FROM usuarios WHERE email = ?";
-            $stmt = $this->db->conn->prepare($sql);
-            $stmt->execute([$email]);
-            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmtAuth = $this->db->conn->prepare($sql);
+            $stmtAuth->execute([$email]);
+            $usuario = $stmtAuth->fetch(PDO::FETCH_ASSOC);
 
             if ($usuario && password_verify($password, $usuario['password'])) {
                 return $usuario;
             }
             return false;
         }
+        public function actualizarPerfil($usuario_id, $nombre_artistico, $biografia, $redes_sociales) {
+            try {
+                $sql = "UPDATE perfiles SET nombre_artistico = ?, biografia = ?, redes_sociales = ? WHERE usuario_id = ?";
+                
+                $stmtActu = $this->db->conn->prepare($sql);
+                $redesJson = json_encode($redes_sociales);
+
+                return $stmtActu->execute([$nombre_artistico, $biografia, $redesJson, $usuario_id]);
+            } catch (PDOException $e) {
+                return false;
+            }
         }
+}
