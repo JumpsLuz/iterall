@@ -11,10 +11,12 @@ $action = $_GET['action'] ?? '';
 if ($action === 'registrar') {
     $modelo = new Usuario();
     if ($_POST['email'] && $_POST['password'] && $_POST['rol_id']) {
-        echo "Registro recibido";
-    } else {
-        echo "Error en el registro";
-    }
+        $resultado = $modelo->registrar($_POST['email'], $_POST['password'], $_POST['rol_id']);
+        if ($resultado) {
+            echo "Registro exitoso";
+        } else {
+            echo "Error en el registro";
+        }}
 }
 
 if ($action === 'login') {

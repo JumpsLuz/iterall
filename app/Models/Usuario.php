@@ -9,26 +9,26 @@ class Usuario {
 
     public function registrar($email, $password, $rol_id) {
         try {
-            $this->db->conn->beginTransaction();
+            $this->db->beginTransaction();
 
             $passHashed = password_hash($password, PASSWORD_BCRYPT);
 
             $sqlUser = "INSERT INTO usuarios (email, password, rol_id) VALUES (?, ?, ?)";
 
-            $stmtUser = $this->db->conn->prepare($sqlUser);
+            $stmtUser = $this->db->prepare($sqlUser);
             $stmtUser->execute([$email, $passHashed, $rol_id]);
 
-            $usuarioId = $this->db->conn->lastInsertId();
+            $usuarioId = $this->db->lastInsertId();
 
             $sqlPerfil = "INSERT INTO perfiles (usuario_id) VALUES (?)";
-            $stmtPerfil = $this->db->conn->prepare($sqlPerfil);
+            $stmtPerfil = $this->db->prepare($sqlPerfil);
             $stmtPerfil->execute([$usuarioId]);
 
-            $this->db->conn->commit();
+            $this->db->commit();
             return true;
             } catch (Exception $e) {
-            $this->db->conn->rollBack();
-            return false;
+            $this->db->rollBack();
+            return false; 
             }
         }
         public function autenticar($email, $password) {
@@ -46,7 +46,7 @@ class Usuario {
             try {
                 $sql = "UPDATE perfiles SET nombre_artistico = ?, biografia = ?, redes_sociales = ? WHERE usuario_id = ?";
                 
-                $stmtActu = $this->db->conn->prepare($sql);
+                $stmtActu = $this->db->prepare($sql);
                 $redesJson = json_encode($redes_sociales);
 
                 return $stmtActu->execute([$nombre_artistico, $biografia, $redesJson, $usuario_id]);
