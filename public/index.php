@@ -1,8 +1,12 @@
 <?php
-
-require_once '../vendor/autoload.php';
-require_once '../app/Config/Database.php';
-
-$action = $_GET['action'] ?? 'home';
-
-echo "Bienvenido a ITERALL - Acción: " . $action;
+session_start();
+if (isset($_SESSION['usuario_id'])) {
+    if ($_SESSION['rol_id'] == 1) {
+        header('Location: dashboard_artista.php');
+    } else {
+        header('Location: explorar.php');
+    }
+} else {
+    header('Location: login.php');
+}
+exit();

@@ -7,6 +7,7 @@
             <input type="email" name="email" placeholder="tucorreo@aqui.com" required><br><br>
             <input type="password" name="password" placeholder="Contraseña" required><br><br>
             <button type="submit">Iniciar Sesión</button>
+            <a href="registro.php">¿No tienes cuenta? Regístrate aquí.</a>
         </form>
     </body>
 </html>

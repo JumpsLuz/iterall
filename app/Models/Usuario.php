@@ -51,6 +51,7 @@ class Usuario {
 
                 return $stmtActu->execute([$nombre_artistico, $biografia, $redesJson, $usuario_id]);
             } catch (PDOException $e) {
+                error_log("Error al actualizar perfil: " . $e->getMessage());
                 return false;
             }
         }

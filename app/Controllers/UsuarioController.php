@@ -17,7 +17,13 @@ class UsuarioController {
                 session_start();
                 $_SESSION['usuario_id'] = $usuario['id'];
                 $_SESSION['rol_id'] = $usuario['rol_id'];
-                header("Location: " . ($usuario['rol_id'] == 1 ? "dashboard_artista.php" : "explorar.php"));
+                $_SESSION['email'] = $usuario['email'];
+
+                if ($usuario['rol_id'] == 1) {
+                    header('Location: dashboard_artista.php');
+                } else {
+                    header('Location: explorar.php');
+                }
                 exit();
             } else {
                 echo "Credenciales incorrectas. Por favor, inténtelo de nuevo.";

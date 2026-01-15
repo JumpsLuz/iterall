@@ -13,6 +13,7 @@
                 <option value="2">Cliente</option>
             </select><br><br>
             <button type="submit">Registrar</button>
+            <a href="login.php">¿Ya tienes cuenta? Inicia sesión aquí.</a>
         </form>
     </body>
 </html>
