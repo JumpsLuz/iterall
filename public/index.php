@@ -23,8 +23,7 @@ session_start();
 
                 </section>
             <?php else: ?>
-                <p>Ya tienes una sesión activa. <a href="todavianohagoesto.php?action=go_home">Ir a mi Panel</a></p>
-                // tengo que mejorar el manejo de redirecciones
+                <p>Ya tienes una sesión activa. <a href="procesador.php?action=go_home">Ir a mi Panel</a></p>
             <?php endif; ?>
         </main>
     </body>

@@ -26,7 +26,7 @@ class UsuarioController {
                 }
                 exit();
             } else {
-                echo "Credenciales incorrectas. Por favor, inténtelo de nuevo.";
+                header('Location: login.php?error=1');
             }
         }
     }

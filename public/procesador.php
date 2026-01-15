@@ -10,15 +10,20 @@ $action = $_GET['action'] ?? '';
 
 if ($action === 'registrar') {
     $modelo = new Usuario();
-    if ($_POST['email'] && $_POST['password'] && $_POST['rol_id']) {
-        $resultado = $modelo->registrar($_POST['email'], $_POST['password'], $_POST['rol_id']);
-        if ($resultado) {
-            header('Location: login.php?registro=exitoso');
-            exit();
-        } else {
-            header('Location: registro.php?error=fallo_registro');
-            exit();
-        }}
+    $exito = $modelo->registrar($_POST['email'], $_POST['password'], $_POST['rol_id']);
+
+    IF ($exito) {
+        $usuario = $modelo->autenticar($_POST['email'], $_POST['password']);
+        $_SESSION['usuario_id'] = $usuario['id'];
+        $_SESSION['rol_id'] = $usuario['rol_id'];
+
+        IF ($usuario['rol_id'] == 1) {
+            header('Location: completar_perfil.php');
+        } ELSE {
+            header('Location: explorar.php');
+        }
+        exit();
+    }
 }
 
 if ($action === 'login') {
@@ -39,11 +44,11 @@ if ($action === 'actualizar_perfil') {
         $_SESSION['usuario_id'],
         $_POST['nombre_artistico'],
         $_POST['biografia'],
-        $_POST['redes']
+        ['instagram' => '', 'artstation' => ''] // Tengo que mejorarlo lvd
     );
 
     if ($exito) {
-        header('Location: dashboard_artista.php?mensaje=perfil_actualizado');
+        header('Location: dashboard_artista.php');
         exit();
     } else {
         echo "Error al actualizar el perfil.";
