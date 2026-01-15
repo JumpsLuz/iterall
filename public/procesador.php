@@ -12,14 +12,14 @@ if ($action === 'registrar') {
     $modelo = new Usuario();
     $exito = $modelo->registrar($_POST['email'], $_POST['password'], $_POST['rol_id']);
 
-    IF ($exito) {
+    if ($exito) {
         $usuario = $modelo->autenticar($_POST['email'], $_POST['password']);
         $_SESSION['usuario_id'] = $usuario['id'];
         $_SESSION['rol_id'] = $usuario['rol_id'];
 
-        IF ($usuario['rol_id'] == 1) {
+        if ($usuario['rol_id'] == 1) {
             header('Location: completar_perfil.php');
-        } ELSE {
+        } else {
             header('Location: explorar.php');
         }
         exit();
@@ -55,3 +55,11 @@ if ($action === 'actualizar_perfil') {
     }
 }
 
+ if ($action === 'go_home') {
+    if ($_SESSION['rol_id'] == 1) {
+        header('Location: dashboard_artista.php');
+    } else {
+        header('Location: explorar.php');
+    }
+    exit();
+ }

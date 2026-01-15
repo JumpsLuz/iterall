@@ -1,5 +1,5 @@
 <?php require_once '../app/Config/auth_check.php'; ?>
-<DOCTYPE html>
+<!DOCTYPE html>
 <html>
     <body>
         <h2>Configura tu perfil para empezar.</h2>
@@ -12,7 +12,7 @@
             <textarea name="biografia"></textarea><br><br>
 
             <label>Avatar</label><br><br>
-            // Implementar carga de imagen para avatary y banner despues
+            <!-- Implementar carga de imagen para avatary y banner despues -->
             <label>Banner</label><br><br>
 
             <button type="submit">Guardar Perfil</button>
