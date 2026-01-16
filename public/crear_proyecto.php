@@ -11,6 +11,12 @@ if ($_SESSION['rol_id'] != 1) {
 $modeloProyecto = new Proyecto();
 $categorias = $modeloProyecto->obtenerCategorias();
 $estados = $modeloProyecto->obtenerEstados();
+if (empty($categorias)) {
+    die("ERROR: No hay categorías en la base de datos. Ejecuta el SQL de inserción.");
+}
+if (empty($estados)) {
+    die("ERROR: No hay estados en la base de datos. Ejecuta el SQL de inserción.");
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -18,7 +24,18 @@ $estados = $modeloProyecto->obtenerEstados();
         <h2>Crear Nuevo Proyecto</h2>
 
         <?php if (isset($_GET['error'])): ?>
-            Hubo un error al crear el proyecto. Por favor, inténtalo de nuevo.
+            <?php
+                switch($_GET['error']) {
+                    case 'campos_requeridos':
+                        echo 'Por favor completa todos los campos obligatorios.';
+                        break;
+                    case 'no_se_pudo_crear':
+                        echo 'Hubo un error al crear el proyecto. Intenta nuevamente.';
+                        break;
+                    default:
+                        echo 'Hubo un error al crear el proyecto. Intenta nuevamente.';
+                }
+                ?>
         <?php endif; ?>
 
         <form action="procesador.php?action=crear_proyecto" method="POST">

@@ -16,7 +16,6 @@ class UsuarioController {
             $usuario = $this->modeloUsuario->autenticar($email, $pass);
 
             if ($usuario) {
-                session_start();
                 $_SESSION['usuario_id'] = $usuario['id'];
                 $_SESSION['rol_id'] = $usuario['rol_id'];
                 $_SESSION['email'] = $usuario['email'];

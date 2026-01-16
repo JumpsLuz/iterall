@@ -47,7 +47,7 @@ class ProyectoController {
                 header('Location: ver_proyecto.php?id=' . $proyecto_id . '&mensaje=actualizado');
                 exit();
             } else {
-                HEADER('Location: editar_proyecto.php?id=' . $proyecto_id . '&error=1');
+                header('Location: editar_proyecto.php?id=' . $proyecto_id . '&error=1');
                 exit();
             }
         }

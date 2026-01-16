@@ -8,22 +8,36 @@ class Proyecto {
 
     public function crear($datos) {
         try {
-            $sql = "INSERT INTO proyectos (creador_id, categoria_id, estado_id, titulo, descripcion, es_publico) VALUES (?, ?, ?, ?, ?, ?)";
+
+            if (empty($datos['creador_id']) || empty($datos['categoria_id']) || 
+                empty($datos['estado_id']) || empty($datos['titulo'])) {
+                error_log("Error: Faltan campos requeridos para crear proyecto");
+                return false;
+            }
+
+            $sql = "INSERT INTO proyectos (creador_id, titulo, descripcion, categoria_id, estado_id, es_publico) VALUES (?, ?, ?, ?, ?, ?)";
 
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute([
+            $resultado = $stmt->execute([
                 $datos['creador_id'],
+                $datos['titulo'],
+                $datos['descripcion'] ?? '',
                 $datos['categoria_id'],
                 $datos['estado_id'],
-                $datos['titulo'],
-                $datos['descripcion'],
-                $datos['es_publico']
+                $datos['es_publico'] ?? 0
             ]);
+        if (!$resultado) {
+            error_log("Error al crear proyecto (PDO): " . print_r($stmt->errorInfo(), true));
+            } 
+
+            return $resultado;
         } catch (PDOException $e) {
             error_log("Error al crear proyecto: " . $e->getMessage());
             return false;
         }
     }
+    
+
     public function obtenerPorUsuario($usuario_id) {
         try {
             $sql = "SELECT p.*, c.nombre_categoria, e.nombre_estado FROM proyectos p 
@@ -64,6 +78,12 @@ class Proyecto {
     }
     public function actualizar($proyecto_id, $datos, $usuario_id) {
         try {
+
+            if (empty($datos['titulo']) || empty($datos['categoria_id']) || empty($datos['estado_id'])) {
+                error_log("Error: Faltan campos requeridos para actualizar proyecto");
+                return false;
+            }
+
             $sql = "UPDATE proyectos 
                     SET titulo = ?, descripcion = ?, categoria_id = ?, estado_id = ?, es_publico = ?
                     WHERE id = ? AND creador_id = ?";

@@ -10,7 +10,10 @@ require_once '../app/Controllers/UsuarioController.php';
 $controller = new UsuarioController();
 $action = $_GET['action'] ?? '';
 
-
+if ($action === 'registrar') {
+    $controller = new UsuarioController();
+    $controller->registrar();
+}
 
 if ($action === 'login') {
     $controller = new UsuarioController();
