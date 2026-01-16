@@ -38,8 +38,16 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
 
             <main>
                 <section style="padding: 20px;">
-                    <h3>Tus Proyectos</h3>
-                    <p>Aún no tienes proyectos creados.</p>
+                    <h3>Acciones Rápidas</h3>
+                    <p>
+                        <a href="mis_proyectos.php">Ver Mis Proyectos</a> | 
+                        <a href="crear_proyecto.php">Crear Proyecto</a>
+                    </p>
+                </section>
+
+                <section style="padding: 20px;">
+                    <h3>Resumen</h3>
+                    <p>Desde aquí podrás gestionar tus proyectos y documentar tu proceso creativo.</p>
                 </section>
             </main>
         </div>
