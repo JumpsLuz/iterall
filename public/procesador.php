@@ -6,6 +6,7 @@ require_once '../app/Config/Database.php';
 require_once '../app/Models/Proyecto.php';
 require_once '../app/Controllers/ProyectoController.php';
 require_once '../app/Controllers/UsuarioController.php';
+require_once '../app/Controllers/PostController.php';
 
 $controller = new UsuarioController();
 $action = $_GET['action'] ?? '';
@@ -65,4 +66,19 @@ if ($action === 'editar_proyecto') {
 if ($action === 'eliminar_proyecto') {
     $controller = new ProyectoController();
     $controller->eliminar();
+}
+
+if ($action === 'crear_post') {
+    $controller = new PostController();
+    $controller->crear();
+}
+
+if ($action === 'crear_post_rapido') {
+    $controller = new PostController();
+    $controller->crearRapido();
+}
+
+if ($action === 'toggle_destacado') {
+    $controller = new PostController();
+    $controller->alternarDestacado();
 }
