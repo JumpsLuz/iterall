@@ -24,6 +24,12 @@ if (!$mini) {
 $modeloPost = new Post();
 $posts = $modeloPost->obtenerPorMiniproyecto($miniproyecto_id);
 
+// Si solo hay 1 post, redirigir automáticamente
+if (count($posts) == 1) {
+    header('Location: ver_post.php?id=' . $posts[0]['id']);
+    exit();
+}
+
 $proyectoPadre = null;
 if ($mini['proyecto_id']) {
     $modeloProyecto = new Proyecto();
@@ -51,7 +57,7 @@ if ($mini['proyecto_id']) {
         <hr>
 
         <header>
-            <h1>[] <?php echo htmlspecialchars($mini['titulo']); ?></h1>
+            <h1>📁 <?php echo htmlspecialchars($mini['titulo']); ?></h1>
             
             <?php if (!empty($mini['descripcion'])): ?>
                 <p><?php echo nl2br(htmlspecialchars($mini['descripcion'])); ?></p>
@@ -59,7 +65,7 @@ if ($mini['proyecto_id']) {
                 <p><em>Sin descripción de la colección.</em></p>
             <?php endif; ?>
 
-            <button>Editar Detalles de la Carpeta</button> 
+            <button disabled>✏️ Editar Detalles de la Carpeta (Próximamente)</button> 
         </header>
 
         <hr>

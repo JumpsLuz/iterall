@@ -20,8 +20,8 @@ if (!$post) {
 }
 
 $iteraciones = $modeloPost->obtenerIteraciones($post_id);
-
 $esDestacado = $modeloPost->esDestacado($post_id);
+$contadorDestacados = $modeloPost->contarDestacados($usuario_id);
 ?>
 <!DOCTYPE html>
 <html>
@@ -42,8 +42,18 @@ $esDestacado = $modeloPost->esDestacado($post_id);
                 <h1><?php echo htmlspecialchars($post['titulo']); ?></h1>
                 
                 <a href="procesador.php?action=toggle_destacado&id=<?php echo $post['id']; ?>">
-                    <button>
-                        <?php echo $esDestacado ? '★ Quitar de Destacados' : '☆ Destacar en Perfil'; ?>
+                    <button style="<?php echo $esDestacado ? 'background: gold; color: black;' : ''; ?>">
+                        <?php 
+                            if ($esDestacado) {
+                                echo '★ Quitar de Destacados';
+                            } else {
+                                if ($contadorDestacados >= 5) {
+                                    echo '☆ Destacar (Límite alcanzado: ' . $contadorDestacados . '/5)';
+                                } else {
+                                    echo '☆ Destacar en Perfil (' . $contadorDestacados . '/5)';
+                                }
+                            }
+                        ?>
                     </button>
                 </a>
             </div>
@@ -59,7 +69,7 @@ $esDestacado = $modeloPost->esDestacado($post_id);
 
         <main>
             <div style="display: flex; justify-content: space-between;">
-                <h2>Historial de Versiones</h2>
+                <h2>📜 Historial de Versiones</h2>
                 <button disabled>+ Subir Nueva Versión (Próximamente)</button>
             </div>
 
