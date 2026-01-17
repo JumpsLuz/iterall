@@ -43,12 +43,12 @@ $estados = $modeloProyecto->obtenerEstados();
                 <h2>⚙️ Configuración del Proyecto</h2>
                 
                 <?php if (isset($_GET['error'])): ?>
-                    <div class="badge badge-status" style="background: rgba(239,68,68,0.2); color: var(--danger); display:block; margin-bottom: 15px;">
+                    <div class="alert alert-error" style="margin-bottom: 15px;">
                         ⚠️ Error: Hubo un error al actualizar el proyecto. Intenta nuevamente.
                     </div>
                 <?php endif; ?>
 
-                <form action="procesador.php?action=editar_proyecto" method="POST">
+                <form action="procesador.php?action=editar_proyecto" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="proyecto_id" value="<?php echo $proyecto['id']; ?>">
                     
                     <div class="form-group">
@@ -90,7 +90,55 @@ $estados = $modeloProyecto->obtenerEstados();
                         </div>
                     </div>
 
-                    <div class="form-group">
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+                        <h3 style="margin-bottom: 20px;">🖼️ Imágenes del Proyecto</h3>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">Portada/Avatar</label>
+                                
+                                <?php if (!empty($proyecto['avatar_url'])): ?>
+                                    <div style="margin-bottom: 10px;">
+                                        <p class="text-muted" style="font-size: 0.85rem;">Imagen actual:</p>
+                                        <img src="<?php echo htmlspecialchars($proyecto['avatar_url']); ?>" 
+                                             alt="Avatar actual" class="current-image">
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <div class="image-preview" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">
+                                    <div class="placeholder-text">
+                                        <p>📸 Click para <?php echo !empty($proyecto['avatar_url']) ? 'cambiar' : 'subir'; ?> imagen</p>
+                                        <p class="text-muted" style="font-size: 0.75rem;">400x400px | Máx. 5MB</p>
+                                    </div>
+                                    <img id="avatarImg" alt="Vista previa" style="display: none;">
+                                </div>
+                                <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display: none;">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Banner</label>
+                                
+                                <?php if (!empty($proyecto['banner_url'])): ?>
+                                    <div style="margin-bottom: 10px;">
+                                        <p class="text-muted" style="font-size: 0.85rem;">Imagen actual:</p>
+                                        <img src="<?php echo htmlspecialchars($proyecto['banner_url']); ?>" 
+                                             alt="Banner actual" class="current-image">
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <div class="image-preview" id="bannerPreview" onclick="document.getElementById('bannerInput').click()">
+                                    <div class="placeholder-text">
+                                        <p>🖼️ Click para <?php echo !empty($proyecto['banner_url']) ? 'cambiar' : 'subir'; ?> imagen</p>
+                                        <p class="text-muted" style="font-size: 0.75rem;">1500x500px | Máx. 5MB</p>
+                                    </div>
+                                    <img id="bannerImg" alt="Vista previa" style="display: none;">
+                                </div>
+                                <input type="file" id="bannerInput" name="banner" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
                         <label class="checkbox-wrapper">
                             <input type="checkbox" name="es_publico" value="1"
                                    <?php echo $proyecto['es_publico'] ? 'checked' : ''; ?>>
@@ -128,5 +176,37 @@ $estados = $modeloProyecto->obtenerEstados();
         </div>
 
     </div>
+
+    <script>
+        document.getElementById('avatarInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('avatarPreview');
+                    const img = document.getElementById('avatarImg');
+                    
+                    img.src = event.target.result;
+                    preview.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('bannerInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('bannerPreview');
+                    const img = document.getElementById('bannerImg');
+                    
+                    img.src = event.target.result;
+                    preview.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
 </body>
 </html>

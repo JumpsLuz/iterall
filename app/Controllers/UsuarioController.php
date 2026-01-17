@@ -66,4 +66,55 @@ class UsuarioController {
             }
         }
     }
+
+    public function actualizarPerfil() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: dashboard_artista.php');
+            exit();
+        }
+
+        try {
+            $usuario_id = $_SESSION['usuario_id'];
+
+            $avatarFile = null;
+            $bannerFile = null;
+
+            if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+                $avatarFile = $_FILES['avatar'];
+            }
+
+            if (isset($_FILES['banner']) && $_FILES['banner']['error'] === UPLOAD_ERR_OK) {
+                $bannerFile = $_FILES['banner'];
+            }
+
+            $redesSociales = [
+                'instagram' => $_POST['instagram'] ?? '',
+                'artstation' => $_POST['artstation'] ?? '',
+                'twitter' => $_POST['twitter'] ?? '',
+                'behance' => $_POST['behance'] ?? ''
+            ];
+
+            $exito = $this->modeloUsuario->actualizarPerfil(
+                $usuario_id,
+                $_POST['nombre_artistico'],
+                $_POST['biografia'] ?? '',
+                $redesSociales,
+                $avatarFile,
+                $bannerFile
+            );
+
+            if ($exito) {
+                header('Location: dashboard_artista.php?mensaje=perfil_actualizado');
+                exit();
+            } else {
+                header('Location: completar_perfil.php?error=actualizar_perfil');
+                exit();
+            }
+
+        } catch (Exception $e) {
+            error_log("Error en actualizarPerfil: " . $e->getMessage());
+            header('Location: completar_perfil.php?error=error_inesperado');
+            exit();
+        }
+    }
 }

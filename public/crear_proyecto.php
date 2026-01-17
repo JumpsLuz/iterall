@@ -31,7 +31,13 @@ $estados = $modeloProyecto->obtenerEstados();
                     <p class="text-muted">Utiliza esto para trabajos a gran escala que contendrán múltiples mini proyectos (Ej: Desarrollo de Videojuego, Cómic Completo).</p>
                 </div>
 
-                <form action="procesador.php?action=crear_proyecto" method="POST">
+                <?php if (isset($_GET['error'])): ?>
+                    <div class="alert alert-error">
+                        ⚠️ Error al crear el proyecto. Verifica los campos requeridos.
+                    </div>
+                <?php endif; ?>
+
+                <form action="procesador.php?action=crear_proyecto" method="POST" enctype="multipart/form-data">
                     
                     <div class="form-group">
                         <label class="form-label">Título del Proyecto *</label>
@@ -64,7 +70,39 @@ $estados = $modeloProyecto->obtenerEstados();
                         <textarea name="descripcion" class="form-control" rows="4" placeholder="¿De qué trata este proyecto?"></textarea>
                     </div>
 
-                    <div class="form-group">
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+                        <h3 style="margin-bottom: 20px;">🖼️ Imágenes del Proyecto</h3>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">Portada/Avatar (400x400px)</label>
+                                <div class="image-preview" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">
+                                    <div class="placeholder-text">
+                                        <p style="font-size: 2rem;">🎨</p>
+                                        <p>Click para seleccionar</p>
+                                        <p class="text-muted" style="font-size: 0.85rem;">Opcional | Máx. 5MB</p>
+                                    </div>
+                                    <img id="avatarImg" alt="Vista previa portada">
+                                </div>
+                                <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display: none;">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Banner (1500x500px)</label>
+                                <div class="image-preview" id="bannerPreview" onclick="document.getElementById('bannerInput').click()">
+                                    <div class="placeholder-text">
+                                        <p style="font-size: 2rem;">🖼️</p>
+                                        <p>Click para seleccionar</p>
+                                        <p class="text-muted" style="font-size: 0.85rem;">Opcional | Máx. 5MB</p>
+                                    </div>
+                                    <img id="bannerImg" alt="Vista previa banner">
+                                </div>
+                                <input type="file" id="bannerInput" name="banner" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
                         <label class="checkbox-wrapper">
                             <input type="checkbox" name="es_publico" value="1">
                             <span>
@@ -79,5 +117,35 @@ $estados = $modeloProyecto->obtenerEstados();
             </div>
         </div>
     </div>
+
+    <script>
+        document.getElementById('avatarInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('avatarPreview');
+                    const img = document.getElementById('avatarImg');
+                    img.src = event.target.result;
+                    preview.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('bannerInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('bannerPreview');
+                    const img = document.getElementById('bannerImg');
+                    img.src = event.target.result;
+                    preview.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,10 +1,14 @@
 <?php
+require_once __DIR__ . '/../Config/Cloudinary.php';
+
 class Usuario {
     private $db;
+    private $cloudinary;
 
     public function __construct()
     {
         $this->db = Database::getInstance();
+        $this->cloudinary = CloudinaryConfig::getInstance();
     }
 
     public function registrar($email, $password, $rol_id) {
@@ -31,6 +35,7 @@ class Usuario {
             return false; 
             }
         }
+
         public function autenticar($email, $password) {
             $sql = "SELECT * FROM usuarios WHERE email = ?";
             $stmtAuth = $this->db->prepare($sql);
@@ -42,17 +47,104 @@ class Usuario {
             }
             return false;
         }
-        public function actualizarPerfil($usuario_id, $nombre_artistico, $biografia, $redes_sociales) {
+
+        /**
+         * @param int $usuario_id
+         * @param string $nombre_artistico
+         * @param string $biografia
+         * @param array $redes_sociales
+         * @param array|null $avatarFile
+         * @param array|null $bannerFile
+         * @return bool
+         */
+
+        public function actualizarPerfil($usuario_id, $nombre_artistico, $biografia, $redes_sociales, $avatarFile = null, $bannerFile = null) {
             try {
-                $sql = "UPDATE perfiles SET nombre_artistico = ?, biografia = ?, redes_sociales_json = ? WHERE usuario_id = ?";
+                $this->db->beginTransaction();
+
+                $stmtActual = $this->db->prepare("SELECT avatar_url, banner_url FROM perfiles WHERE usuario_id = ?");
+                $stmtActual->execute([$usuario_id]);
+                $perfilActual = $stmtActual->fetch(PDO::FETCH_ASSOC);
+
+                $avatarUrl = $perfilActual['avatar_url'];
+                $bannerUrl = $perfilActual['banner_url'];
+
+                if ($avatarFile && !empty($avatarFile['tmp_name'])) {
+                    $validacion = CloudinaryConfig::validateImage($avatarFile);
+                    if (!$validacion['valid']) {
+                        throw new Exception($validacion['error']);
+                    }
+
+                    if (!empty($avatarUrl)) {
+                        $this->eliminarImagenPerfil($avatarUrl);
+                    }
+
+                    $resultado = $this->cloudinary->uploadImage(
+                        $avatarFile['tmp_name'],
+                        [
+                            'folder' => "iterall/perfiles/usuario_{$usuario_id}",
+                            'public_id' => "avatar_" . uniqid()
+                        ]
+                    );
+
+                    if ($resultado['success']) {
+                        $avatarUrl = $resultado['url'];
+                    }
+                }
+
+                if ($bannerFile && !empty($bannerFile['tmp_name'])) {
+                    $validacion = CloudinaryConfig::validateImage($bannerFile);
+                    if (!$validacion['valid']) {
+                        throw new Exception($validacion['error']);
+                    }
+
+                    if (!empty($bannerUrl)) {
+                        $this->eliminarImagenPerfil($bannerUrl);
+                    }
+
+                    $resultado = $this->cloudinary->uploadImage(
+                        $bannerFile['tmp_name'],
+                        [
+                            'folder' => "iterall/perfiles/usuario_{$usuario_id}",
+                            'public_id' => "banner_" . uniqid()
+                        ]
+                    );
+
+                    if ($resultado['success']) {
+                        $bannerUrl = $resultado['url'];
+                    }
+                }
+
+                $sql = "UPDATE perfiles SET nombre_artistico = ?, biografia = ?, redes_sociales_json = ?, avatar_url = ?, banner_url = ? WHERE usuario_id = ?";
                 
                 $stmtActu = $this->db->prepare($sql);
                 $redesJson = json_encode($redes_sociales);
 
-                return $stmtActu->execute([$nombre_artistico, $biografia, $redesJson, $usuario_id]);
-            } catch (PDOException $e) {
+            $resultado = $stmtActu->execute([
+                $nombre_artistico, 
+                $biografia, 
+                $redesJson,
+                $avatarUrl,
+                $bannerUrl,
+                $usuario_id
+            ]);
+
+            $this->db->commit();
+            return $resultado;
+            } catch (Exception $e) {
+                $this->db->rollBack();
                 error_log("Error al actualizar perfil: " . $e->getMessage());
                 return false;
             }
+        }
+
+        private function eliminarImagenPerfil($url) {
+            if (empty($url)) return false;
+
+            preg_match('/\/iterall\/[^.]+/', $url, $matches);
+            if (!empty($matches[0])) {
+                return $this->cloudinary->deleteImage(ltrim($matches[0], '/'));
+            }
+            return false;
         }
 }
