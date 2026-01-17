@@ -36,11 +36,23 @@ if ($action === 'logout') {
 
 if ($action === 'actualizar_perfil') {
     $modelo = new Usuario();
+    
+    // Obtener archivos si fueron enviados
+    $avatar = isset($_FILES['avatar']) && $_FILES['avatar']['error'] !== UPLOAD_ERR_NO_FILE 
+              ? $_FILES['avatar'] 
+              : null;
+    
+    $banner = isset($_FILES['banner']) && $_FILES['banner']['error'] !== UPLOAD_ERR_NO_FILE 
+              ? $_FILES['banner'] 
+              : null;
+    
     $exito = $modelo->actualizarPerfil(
         $_SESSION['usuario_id'],
         $_POST['nombre_artistico'],
         $_POST['biografia'],
-        ['instagram' => '', 'artstation' => ''] // Tengo que mejorarlo lvd
+        ['instagram' => '', 'artstation' => ''], // se me va a olvidar arreglarlo
+        $avatar,
+        $banner
     );
 
     if ($exito) {
