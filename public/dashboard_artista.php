@@ -24,141 +24,117 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
 ?>
 
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Perfil Artista</title>
-        <link rel="stylesheet" href="css/dashboard.css">
-    </head>
-    <body>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | ITERALL</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
 
-        <header class="profile-header">
-            <div class="banner-container" style="background-color: #ccc; height: 200px; overflow: hidden;">
-                <?php if (!empty($perfil['banner_url'])): ?>
-                    <img src="<?php echo htmlspecialchars($perfil['banner_url']); ?>" style="width: 100%;">
-                <?php else: ?>
-                    <div style="padding: 20px;">Sin Banner</div>
-                <?php endif; ?>
-            </div>
+    <header class="profile-header">
+        <div class="banner-container">
+            <?php if (!empty($perfil['banner_url'])): ?>
+                <img src="<?php echo htmlspecialchars($perfil['banner_url']); ?>" class="banner-img">
+            <?php endif; ?>
+        </div>
+        
+        <div class="profile-info">
+            <img src="<?php echo $perfil['avatar_url'] ?? 'img/default-avatar.png'; ?>" class="avatar-img" alt="Avatar">
+            <h1><?php echo htmlspecialchars($perfil['nombre_artistico'] ?? 'Artista'); ?></h1>
+            <p class="text-muted"><?php echo htmlspecialchars($perfil['biografia'] ?? 'Sin biografía'); ?></p>
             
-            <div class="profile-info">
-                <img src="<?php echo $perfil['avatar_url'] ?? 'img/default-avatar.png'; ?>" alt="Avatar" width="100">
-                <h1><?php echo htmlspecialchars($perfil['nombre_artistico'] ?? 'Artista'); ?></h1>
-                <p><?php echo htmlspecialchars($perfil['biografia'] ?? 'Sin biografía'); ?></p>
-                
-                <a href="completar_perfil.php">Editar Perfil</a> | 
-                <a href="procesador.php?action=logout">Cerrar Sesión</a>
+            <div style="margin-top: 15px;">
+                <a href="completar_perfil.php" class="btn btn-secondary">Editar Perfil</a>
+                <a href="procesador.php?action=logout" class="btn btn-danger">Cerrar Sesión</a>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <hr>
+    <div class="container">
+        
+        <div class="navbar">
+            <a href="crear_post_rapido.php" class="btn btn-primary">+ Post Rápido</a>
+            <a href="crear_proyecto.php" class="btn btn-secondary">+ Nuevo Proyecto Grande</a>
+            <a href="mis_proyectos.php" class="btn btn-secondary">Ver Todos mis Proyectos</a>
+        </div>
 
-        <nav>
-            <strong>Acciones:</strong>
-            <a href="crear_post_rapido.php">[+ Post Rápido]</a>
-            <a href="crear_proyecto.php">[+ Crear Proyecto Grande]</a>
-        </nav>
-
-        <hr>
-
-        <?php if (isset($_GET['error']) && $_GET['error'] == 'limite_destacados'): ?>
-            <div style="background: #ffcccc; padding: 10px; margin: 10px 0; border: 1px solid #ff0000;">
-                ⚠️ Ya tienes 5 posts destacados. Debes quitar uno antes de agregar otro.
+        <?php if (isset($_GET['mensaje'])): ?>
+            <div class="badge badge-status" style="display:block; padding: 10px; margin-bottom: 20px;">
+                ✓ Acción realizada con éxito
             </div>
         <?php endif; ?>
 
-        <?php if (isset($_GET['mensaje']) && $_GET['mensaje'] == 'post_creado'): ?>
-            <div style="background: #ccffcc; padding: 10px; margin: 10px 0; border: 1px solid #00ff00;">
-                ✓ Post creado exitosamente
+        <div class="section-header">
+            <h2>⭐ Destacados</h2>
+        </div>
+        
+        <?php if (empty($destacados)): ?>
+            <div class="empty-state">
+                No tienes posts destacados. Ve a un post y marca "Destacar" para exhibirlo aquí.
             </div>
-        <?php endif; ?>
-
-        <section>
-            <h2>Destacados</h2>
-            <?php if (empty($destacados)): ?>
-                <p>No tienes posts destacados. Ve a un post y marca "Destacar" para que aparezca aquí.</p>
-            <?php else: ?>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <?php foreach ($destacados as $post): ?>
-                        <div style="border: 1px solid #000; padding: 10px; width: 200px;">
-                            <a href="ver_post.php?id=<?php echo $post['id']; ?>">
-                                <h3><?php echo htmlspecialchars($post['titulo']); ?></h3>
-                            </a>
-                            <small>En: <?php echo htmlspecialchars($post['nombre_miniproyecto'] ?? 'Sin carpeta'); ?></small>
-                            <br>
-                            <a href="procesador.php?action=toggle_destacado&id=<?php echo $post['id']; ?>" 
-                               style="color: red; font-size: 12px;">
-                                [Quitar destacado]
-                            </a>
+        <?php else: ?>
+            <div class="grid-gallery">
+                <?php foreach ($destacados as $post): ?>
+                    <div class="card" style="border-color: var(--accent);">
+                        <div class="card-body">
+                            <h3><?php echo htmlspecialchars($post['titulo']); ?></h3>
+                            <span class="badge badge-category"><?php echo htmlspecialchars($post['nombre_categoria'] ?? 'General'); ?></span>
                         </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </section>
+                        <div class="card-footer">
+                            <span>📂 <?php echo htmlspecialchars($post['nombre_miniproyecto'] ?? 'Sin carpeta'); ?></span>
+                            <a href="ver_post.php?id=<?php echo $post['id']; ?>" class="btn btn-primary btn-sm">Ver</a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
-        <hr>
+        <div class="section-header">
+            <h2>🕒 Actividad Reciente</h2>
+        </div>
 
-        <section>
-            <h2>Recientes</h2>
-            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                <?php if (empty($recientes)): ?>
-                    <p>No hay actividad reciente.</p>
-                <?php else: ?>
-                    <?php foreach ($recientes as $item): ?>
-                        <div style="border: 1px solid #ccc; padding: 10px; width: 200px;">
-                            
-                            <?php if ($item['cantidad_posts'] == 1): ?>
-                                <?php 
-                                    // Obtener el ID del único post
-                                    $primer_post_id = $modeloMini->obtenerPrimerPostId($item['id']);
-                                ?>
-                                <strong>📄 <?php echo htmlspecialchars($item['titulo']); ?></strong>
-                                <br>
-                                <small>Post Individual</small>
-                                <?php if (!empty($item['categoria_heredada'])): ?>
-                                    <br><small>📌 <?php echo htmlspecialchars($item['categoria_heredada']); ?></small>
-                                <?php endif; ?>
-                                <br>
-                                <a href="ver_post.php?id=<?php echo $primer_post_id; ?>">Ver Post</a>
-
+        <div class="grid-gallery">
+            <?php if (empty($recientes)): ?>
+                <p>No hay actividad reciente.</p>
+            <?php else: ?>
+                <?php foreach ($recientes as $item): ?>
+                    <div class="card">
+                        <div class="card-body">
+                            <?php if ($item['cantidad_posts'] == 1): 
+                                $primer_post_id = $modeloMini->obtenerPrimerPostId($item['id']); ?>
+                                <h3>📄 <?php echo htmlspecialchars($item['titulo']); ?></h3>
+                                <p>Post Individual</p>
+                                <a href="ver_post.php?id=<?php echo $primer_post_id; ?>" class="btn btn-secondary" style="width:100%">Ver Post</a>
                             <?php else: ?>
-                                <strong>📁 <?php echo htmlspecialchars($item['titulo']); ?></strong>
-                                <br>
-                                <small>Colección (<?php echo $item['cantidad_posts']; ?> posts)</small>
-                                <?php if (!empty($item['categoria_heredada'])): ?>
-                                    <br><small>📌 <?php echo htmlspecialchars($item['categoria_heredada']); ?></small>
-                                <?php endif; ?>
-                                <br>
-                                <a href="ver_miniproyecto.php?id=<?php echo $item['id']; ?>">Abrir Carpeta</a>
+                                <h3>📁 <?php echo htmlspecialchars($item['titulo']); ?></h3>
+                                <p>Colección (<?php echo $item['cantidad_posts']; ?> posts)</p>
+                                <a href="ver_miniproyecto.php?id=<?php echo $item['id']; ?>" class="btn btn-secondary" style="width:100%">Abrir Carpeta</a>
                             <?php endif; ?>
-
                         </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
-        </section>
-
-        <hr>
-
-        <section>
-            <h2>Proyectos Principales</h2>
-            <?php if (empty($proyectos)): ?>
-                <p>No tienes proyectos grandes activos.</p>
-            <?php else: ?>
-                <ul>
-                    <?php foreach ($proyectos as $proy): ?>
-                        <li>
-                            <a href="ver_proyecto.php?id=<?php echo $proy['id']; ?>">
-                                <?php echo htmlspecialchars($proy['titulo']); ?>
-                            </a> 
-                            (<?php echo htmlspecialchars($proy['nombre_estado']); ?>)
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
+                    </div>
+                <?php endforeach; ?>
             <?php endif; ?>
-            <a href="mis_proyectos.php">Ver todos mis proyectos</a>
-        </section>
+        </div>
+        
+        <div class="section-header">
+            <h2>🚀 Proyectos Principales</h2>
+        </div>
+        <div class="grid-gallery">
+             <?php foreach ($proyectos as $proy): ?>
+                <div class="card">
+                    <div class="card-body">
+                         <h3><?php echo htmlspecialchars($proy['titulo']); ?></h3>
+                         <span class="badge badge-status"><?php echo htmlspecialchars($proy['nombre_estado']); ?></span>
+                    </div>
+                    <div class="card-footer">
+                        <a href="ver_proyecto.php?id=<?php echo $proy['id']; ?>" class="btn btn-primary">Gestionar</a>
+                    </div>
+                </div>
+             <?php endforeach; ?>
+        </div>
 
-    </body>
+    </div>
+</body>
 </html>
