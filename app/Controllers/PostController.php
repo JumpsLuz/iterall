@@ -17,17 +17,31 @@ class PostController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if (empty($_POST['miniproyecto_id']) && empty($_POST['proyecto_id'])) {
-                die("Error: El post debe pertenecer a algo.");
+                header('Location: dashboard_artista.php?error=padre_necesario');
+                exit();
             }
 
             $datos = [
                 'creador_id' => $_SESSION['usuario_id'],
                 'titulo' => $_POST['titulo'],
                 'categoria_id' => $_POST['categoria_id'],
-                'descripcion' => $_POST['descripcion'], // Agregamos descripción aquí
                 'miniproyecto_id' => !empty($_POST['miniproyecto_id']) ? $_POST['miniproyecto_id'] : null,
                 'proyecto_id' => !empty($_POST['proyecto_id']) ? $_POST['proyecto_id'] : null
             ];
+
+            if (!empty($_POST['descripcion']) && !empty($_POST['miniproyecto_id'])) {
+                try {
+                    $sqlUpdate = "UPDATE miniproyectos SET descripcion = ? WHERE id = ? AND creador_id = ?";
+                    $stmtUpdate = $this->db->prepare($sqlUpdate);
+                    $stmtUpdate->execute([
+                        $_POST['descripcion'],
+                        $_POST['miniproyecto_id'],
+                        $_SESSION['usuario_id']
+                    ]);
+                } catch (PDOException $e) {
+                    error_log("Error al actualizar descripción de miniproyecto: " . $e->getMessage());
+                }
+            }
 
             $exito = $this->modeloPost->crear($datos);
 
@@ -110,5 +124,56 @@ class PostController {
             header('Location: ' . $volverA);
         }
         exit();
+    }
+
+    public function eliminar() {
+        if (!isset($_POST['post_id'])) {
+            header('Location: dashboard_artista.php?error=post_no_especificado');
+            exit();
+        }
+
+        try {
+            $post_id = $_POST['post_id'];
+            $usuario_id = $_SESSION['usuario_id'];
+
+            $post = $this->modeloPost->obtenerPorId($post_id, $usuario_id);
+            
+            if (!$post) {
+                header('Location: dashboard_artista.php?error=post_no_encontrado');
+                exit();
+            }
+
+            $miniproyecto_id = $post['miniproyecto_id'];
+
+            $this->db->beginTransaction();
+
+            $sqlDelete = "DELETE FROM posts WHERE id = ? AND creador_id = ?";
+            $stmtDelete = $this->db->prepare($sqlDelete);
+            $stmtDelete->execute([$post_id, $usuario_id]);
+
+            if ($miniproyecto_id) {
+                $sqlCount = "SELECT COUNT(*) FROM posts WHERE miniproyecto_id = ?";
+                $stmtCount = $this->db->prepare($sqlCount);
+                $stmtCount->execute([$miniproyecto_id]);
+                $cantidad = $stmtCount->fetchColumn();
+
+                if ($cantidad == 0) {
+                    $sqlDeleteMini = "DELETE FROM miniproyectos WHERE id = ? AND creador_id = ?";
+                    $stmtDeleteMini = $this->db->prepare($sqlDeleteMini);
+                    $stmtDeleteMini->execute([$miniproyecto_id, $usuario_id]);
+                }
+            }
+
+            $this->db->commit();
+
+            header('Location: dashboard_artista.php?mensaje=post_eliminado');
+            exit();
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            error_log("Error al eliminar post: " . $e->getMessage());
+            header('Location: dashboard_artista.php?error=error_eliminar');
+            exit();
+        }
     }
 }

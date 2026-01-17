@@ -40,6 +40,7 @@ class Miniproyecto {
                     ORDER BY p.fecha_creacion ASC LIMIT 1) as categoria_heredada
                     FROM miniproyectos mp 
                     WHERE mp.creador_id = ? 
+                    HAVING cantidad_posts > 0
                     ORDER BY mp.fecha_creacion DESC";
             
             $stmt = $this->db->prepare($sql);

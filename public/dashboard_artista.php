@@ -75,7 +75,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
         <?php endif; ?>
 
         <section>
-            <h2>⭐ Destacados</h2>
+            <h2>Destacados</h2>
             <?php if (empty($destacados)): ?>
                 <p>No tienes posts destacados. Ve a un post y marca "Destacar" para que aparezca aquí.</p>
             <?php else: ?>
@@ -100,7 +100,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
         <hr>
 
         <section>
-            <h2>📁 Recientes</h2>
+            <h2>Recientes</h2>
             <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                 <?php if (empty($recientes)): ?>
                     <p>No hay actividad reciente.</p>
@@ -142,7 +142,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
         <hr>
 
         <section>
-            <h2>📚 Proyectos Principales</h2>
+            <h2>Proyectos Principales</h2>
             <?php if (empty($proyectos)): ?>
                 <p>No tienes proyectos grandes activos.</p>
             <?php else: ?>

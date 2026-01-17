@@ -8,8 +8,14 @@ require_once '../app/Controllers/ProyectoController.php';
 require_once '../app/Controllers/UsuarioController.php';
 require_once '../app/Controllers/PostController.php';
 
-$controller = new UsuarioController();
 $action = $_GET['action'] ?? '';
+
+$accionesPublicas = ['login', 'registrar'];
+
+if (!in_array($action, $accionesPublicas) && !isset($_SESSION['usuario_id'])) {
+    header('Location: login.php?error=sesion_expirada');
+    exit();
+}
 
 if ($action === 'registrar') {
     $controller = new UsuarioController();
@@ -38,10 +44,11 @@ if ($action === 'actualizar_perfil') {
     );
 
     if ($exito) {
-        header('Location: dashboard_artista.php');
+        header('Location: dashboard_artista.php?mensaje=perfil_actualizado');
         exit();
     } else {
-        echo "Error al actualizar el perfil.";
+        header('Location: completar_perfil.php?error=actualizar_perfil');
+        exit();
     }
 }
 
@@ -81,4 +88,9 @@ if ($action === 'crear_post_rapido') {
 if ($action === 'toggle_destacado') {
     $controller = new PostController();
     $controller->alternarDestacado();
+}
+
+if ($action === 'eliminar_post') {
+    $controller = new PostController();
+    $controller->eliminar();
 }

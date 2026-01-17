@@ -25,9 +25,10 @@ class Post {
     }
 
     public function obtenerPorId($id, $usuario_id) {
-        $sql = "SELECT p.*, c.nombre_categoria 
+        $sql = "SELECT p.*, c.nombre_categoria, mp.descripcion as descripcion_miniproyecto
                 FROM posts p
                 LEFT JOIN categorias c ON p.categoria_id = c.id
+                LEFT JOIN miniproyectos mp ON p.miniproyecto_id = mp.id
                 WHERE p.id = ? AND p.creador_id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$id, $usuario_id]);
@@ -71,6 +72,15 @@ class Post {
 
     public function toggleDestacado($post_id, $usuario_id) {
         try {
+            $checkOwner = $this->db->prepare("SELECT creador_id FROM posts WHERE id = ?");
+            $checkOwner->execute([$post_id]);
+            $post = $checkOwner->fetch(PDO::FETCH_ASSOC);
+
+            if (!$post || $post['creador_id'] != $usuario_id) {
+                error_log("Intento de destacar post ajeno. Post: $post_id, Usuario: $usuario_id");
+                return false;
+            }
+
             $stmtEtiqueta = $this->db->prepare("SELECT id FROM etiquetas WHERE nombre_etiqueta = 'Destacado'");
             $stmtEtiqueta->execute();
             $etiqueta = $stmtEtiqueta->fetch(PDO::FETCH_ASSOC);
@@ -96,6 +106,7 @@ class Post {
                 return $ins->execute([$post_id, $etiqueta_id]);
             }
         } catch (PDOException $e) {
+            error_log("Error en toggleDestacado: " . $e->getMessage());
             return false;
         }
     }

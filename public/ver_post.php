@@ -27,9 +27,16 @@ $contadorDestacados = $modeloPost->contarDestacados($usuario_id);
 <html>
     <body>
         
-        <nav>
+        <?php
+        $db = Database::getInstance();
+        $stmtCount = $db->prepare("SELECT COUNT(*) FROM posts WHERE miniproyecto_id = ?");
+        $stmtCount->execute([$post['miniproyecto_id']]);
+        $cantidadPosts = $stmtCount->fetchColumn();
+        ?>
+
+         <nav>
             <a href="dashboard_artista.php">Dashboard</a>
-            <?php if ($post['miniproyecto_id']): ?>
+            <?php if ($post['miniproyecto_id'] && $cantidadPosts > 1): ?>
                 > <a href="ver_miniproyecto.php?id=<?php echo $post['miniproyecto_id']; ?>">Volver a Carpeta</a>
             <?php endif; ?>
             > <strong><?php echo htmlspecialchars($post['titulo']); ?></strong>
@@ -60,8 +67,9 @@ $contadorDestacados = $modeloPost->contarDestacados($usuario_id);
 
             <p><strong>Categoría:</strong> <?php echo htmlspecialchars($post['nombre_categoria']); ?></p>
             
-            <?php if (!empty($post['descripcion'])): ?>
-                <p><?php echo nl2br(htmlspecialchars($post['descripcion'])); ?></p>
+            <?php if (!empty($post['descripcion_miniproyecto'])): ?>
+                <p><strong>Descripción:</strong><br>
+                <?php echo nl2br(htmlspecialchars($post['descripcion_miniproyecto'])); ?></p>
             <?php endif; ?>
         </header>
 
@@ -69,7 +77,7 @@ $contadorDestacados = $modeloPost->contarDestacados($usuario_id);
 
         <main>
             <div style="display: flex; justify-content: space-between;">
-                <h2>📜 Historial de Versiones</h2>
+                <h2>Historial de Versiones</h2>
                 <button disabled>+ Subir Nueva Versión (Próximamente)</button>
             </div>
 

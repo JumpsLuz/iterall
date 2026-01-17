@@ -19,7 +19,20 @@ $categorias = $modeloProyecto->obtenerCategorias();
         <p>Este post se creará automáticamente dentro de su propia carpeta.</p>
 
         <?php if (isset($_GET['error'])): ?>
-            <p style="color: red;">Error: <?php echo htmlspecialchars($_GET['error']); ?></p>
+            <p style="color: red;">
+                <?php 
+                switch($_GET['error']) {
+                    case 'campos_vacios':
+                        echo 'Debes completar todos los campos obligatorios.';
+                        break;
+                    case 'db_error':
+                        echo 'Error al guardar. Intenta nuevamente.';
+                        break;
+                    default:
+                        echo 'Error desconocido.';
+                }
+                ?>
+            </p>
         <?php endif; ?>
 
         <form action="procesador.php?action=crear_post_rapido" method="POST">
@@ -36,6 +49,10 @@ $categorias = $modeloProyecto->obtenerCategorias();
                     </option>
                 <?php endforeach; ?>
             </select><br><br>
+
+            <label>Descripción (Opcional)</label><br>
+            <textarea name="descripcion" placeholder="Explica de qué trata esta pieza..."></textarea><br><br>
+
 
             <button type="submit">Publicar Ahora</button>
             <a href="dashboard_artista.php">Cancelar</a>
