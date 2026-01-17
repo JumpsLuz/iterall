@@ -21,7 +21,7 @@
                 </div>
             <?php endif; ?>
 
-            <form action="procesador.php?action=actualizar_perfil" method="POST" enctype="multipart/form-data">
+            <form action="procesador.php?action=actualizar_perfil" method="POST">
                 <div class="form-section">
                     <h3 class="form-section-title">Información Básica</h3>
                     
@@ -43,19 +43,21 @@
                 <div class="form-section">
                     <h3 class="form-section-title">Imágenes de Perfil</h3>
                     <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 15px;">
-                        Las imágenes son opcionales. Formatos: JPG, PNG, GIF (máx. 5MB cada una)
+                        Estas funciones estarán disponibles próximamente
                     </p>
 
                     <div class="form-group">
                         <label class="form-label">Avatar</label>
-                        <input type="file" name="avatar" class="form-control" accept="image/jpeg,image/png,image/gif">
-                        <span class="form-hint">Recomendado: 200x200px o superior (cuadrado)</span>
+                        <div class="upload-placeholder upload-placeholder-small">
+                            <span>a implementar</span>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Banner</label>
-                        <input type="file" name="banner" class="form-control" accept="image/jpeg,image/png,image/gif">
-                        <span class="form-hint">Recomendado: 1200x300px o similar (horizontal)</span>
+                        <div class="upload-placeholder">
+                            <span>a implementar</span>
+                        </div>
                     </div>
                 </div>
 
