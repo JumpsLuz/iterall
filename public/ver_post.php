@@ -3,118 +3,109 @@ require_once '../app/Config/auth_check.php';
 require_once '../app/Config/Database.php';
 require_once '../app/Models/Post.php';
 
-if (!isset($_GET['id'])) {
-    header('Location: dashboard_artista.php');
-    exit();
-}
+if (!isset($_GET['id'])) { header('Location: dashboard_artista.php'); exit(); }
 
 $post_id = $_GET['id'];
 $usuario_id = $_SESSION['usuario_id'];
-
 $modeloPost = new Post();
 $post = $modeloPost->obtenerPorId($post_id, $usuario_id);
 
-if (!$post) {
-    echo "Post no encontrado o privado.";
-    exit();
-}
+if (!$post) { die("Post no encontrado."); }
 
 $iteraciones = $modeloPost->obtenerIteraciones($post_id);
 $esDestacado = $modeloPost->esDestacado($post_id);
-$contadorDestacados = $modeloPost->contarDestacados($usuario_id);
 ?>
+
 <!DOCTYPE html>
-<html>
-    <body>
-        
-        <?php
-        $db = Database::getInstance();
-        $stmtCount = $db->prepare("SELECT COUNT(*) FROM posts WHERE miniproyecto_id = ?");
-        $stmtCount->execute([$post['miniproyecto_id']]);
-        $cantidadPosts = $stmtCount->fetchColumn();
-        ?>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title><?php echo htmlspecialchars($post['titulo']); ?> | ITERALL</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
 
-         <nav>
-            <a href="dashboard_artista.php">Dashboard</a>
-            <?php if ($post['miniproyecto_id'] && $cantidadPosts > 1): ?>
-                > <a href="ver_miniproyecto.php?id=<?php echo $post['miniproyecto_id']; ?>">Volver a Carpeta</a>
+    <div class="container">
+        
+        <div class="breadcrumb">
+            <a href="dashboard_artista.php">Dashboard</a> > 
+            <?php if ($post['miniproyecto_id']): ?>
+                <a href="ver_miniproyecto.php?id=<?php echo $post['miniproyecto_id']; ?>">Volver a Carpeta</a> >
             <?php endif; ?>
-            > <strong><?php echo htmlspecialchars($post['titulo']); ?></strong>
-        </nav>
-        
-        <hr>
+            <span><?php echo htmlspecialchars($post['titulo']); ?></span>
+        </div>
 
-        <header>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
                 <h1><?php echo htmlspecialchars($post['titulo']); ?></h1>
-                
-                <a href="procesador.php?action=toggle_destacado&id=<?php echo $post['id']; ?>">
-                    <button style="<?php echo $esDestacado ? 'background: gold; color: black;' : ''; ?>">
-                        <?php 
-                            if ($esDestacado) {
-                                echo '★ Quitar de Destacados';
-                            } else {
-                                if ($contadorDestacados >= 5) {
-                                    echo '☆ Destacar (Límite alcanzado: ' . $contadorDestacados . '/5)';
-                                } else {
-                                    echo '☆ Destacar en Perfil (' . $contadorDestacados . '/5)';
-                                }
-                            }
-                        ?>
-                    </button>
-                </a>
+                <span class="badge badge-category"><?php echo htmlspecialchars($post['nombre_categoria']); ?></span>
             </div>
-
-            <p><strong>Categoría:</strong> <?php echo htmlspecialchars($post['nombre_categoria']); ?></p>
             
-            <?php if (!empty($post['descripcion_miniproyecto'])): ?>
-                <p><strong>Descripción:</strong><br>
-                <?php echo nl2br(htmlspecialchars($post['descripcion_miniproyecto'])); ?></p>
-            <?php endif; ?>
-        </header>
-
-        <div style="margin-top: 10px;">
-            <form action="procesador.php?action=eliminar_post" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este post y sus versiones? Esta acción no se puede deshacer.');">
-                <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
-                <button type="submit" style="background-color: #ffcccc; color: red; border: 1px solid red;">
-                    🗑️ Eliminar este Post
-                </button>
-            </form>
-        </div>        
+            <div style="display: flex; gap: 10px;">
+                <a href="procesador.php?action=toggle_destacado&id=<?php echo $post['id']; ?>" class="btn <?php echo $esDestacado ? 'btn-gold' : 'btn-secondary'; ?>">
+                    <?php echo $esDestacado ? '★ Destacado' : '☆ Destacar'; ?>
+                </a>
+                
+                <form action="procesador.php?action=eliminar_post" method="POST" onsubmit="return confirm('¿Eliminar?');" style="display:inline;">
+                    <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
+                    <button type="submit" class="btn btn-danger">🗑️ Eliminar</button>
+                </form>
+            </div>
+        </div>
 
         <hr>
 
-        <main>
-            <div style="display: flex; justify-content: space-between;">
-                <h2>Historial de Versiones</h2>
-                <button disabled>+ Subir Nueva Versión (Próximamente)</button>
+        <div style="display: grid; grid-template-columns: 1fr 300px; gap: 30px;">
+            
+            <div>
+                <div class="section-header" style="margin-top:0;">
+                    <h2>Historial de Versiones</h2>
+                    <button class="btn btn-secondary" disabled>+ Subir Nueva Versión</button>
+                </div>
+
+                <?php if (empty($iteraciones)): ?>
+                    <div class="empty-state">
+                        <p>No has subido ninguna versión aún.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="timeline">
+                        <?php foreach ($iteraciones as $iter): ?>
+                            <div class="timeline-item">
+                                <h3 style="color: var(--primary);">Versión <?php echo $iter['numero_version']; ?></h3>
+                                <small class="text-muted"><?php echo date('d M Y, H:i', strtotime($iter['fecha_creacion'])); ?></small>
+                                
+                                <div class="timeline-img-placeholder">
+                                    [Imagen Versión <?php echo $iter['numero_version']; ?>]
+                                </div>
+                                
+                                <div style="background: var(--bg-card); padding: 15px; margin-top: 10px; border-radius: var(--radius);">
+                                    <strong>Notas:</strong>
+                                    <p><?php echo htmlspecialchars($iter['notas_cambio']); ?></p>
+                                    <?php if ($iter['tiempo_dedicado_min']): ?>
+                                        <small>⏱ Tiempo: <?php echo $iter['tiempo_dedicado_min']; ?> min</small>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
 
-            <?php if (empty($iteraciones)): ?>
-                <div style="border: 2px dashed #ccc; padding: 20px; text-align: center;">
-                    <p>No has subido ninguna versión de este trabajo aún.</p>
-                    <p><em>Sube tu primera imagen para empezar.</em></p>
-                </div>
-            <?php else: ?>
-                
-                <?php foreach ($iteraciones as $iter): ?>
-                    <div style="border: 1px solid #eee; margin-bottom: 20px; padding: 10px;">
-                        <h3>Versión <?php echo $iter['numero_version']; ?></h3>
-                        <small>Subido el: <?php echo $iter['fecha_creacion']; ?></small>
-                        
-                        <?php if ($iter['tiempo_dedicado_min']): ?>
-                            <p>⏱ Tiempo dedicado: <?php echo $iter['tiempo_dedicado_min']; ?> min</p>
-                        <?php endif; ?>
-                        
-                        <p><?php echo htmlspecialchars($iter['notas_cambio']); ?></p>
-                        
-                        <div style="background: #ddd; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
-                            [Imagen]
-                        </div>
+            <aside>
+                <div class="card">
+                    <div class="card-body">
+                        <h4>Detalles</h4>
+                        <p style="margin-top:10px;">
+                            <strong>Descripción:</strong><br>
+                            <?php echo !empty($post['descripcion_miniproyecto']) ? nl2br(htmlspecialchars($post['descripcion_miniproyecto'])) : 'Sin descripción.'; ?>
+                        </p>
+                        <hr style="border-color:#333;">
+                        <small class="text-muted">Total versiones: <?php echo count($iteraciones); ?></small>
                     </div>
-                <?php endforeach; ?>
+                </div>
+            </aside>
 
-            <?php endif; ?>
-        </main>
-    </body>
+        </div>
+    </div>
+</body>
 </html>
