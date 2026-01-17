@@ -73,6 +73,12 @@ $estados = $modeloProyecto->obtenerEstados();
         <a href="ver_proyecto.php?id=<?php echo $proyecto['id']; ?>">
             <button type="button">Cancelar</button>
         </a>
+        <hr>
+        <h3>Eliminar</h3>
+        <form action="procesador.php?action=eliminar_proyecto" method="POST" onsubmit="return confirm('¡CUIDADO! Esto eliminará el proyecto y TODO su contenido. ¿Confirmar?');">
+            <input type="hidden" name="proyecto_id" value="<?php echo $proyecto['id']; ?>">
+            <button type="submit" style="background: red; color: white;">Eliminar Proyecto Definitivamente</button>
+        </form>
     </form>
 </body>
 </html>

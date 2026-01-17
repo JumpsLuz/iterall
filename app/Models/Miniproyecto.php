@@ -75,4 +75,19 @@ class Miniproyecto {
             return null;
         }
     }
+
+    public function obtenerPorProyectoPadre($proyecto_id) {
+    try {
+        $sql = "SELECT mp.*, 
+                (SELECT COUNT(*) FROM posts p WHERE p.miniproyecto_id = mp.id) as cantidad_posts 
+                FROM miniproyectos mp 
+                WHERE mp.proyecto_id = ? 
+                ORDER BY mp.fecha_creacion DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$proyecto_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        return [];
+    }
+}
 }

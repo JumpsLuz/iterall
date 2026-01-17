@@ -2,6 +2,7 @@
 require_once '../app/Config/auth_check.php';
 require_once '../app/Config/Database.php';
 require_once '../app/Models/Proyecto.php';
+require_once '../app/Models/Miniproyecto.php';
 
 if (!isset($_GET['id'])) {
     header('Location: mis_proyectos.php');
@@ -10,6 +11,8 @@ if (!isset($_GET['id'])) {
 
 $modeloProyecto = new Proyecto();
 $proyecto = $modeloProyecto->obtenerPorId($_GET['id'], $_SESSION['usuario_id']);
+$modeloMini = new Miniproyecto();
+$miniproyectosHijos = $modeloMini->obtenerPorProyectoPadre($proyecto['id']);
 
 if (!$proyecto) {
     header('Location: mis_proyectos.php?error=proyecto_no_encontrado');
@@ -52,8 +55,21 @@ if (!$proyecto) {
     <hr>
 
     <h2>Mini-proyectos</h2>
-    <p><em>Aún no hay mini-proyectos en este proyecto. (Esta funcionalidad estará disponible próximamente)</em></p>
-
+    <?php if (empty($miniproyectosHijos)): ?>
+        <p><em>No hay carpetas en este proyecto.</em></p>
+        <a href="crear_post.php?proyecto_id=<?php echo $proyecto['id']; ?>"><button>+ Agregar Carpeta/Post</button></a>
+    <?php else: ?>
+        <ul>
+            <?php foreach ($miniproyectosHijos as $mini): ?>
+                <li>
+                    <a href="ver_miniproyecto.php?id=<?php echo $mini['id']; ?>">
+                        📂 <?php echo htmlspecialchars($mini['titulo']); ?>
+                    </a> 
+                    (<?php echo $mini['cantidad_posts']; ?> items)
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
     <hr>
 
     <h2>Posts del proyecto</h2>

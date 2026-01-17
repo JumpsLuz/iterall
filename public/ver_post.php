@@ -73,6 +73,15 @@ $contadorDestacados = $modeloPost->contarDestacados($usuario_id);
             <?php endif; ?>
         </header>
 
+        <div style="margin-top: 10px;">
+            <form action="procesador.php?action=eliminar_post" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este post y sus versiones? Esta acción no se puede deshacer.');">
+                <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
+                <button type="submit" style="background-color: #ffcccc; color: red; border: 1px solid red;">
+                    🗑️ Eliminar este Post
+                </button>
+            </form>
+        </div>        
+
         <hr>
 
         <main>
