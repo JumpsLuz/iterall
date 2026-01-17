@@ -106,10 +106,40 @@ class Proyecto {
 
     public function eliminar($proyecto_id, $usuario_id) {
         try {
+            $sqlPosts = "DELETE FROM posts WHERE proyecto_id = ? AND creador_id = ?";
+            $stmtPosts = $this->db->prepare($sqlPosts);
+            $stmtPosts->execute([$proyecto_id, $usuario_id]);
+
+            $sqlMiniIds = "SELECT id FROM miniproyectos WHERE proyecto_id = ? AND creador_id = ?";
+            $stmtMiniIds = $this->db->prepare($sqlMiniIds);
+            $stmtMiniIds->execute([$proyecto_id, $usuario_id]);
+
+            $miniIds = $stmtMiniIds->fetchAll(PDO::FETCH_COLUMN);
+
+            if (!empty($miniIds)) {
+            $placeholders = implode(',', array_fill(0, count($miniIds), '?'));
+            $sqlDeleteMiniPosts = "DELETE FROM posts WHERE miniproyecto_id IN ($placeholders) AND creador_id = ?";
+            
+            $params = $miniIds;
+
+            $params[] = $usuario_id;
+            
+            $stmtDeleteMiniPosts = $this->db->prepare($sqlDeleteMiniPosts);
+            $stmtDeleteMiniPosts->execute($params);
+
+            $sqlDeleteMini = "DELETE FROM miniproyectos WHERE proyecto_id = ? AND creador_id = ?";
+            
+            $stmtDeleteMini = $this->db->prepare($sqlDeleteMini);
+            $stmtDeleteMini->execute([$proyecto_id, $usuario_id]);
+            }
             $sql = "DELETE FROM proyectos WHERE id = ? AND creador_id = ?";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute([$proyecto_id, $usuario_id]);
+            $stmt->execute([$proyecto_id, $usuario_id]);
+
+            $this->db->commit();
+            return true;
         } catch (PDOException $e) {
+            $this->db->rollBack();
             error_log("Error al eliminar proyecto: " . $e->getMessage());
             return false;
         }

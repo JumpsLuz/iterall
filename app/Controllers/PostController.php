@@ -69,9 +69,11 @@ class PostController {
 
             $this->db->beginTransaction();
 
+            $proyecto_id = !empty($_POST['proyecto_id']) ? $_POST['proyecto_id'] : null;
+
             $datosMini = [
                 'creador_id' => $_SESSION['usuario_id'],
-                'proyecto_id' => null,
+                'proyecto_id' => $proyecto_id,
                 'titulo' => $_POST['titulo'],
                 'descripcion' => ''
             ];
@@ -87,7 +89,7 @@ class PostController {
                     'titulo' => $_POST['titulo'],
                     'categoria_id' => $_POST['categoria_id'],
                     'miniproyecto_id' => $miniproyecto_id,
-                    'proyecto_id' => null // NULL obligatorio por el CONSTRAINT de tu BD
+                    'proyecto_id' => $proyecto_id // NULL obligatorio por el CONSTRAINT de tu BD
                 ];
             
             $exitoPost = $this->modeloPost->crear($datosPost);
@@ -98,8 +100,12 @@ class PostController {
 
             $this->db->commit();
                 
+            if ($proyecto_id) {
+                header('Location: ver_proyecto.php?id=' . $proyecto_id . '&mensaje=carpeta_creada');
+            } else {
                 header('Location: dashboard_artista.php?mensaje=post_creado');
-                exit();
+            }
+            exit();
         } catch (Exception $e) {
             $this->db->rollBack();
             error_log("Error en creación rápida de post: " . $e->getMessage());

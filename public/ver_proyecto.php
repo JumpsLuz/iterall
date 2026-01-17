@@ -57,7 +57,12 @@ if (!$proyecto) {
     <h2>Mini-proyectos</h2>
     <?php if (empty($miniproyectosHijos)): ?>
         <p><em>No hay carpetas en este proyecto.</em></p>
-        <a href="crear_post.php?proyecto_id=<?php echo $proyecto['id']; ?>"><button>+ Agregar Carpeta/Post</button></a>
+        <a href="crear_post_rapido.php?proyecto_id=<?php echo $proyecto['id']; ?>">
+            <button>+ Nueva Carpeta (Post Rápido)</button>
+        </a>
+        <a href="crear_post.php?proyecto_id=<?php echo $proyecto['id']; ?>">
+            <button>+ Nuevo Post Suelto</button>
+        </a>
     <?php else: ?>
         <ul>
             <?php foreach ($miniproyectosHijos as $mini): ?>

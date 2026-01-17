@@ -10,6 +10,7 @@ if ($_SESSION['rol_id'] != 1) {
 
 $modeloProyecto = new Proyecto();
 $categorias = $modeloProyecto->obtenerCategorias();
+$proyecto_id = $_GET['proyecto_id'] ?? null;
 ?>
 
 <!DOCTYPE html>
@@ -53,6 +54,9 @@ $categorias = $modeloProyecto->obtenerCategorias();
             <label>Descripción (Opcional)</label><br>
             <textarea name="descripcion" placeholder="Explica de qué trata esta pieza..."></textarea><br><br>
 
+            <?php if($proyecto_id): ?>
+                <input type="hidden" name="proyecto_id" value="<?php echo htmlspecialchars($proyecto_id); ?>">
+            <?php endif; ?>
 
             <button type="submit">Publicar Ahora</button>
             <a href="dashboard_artista.php">Cancelar</a>
