@@ -75,7 +75,7 @@ class PostController {
                 'creador_id' => $_SESSION['usuario_id'],
                 'proyecto_id' => $proyecto_id,
                 'titulo' => $_POST['titulo'],
-                'descripcion' => ''
+                'descripcion' => $_POST['descripcion'] ?? null
             ];
 
             $miniproyecto_id = $this->modeloMini->crear($datosMini);
@@ -89,7 +89,7 @@ class PostController {
                     'titulo' => $_POST['titulo'],
                     'categoria_id' => $_POST['categoria_id'],
                     'miniproyecto_id' => $miniproyecto_id,
-                    'proyecto_id' => $proyecto_id // NULL obligatorio por el CONSTRAINT de tu BD
+                    'proyecto_id' => $proyecto_id 
                 ];
             
             $exitoPost = $this->modeloPost->crear($datosPost);
