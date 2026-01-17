@@ -1,0 +1,11 @@
+php_value upload_max_filesize 5M
+php_value post_max_size 100M
+php_value max_input_time 300
+php_value max_execution_time 300
+
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+ErrorDocument 404 /index.php

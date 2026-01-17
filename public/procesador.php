@@ -119,3 +119,21 @@ if ($action === 'crear_miniproyecto') {
     }
     exit();
 }
+
+if ($action === 'crear_iteracion') {
+    require_once '../app/Controllers/IteracionController.php';
+    $controller = new IteracionController();
+    $controller->crear();
+}
+
+if ($action === 'eliminar_iteracion') {
+    require_once '../app/Controllers/IteracionController.php';
+    $controller = new IteracionController();
+    $controller->eliminar();
+}
+
+if ($action === 'actualizar_iteracion') {
+    require_once '../app/Controllers/IteracionController.php';
+    $controller = new IteracionController();
+    $controller->actualizar();
+}

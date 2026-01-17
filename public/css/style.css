@@ -467,4 +467,54 @@ select.form-control {
         margin-bottom: 15px;
         font-weight: 600;
     }
+
+    /* --- Iteraciones --- */
+    .preview-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+        .preview-item {
+        position: relative;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--bg-hover);
+    }
+        .preview-item img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+    }
+        .preview-item .remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: var(--danger);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .upload-zone {
+        border: 2px dashed var(--border);
+        border-radius: var(--radius);
+        padding: 40px;
+        text-align: center;
+        background: var(--bg-hover);
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .upload-zone:hover {
+        border-color: var(--primary);
+        background: var(--bg-card);
+    }
+    .upload-zone.dragover {
+        border-color: var(--accent);
+        background: rgba(245, 158, 11, 0.1);
+    }
 }
