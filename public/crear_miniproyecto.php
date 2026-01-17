@@ -25,7 +25,7 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
                 <h2>📂 Crear Nuevo Mini Proyecto</h2>
                 <p class="text-muted">Un mini proyecto te permite agrupar múltiples posts (bocetos, referencias, finales) bajo un mismo nombre.</p>
 
-                <form action="procesador.php?action=crear_mini proyecto" method="POST">
+                <form action="procesador.php?action=crear_miniproyecto" method="POST">
                     
                     <?php if ($proyecto_id): ?>
                         <input type="hidden" name="proyecto_id" value="<?php echo htmlspecialchars($proyecto_id); ?>">
