@@ -30,7 +30,7 @@ $esDestacado = $modeloPost->esDestacado($post_id);
         <div class="breadcrumb">
             <a href="dashboard_artista.php">Dashboard</a> > 
             <?php if ($post['miniproyecto_id']): ?>
-                <a href="ver_miniproyecto.php?id=<?php echo $post['miniproyecto_id']; ?>">Volver a Carpeta</a> >
+                <a href="ver_miniproyecto.php?id=<?php echo $post['miniproyecto_id']; ?>">Volver a Mini Proyecto</a> >
             <?php endif; ?>
             <span><?php echo htmlspecialchars($post['titulo']); ?></span>
         </div>

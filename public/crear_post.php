@@ -10,7 +10,7 @@ $miniproyecto_id = $_GET['miniproyecto_id'] ?? null;
 $proyecto_id = $_GET['proyecto_id'] ?? null; 
 
 if (!$miniproyecto_id && !$proyecto_id) {
-    die("<div class='container'><h3 style='color:red'>Error: Acceso no válido. Debes entrar desde una carpeta o proyecto.</h3></div>");
+    die("<div class='container'><h3 style='color:red'>Error: Acceso no válido. Debes entrar desde un mini proyecto o proyecto.</h3></div>");
 }
 
 $cantidadPostsActuales = 0;
@@ -31,7 +31,7 @@ if ($miniproyecto_id) {
         
         $forzarRenombre = ($esColeccion && $cantidadPostsActuales == 1);
     } else {
-        die("<div class='container'><h3 style='color:red'>Error: Carpeta no encontrada.</h3></div>");
+        die("<div class='container'><h3 style='color:red'>Error: Mini proyecto no encontrada.</h3></div>");
     }
 } else if ($proyecto_id) {
     $modeloProyecto = new Proyecto();
@@ -75,8 +75,8 @@ $categorias = $modeloProyecto->obtenerCategorias();
                     <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid var(--accent); padding: 15px; border-radius: var(--radius); margin: 15px 0;">
                         <h4 style="color: var(--accent); margin-bottom: 5px;">✨ ¡Estás creando una Colección!</h4>
                         <p style="font-size: 0.9rem; color: #ddd;">
-                            Al agregar un segundo post, "<?php echo htmlspecialchars($nombrePadre); ?>" dejará de verse como un archivo único y se convertirá en una carpeta.
-                            <br><strong>Tip:</strong> Aprovecha de actualizar la descripción de la carpeta abajo.
+                            Al agregar un segundo post, "<?php echo htmlspecialchars($nombrePadre); ?>" dejará de verse como un archivo único y se convertirá en un Mini Proyecto.
+                            <br><strong>Tip:</strong> Aprovecha de actualizar la descripción del mini proyecto abajo.
                         </p>
                     </div>
                 <?php endif; ?>
@@ -106,25 +106,22 @@ $categorias = $modeloProyecto->obtenerCategorias();
 
                     <?php if ($miniproyecto_id): ?>
                         <hr style="border-color: #444; margin: 20px 0;">
-                        
-                        
-                            
                             <?php if ($forzarRenombre): ?>
                                 <div style="background: #252525; padding: 15px; border-radius: var(--radius); border: 1px solid #444;">     
                                     <h4 style="color: var(--primary); margin-bottom: 10px;">📂 Configuración de la Colección</h4>
                                     <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 10px;">
-                                        Al agregar un segundo post, esto se convertirá en una carpeta. 
-                                        <strong>Dale un nombre general a la carpeta</strong> (ej: en lugar de "Boceto 1", ponle "Personaje X").
+                                        Al agregar un segundo post, esto se convertirá en un Mini Proyecto. 
+                                        <strong>Dale un nombre general al mini proyecto</strong> (ej: en lugar de "Boceto 1", ponle "Personaje X").
                                     </p>
 
                                     <div class="form-group">
-                                    <label class="form-label">Título de la Carpeta</label>
+                                    <label class="form-label">Título del Mini Proyecto</label>
                                     <input type="text" name="titulo_miniproyecto" class="form-control" 
                                         value="<?php echo htmlspecialchars($nombrePadre); ?>" required>
                                     </div>
 
                                     <div class="form-group">
-                                        <label class="form-label">Descripción de la Carpeta</label>
+                                        <label class="form-label">Descripción del Mini Proyecto</label>
                                         <textarea name="descripcion_miniproyecto" class="form-control" rows="2"></textarea>
                                     </div>
                                 </div>

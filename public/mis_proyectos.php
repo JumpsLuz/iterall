@@ -71,7 +71,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($_SESSION['usuario_id']);
         <?php if (empty($proyectos)): ?>
             <div class="empty-state">
                 <h3>No tienes proyectos creados aún.</h3>
-                <p>Los proyectos sirven para agrupar múltiples carpetas y trabajos (ej: Un Videojuego, Un Cómic).</p>
+                <p>Los proyectos sirven para agrupar múltiples mini proyectos y trabajos (ej: Un Videojuego, Un Cómic).</p>
                 <br>
                 <a href="crear_proyecto.php" class="btn btn-primary">Crear mi primer proyecto</a>
             </div>

@@ -112,7 +112,7 @@ class PostController {
                         $_SESSION['usuario_id']
                     ]);
                 } catch (PDOException $e) {
-                    error_log("Aviso: No se pudo sincronizar descripción de carpeta: " . $e->getMessage());
+                    error_log("Aviso: No se pudo sincronizar descripción del mini proyecto: " . $e->getMessage());
                 }
             }
 
@@ -126,7 +126,7 @@ class PostController {
 
                     $stmtUpd->execute([$nuevoTitulo, $nuevaDesc, $miniproyecto_id, $_SESSION['usuario_id']]);
                 } catch (Exception $e) {
-                    error_log("Error actualizando carpeta: " . $e->getMessage());
+                    error_log("Error actualizando mini proyecto: " . $e->getMessage());
                 }
             }
 
@@ -185,7 +185,7 @@ class PostController {
             $miniproyecto_id = $this->modeloMini->crear($datosMini);
 
             if (!$miniproyecto_id) {
-                throw new Exception("Error crítico al crear la carpeta contenedora.");
+                throw new Exception("Error crítico al crear el mini proyecto contenedor.");
             }
             
             $datosPost = [

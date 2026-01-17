@@ -71,7 +71,7 @@ if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit();
         <div class="section-header">
             <h2>Contenido del Proyecto</h2>
             <div>
-                <a href="crear_carpeta.php?proyecto_id=<?php echo $proyecto['id']; ?>" class="btn btn-primary">+ Nueva Carpeta</a>
+                <a href="crear_miniproyecto.php?proyecto_id=<?php echo $proyecto['id']; ?>" class="btn btn-primary">+ Nuevo Mini Proyecto</a>
                 <a href="crear_post_rapido.php?proyecto_id=<?php echo $proyecto['id']; ?>" class="btn btn-secondary">+ Post Individual</a>
             </div>
         </div>
@@ -79,7 +79,7 @@ if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit();
         <?php if (empty($miniproyectosHijos)): ?>
             <div class="empty-state">
                 <p>Este proyecto está vacío.</p>
-                <p>Crea una "Carpeta" para organizar múltiples trabajos relacionados, o un "Post Individual" para obras únicas.</p>
+                <p>Crea un "Mini Proyecto" para organizar múltiples trabajos relacionados, o un "Post Individual" para obras únicas.</p>
             </div>
         <?php else: ?>
             <div class="grid-gallery">
@@ -106,7 +106,7 @@ if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit();
                                 <p><?php echo $mini['cantidad_posts']; ?> items dentro</p>
                             </div>
                             <div class="card-footer">
-                                <a href="ver_miniproyecto.php?id=<?php echo $mini['id']; ?>" class="btn btn-primary" style="width: 100%;">Abrir Carpeta</a>
+                                <a href="ver_miniproyecto.php?id=<?php echo $mini['id']; ?>" class="btn btn-primary" style="width: 100%;">Abrir Mini Proyecto</a>
                             </div>
                         </div>
                     <?php endif; ?>

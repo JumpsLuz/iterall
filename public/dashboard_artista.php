@@ -56,7 +56,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
         
         <div class="navbar">
             <a href="crear_post_rapido.php" class="btn btn-primary">+ Post Rápido</a>
-            <a href="crear_carpeta.php" class="btn btn-secondary">+ Nueva Carpeta</a>
+            <a href="crear_mini_proyecto.php" class="btn btn-secondary">+ Nuevo Mini Proyecto</a>
             <a href="crear_proyecto.php" class="btn btn-secondary">+ Nuevo Proyecto Grande</a>
             <a href="mis_proyectos.php" class="btn btn-secondary">Ver Todos mis Proyectos</a>
         </div>
@@ -84,7 +84,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
                             <span class="badge badge-category"><?php echo htmlspecialchars($post['nombre_categoria'] ?? 'General'); ?></span>
                         </div>
                         <div class="card-footer">
-                            <span>📂 <?php echo htmlspecialchars($post['nombre_miniproyecto'] ?? 'Sin carpeta'); ?></span>
+                            <span>📂 <?php echo htmlspecialchars($post['nombre_miniproyecto'] ?? 'Sin mini proyecto'); ?></span>
                             <a href="ver_post.php?id=<?php echo $post['id']; ?>" class="btn btn-primary btn-sm">Ver</a>
                         </div>
                     </div>
@@ -114,8 +114,8 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
                                 <a href="ver_post.php?id=<?php echo $primer_post_id; ?>" class="btn btn-secondary" style="width:100%">Ver Post</a>
                             <?php else: ?>
                                 <h3>📁 <?php echo htmlspecialchars($item['titulo']); ?></h3>
-                                <p>Carpeta (<?php echo $item['cantidad_posts']; ?> posts)</p>
-                                <a href="ver_miniproyecto.php?id=<?php echo $item['id']; ?>" class="btn btn-secondary" style="width:100%">Abrir Carpeta</a>
+                                <p>Mini Proyecto (<?php echo $item['cantidad_posts']; ?> posts)</p>
+                                <a href="ver_miniproyecto.php?id=<?php echo $item['id']; ?>" class="btn btn-secondary" style="width:100%">Abrir Mini Proyecto</a>
                             <?php endif; ?>
                         </div>
                     </div>

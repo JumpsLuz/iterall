@@ -28,7 +28,7 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
             <div class="card-body">
                 <h2 style="margin-bottom: 5px;">🚀 Publicar Nueva Obra</h2>
                 <p class="text-muted" style="margin-bottom: 20px;">
-                    Esto creará una entrada individual. Si luego añades más archivos, se convertirá automáticamente en una carpeta.
+                    Esto creará una entrada individual. Si luego añades más archivos, se convertirá automáticamente en un Mini Proyecto.
                 </p>
 
                 <?php if (isset($_GET['error'])): ?>
@@ -59,7 +59,7 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
                                 <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['nombre_categoria']); ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <span class="form-hint">La carpeta contenedora heredará esta categoría.</span>
+                        <span class="form-hint">La mini proyecto contenedor heredará esta categoría.</span>
                     </div>
 
                     <div class="form-group">

@@ -55,7 +55,7 @@ if ($mini['proyecto_id']) {
                     <?php echo htmlspecialchars($proyectoPadre['titulo']); ?>
                   </a>
             <?php else: ?>
-                > <span>Carpeta Independiente</span>
+                > <span>Mini Proyecto Independiente</span>
             <?php endif; ?>
             
             > <strong><?php echo htmlspecialchars($mini['titulo']); ?></strong>
@@ -70,7 +70,7 @@ if ($mini['proyecto_id']) {
                 </p>
             <?php else: ?>
                 <p style="margin-top: 15px; color: var(--text-muted);">
-                    <em>Sin descripción de la carpeta.</em>
+                    <em>Sin descripción del mini proyecto.</em>
                 </p>
             <?php endif; ?>
         </div>
@@ -82,7 +82,7 @@ if ($mini['proyecto_id']) {
 
         <?php if (empty($posts)): ?>
             <div class="empty-state">
-                <p>Esta carpeta está vacía.</p>
+                <p>Este mini proyecto está vacío.</p>
                 <p>Agrega tu primer post para comenzar a documentar tu proceso creativo.</p>
             </div>
         <?php else: ?>

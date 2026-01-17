@@ -28,7 +28,7 @@ $estados = $modeloProyecto->obtenerEstados();
             <div class="card-body">
                 <div style="border-left: 4px solid var(--primary); padding-left: 15px; margin-bottom: 20px;">
                     <h2 style="margin:0;">Crear Proyecto Principal</h2>
-                    <p class="text-muted">Utiliza esto para trabajos a gran escala que contendrán múltiples carpetas (Ej: Desarrollo de Videojuego, Cómic Completo).</p>
+                    <p class="text-muted">Utiliza esto para trabajos a gran escala que contendrán múltiples mini proyectos (Ej: Desarrollo de Videojuego, Cómic Completo).</p>
                 </div>
 
                 <form action="procesador.php?action=crear_proyecto" method="POST">

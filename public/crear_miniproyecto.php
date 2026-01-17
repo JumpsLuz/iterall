@@ -11,7 +11,7 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Nueva Carpeta | ITERALL</title>
+    <title>Nuevo Mini Proyecto | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -22,10 +22,10 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
 
         <div class="card">
             <div class="card-body">
-                <h2>📂 Crear Nueva Carpeta</h2>
-                <p class="text-muted">Una carpeta te permite agrupar múltiples posts (bocetos, referencias, finales) bajo un mismo nombre.</p>
+                <h2>📂 Crear Nuevo Mini Proyecto</h2>
+                <p class="text-muted">Un mini proyecto te permite agrupar múltiples posts (bocetos, referencias, finales) bajo un mismo nombre.</p>
 
-                <form action="procesador.php?action=crear_carpeta" method="POST">
+                <form action="procesador.php?action=crear_mini proyecto" method="POST">
                     
                     <?php if ($proyecto_id): ?>
                         <input type="hidden" name="proyecto_id" value="<?php echo htmlspecialchars($proyecto_id); ?>">
@@ -33,16 +33,16 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
                     <?php endif; ?>
 
                     <div class="form-group">
-                        <label class="form-label">Nombre de la Carpeta *</label>
+                        <label class="form-label">Nombre del Mini Proyecto *</label>
                         <input type="text" name="titulo" class="form-control" required placeholder="Ej: Diseño de Personaje - Guerrero">
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Descripción</label>
-                        <textarea name="descripcion" class="form-control" rows="3" placeholder="¿Qué contendrá esta carpeta?"></textarea>
+                        <textarea name="descripcion" class="form-control" rows="3" placeholder="¿Qué contendrá esta mini proyecto?"></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Crear Carpeta Vacía</button>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Crear Mini Proyecto Vacío</button>
                 </form>
             </div>
         </div>

@@ -95,7 +95,7 @@ if ($action === 'eliminar_post') {
     $controller->eliminar();
 }
 
-if ($action === 'crear_carpeta') {
+if ($action === 'crear_miniproyecto') {
     require_once '../app/Models/Miniproyecto.php';
     $modeloMini = new Miniproyecto();
     
@@ -110,12 +110,12 @@ if ($action === 'crear_carpeta') {
 
     if ($id) {
         if ($datos['proyecto_id']) {
-            header('Location: ver_proyecto.php?id=' . $datos['proyecto_id'] . '&mensaje=carpeta_creada');
+            header('Location: ver_proyecto.php?id=' . $datos['proyecto_id'] . '&mensaje=miniproyecto_creado');
         } else {
-            header('Location: dashboard_artista.php?mensaje=carpeta_creada');
+            header('Location: dashboard_artista.php?mensaje=miniproyecto_creado');
         }
     } else {
-        header('Location: crear_carpeta.php?error=db_error');
+        header('Location: crear_miniproyecto.php?error=db_error');
     }
     exit();
 }
