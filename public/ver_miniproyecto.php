@@ -24,7 +24,6 @@ if (!$mini) {
 $modeloPost = new Post();
 $posts = $modeloPost->obtenerPorMiniproyecto($miniproyecto_id);
 
-// Si solo hay 1 post, redirigir automáticamente
 if (count($posts) == 1) {
     header('Location: ver_post.php?id=' . $posts[0]['id']);
     exit();

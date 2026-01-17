@@ -30,19 +30,20 @@ class Miniproyecto {
             $sql = "SELECT mp.*, 
                     (SELECT COUNT(*) FROM posts p WHERE p.miniproyecto_id = mp.id) as cantidad_posts,
                     (SELECT url_archivo FROM imagenes_iteracion ii
-                    JOIN iteraciones i ON ii.iteracion_id = i.id 
-                    JOIN posts p ON i.post_id = p.id
-                    WHERE p.miniproyecto_id = mp.id AND ii.es_principal = 1
-                    ORDER BY p.fecha_creacion DESC, i.numero_version DESC LIMIT 1) as miniatura,
+                     JOIN iteraciones i ON ii.iteracion_id = i.id 
+                     JOIN posts p ON i.post_id = p.id
+                     WHERE p.miniproyecto_id = mp.id AND ii.es_principal = 1
+                     ORDER BY p.fecha_creacion DESC, i.numero_version DESC LIMIT 1) as miniatura,
                     (SELECT c.nombre_categoria FROM posts p 
-                    JOIN categorias c ON p.categoria_id = c.id
-                    WHERE p.miniproyecto_id = mp.id 
-                    ORDER BY p.fecha_creacion ASC LIMIT 1) as categoria_heredada
+                     JOIN categorias c ON p.categoria_id = c.id
+                     WHERE p.miniproyecto_id = mp.id 
+                     ORDER BY p.fecha_creacion ASC LIMIT 1) as categoria_heredada,
+                    (SELECT titulo FROM posts p WHERE p.miniproyecto_id = mp.id ORDER BY p.fecha_creacion ASC LIMIT 1) as titulo_primer_post,
+                    (SELECT id FROM posts p WHERE p.miniproyecto_id = mp.id ORDER BY p.fecha_creacion ASC LIMIT 1) as id_primer_post
                     FROM miniproyectos mp 
                     WHERE mp.creador_id = ? 
-                    HAVING cantidad_posts > 0
                     ORDER BY mp.fecha_creacion DESC";
-            
+                    
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$usuario_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);

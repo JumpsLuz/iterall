@@ -1,4 +1,6 @@
 <?php
+require_once '../app/Models/Proyecto.php';
+
 class ProyectoController {
     private $modeloProyecto;
 
@@ -8,6 +10,13 @@ class ProyectoController {
 
     public function crear() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            
+            // Validaciones básicas
+            if (empty($_POST['titulo']) || empty($_POST['categoria_id']) || empty($_POST['estado_id'])) {
+                 header('Location: crear_proyecto.php?error=campos_requeridos');
+                 exit();
+            }
+
             $datos = [
                 'creador_id' => $_SESSION['usuario_id'],
                 'categoria_id' => $_POST['categoria_id'],
@@ -17,13 +26,15 @@ class ProyectoController {
                 'es_publico' => isset($_POST['es_publico']) ? 1 : 0
             ];
 
+            // Intentar crear
             $exito = $this->modeloProyecto->crear($datos);
 
             if ($exito) {
+                // Éxito: Vamos al listado o al detalle
                 header('Location: mis_proyectos.php?mensaje=proyecto_creado');
                 exit();
             } else {
-                header('Location: crear_proyecto.php?error=1');
+                header('Location: crear_proyecto.php?error=no_se_pudo_crear');
                 exit();
             }
         }
@@ -32,7 +43,7 @@ class ProyectoController {
     public function editar() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $proyecto_id = $_POST['proyecto_id'];
-
+            
             $datos = [
                 'categoria_id' => $_POST['categoria_id'],
                 'estado_id' => $_POST['estado_id'],
@@ -56,7 +67,7 @@ class ProyectoController {
     public function eliminar() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $proyecto_id = $_POST['proyecto_id'];
-
+            
             $exito = $this->modeloProyecto->eliminar($proyecto_id, $_SESSION['usuario_id']);
 
             if ($exito) {
@@ -69,3 +80,4 @@ class ProyectoController {
         }
     }
 }
+?>

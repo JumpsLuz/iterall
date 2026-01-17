@@ -16,30 +16,52 @@ class PostController {
     public function crear() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
-            if (empty($_POST['miniproyecto_id']) && empty($_POST['proyecto_id'])) {
-                header('Location: dashboard_artista.php?error=padre_necesario');
+            if (empty($_POST['titulo']) || empty($_POST['categoria_id'])) {
+                header('Location: crear_post.php?error=campos_vacios');
                 exit();
+            }
+
+            $miniproyecto_id = !empty($_POST['miniproyecto_id']) ? $_POST['miniproyecto_id'] : null;
+            $proyecto_id = !empty($_POST['proyecto_id']) ? $_POST['proyecto_id'] : null;
+
+            if ($miniproyecto_id) {
+                $proyecto_id = null; 
             }
 
             $datos = [
                 'creador_id' => $_SESSION['usuario_id'],
                 'titulo' => $_POST['titulo'],
                 'categoria_id' => $_POST['categoria_id'],
-                'miniproyecto_id' => !empty($_POST['miniproyecto_id']) ? $_POST['miniproyecto_id'] : null,
-                'proyecto_id' => !empty($_POST['proyecto_id']) ? $_POST['proyecto_id'] : null
+                'descripcion' => $_POST['descripcion'] ?? '',
+                'miniproyecto_id' => $miniproyecto_id,
+                'proyecto_id' => $proyecto_id
             ];
 
-            if (!empty($_POST['descripcion']) && !empty($_POST['miniproyecto_id'])) {
+            if (!empty($_POST['descripcion']) && $miniproyecto_id) {
                 try {
                     $sqlUpdate = "UPDATE miniproyectos SET descripcion = ? WHERE id = ? AND creador_id = ?";
                     $stmtUpdate = $this->db->prepare($sqlUpdate);
                     $stmtUpdate->execute([
-                        $_POST['descripcion'],
-                        $_POST['miniproyecto_id'],
+                        $_POST['descripcion'], 
+                        $miniproyecto_id, 
                         $_SESSION['usuario_id']
                     ]);
                 } catch (PDOException $e) {
-                    error_log("Error al actualizar descripción de miniproyecto: " . $e->getMessage());
+                    error_log("Aviso: No se pudo sincronizar descripción de carpeta: " . $e->getMessage());
+                }
+            }
+
+            if ($miniproyecto_id && (!empty($_POST['titulo_miniproyecto']) || !empty($_POST['descripcion_miniproyecto']))) {
+                try {
+                    $sqlUpd = "UPDATE miniproyectos SET titulo = ?, descripcion = ? WHERE id = ? AND creador_id = ?";
+                    $stmtUpd = $this->db->prepare($sqlUpd);
+                    
+                    $nuevoTitulo = $_POST['titulo_miniproyecto']; 
+                    $nuevaDesc = $_POST['descripcion_miniproyecto'];
+
+                    $stmtUpd->execute([$nuevoTitulo, $nuevaDesc, $miniproyecto_id, $_SESSION['usuario_id']]);
+                } catch (Exception $e) {
+                    error_log("Error actualizando carpeta: " . $e->getMessage());
                 }
             }
 
@@ -49,7 +71,7 @@ class PostController {
                 if ($datos['miniproyecto_id']) {
                     header('Location: ver_miniproyecto.php?id=' . $datos['miniproyecto_id']);
                 } else {
-                    header('Location: ver_proyecto.php?id=' . $datos['proyecto_id']);
+                    header('Location: ver_proyecto.php?id=' . $_POST['proyecto_id']); // Usamos el POST original para redirigir
                 }
                 exit();
             } else {
@@ -66,49 +88,49 @@ class PostController {
         }
 
         try {
-
             $this->db->beginTransaction();
 
-            $proyecto_id = !empty($_POST['proyecto_id']) ? $_POST['proyecto_id'] : null;
+            $proyecto_id_padre = !empty($_POST['proyecto_id']) ? $_POST['proyecto_id'] : null;
 
             $datosMini = [
                 'creador_id' => $_SESSION['usuario_id'],
-                'proyecto_id' => $proyecto_id,
+                'proyecto_id' => $proyecto_id_padre,
                 'titulo' => $_POST['titulo'],
-                'descripcion' => $_POST['descripcion'] ?? null
+                'descripcion' => $_POST['descripcion'] ?? ''
             ];
-
+            
             $miniproyecto_id = $this->modeloMini->crear($datosMini);
 
-                if (!$miniproyecto_id) {
-                    throw new Exception("Error al generar el contenedor del post.");
-                }
+            if (!$miniproyecto_id) {
+                throw new Exception("Error crítico al crear la carpeta contenedora.");
+            }
             
             $datosPost = [
-                    'creador_id' => $_SESSION['usuario_id'],
-                    'titulo' => $_POST['titulo'],
-                    'categoria_id' => $_POST['categoria_id'],
-                    'miniproyecto_id' => $miniproyecto_id,
-                    'proyecto_id' => $proyecto_id 
+                'creador_id' => $_SESSION['usuario_id'],
+                'titulo' => $_POST['titulo'],
+                'categoria_id' => $_POST['categoria_id'],
+                'miniproyecto_id' => $miniproyecto_id,
+                'proyecto_id' => null
                 ];
-            
+
             $exitoPost = $this->modeloPost->crear($datosPost);
 
-                if (!$exitoPost) {
-                    throw new Exception("Error al guardar el post.");
-                }
+            if (!$exitoPost) {
+                throw new Exception("Error al guardar el post en la base de datos.");
+            }
 
             $this->db->commit();
-                
-            if ($proyecto_id) {
-                header('Location: ver_proyecto.php?id=' . $proyecto_id . '&mensaje=carpeta_creada');
+
+            if ($proyecto_id_padre) {
+                header('Location: ver_proyecto.php?id=' . $proyecto_id_padre . '&mensaje=post_creado');
             } else {
                 header('Location: dashboard_artista.php?mensaje=post_creado');
             }
             exit();
+
         } catch (Exception $e) {
             $this->db->rollBack();
-            error_log("Error en creación rápida de post: " . $e->getMessage());
+            error_log("Error en creación rápida: " . $e->getMessage());
             header('Location: crear_post_rapido.php?error=db_error');
             exit();
         }
@@ -124,7 +146,12 @@ class PostController {
         $resultado = $this->modeloPost->toggleDestacado($post_id, $_SESSION['usuario_id']);
 
         if ($resultado === 'limite_alcanzado') {
-            header('Location: dashboard_artista.php?error=limite_destacados');
+            $volverA = $_SERVER['HTTP_REFERER'] ?? 'dashboard_artista.php';
+            if (strpos($volverA, '?') !== false) {
+                header('Location: ' . $volverA . '&error=limite_destacados');
+            } else {
+                header('Location: ' . $volverA . '?error=limite_destacados');
+            }
         } else {
             $volverA = $_SERVER['HTTP_REFERER'] ?? 'dashboard_artista.php';
             header('Location: ' . $volverA);
@@ -171,8 +198,14 @@ class PostController {
             }
 
             $this->db->commit();
-
-            header('Location: dashboard_artista.php?mensaje=post_eliminado');
+            
+            if ($post['proyecto_id']) {
+                 header('Location: ver_proyecto.php?id=' . $post['proyecto_id'] . '&mensaje=post_eliminado');
+            } elseif ($miniproyecto_id) {
+                 header('Location: dashboard_artista.php?mensaje=post_eliminado');
+            } else {
+                 header('Location: dashboard_artista.php?mensaje=post_eliminado');
+            }
             exit();
 
         } catch (Exception $e) {
@@ -183,3 +216,4 @@ class PostController {
         }
     }
 }
+?>

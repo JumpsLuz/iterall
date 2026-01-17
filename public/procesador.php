@@ -94,3 +94,28 @@ if ($action === 'eliminar_post') {
     $controller = new PostController();
     $controller->eliminar();
 }
+
+if ($action === 'crear_carpeta') {
+    require_once '../app/Models/Miniproyecto.php';
+    $modeloMini = new Miniproyecto();
+    
+    $datos = [
+        'creador_id' => $_SESSION['usuario_id'],
+        'proyecto_id' => !empty($_POST['proyecto_id']) ? $_POST['proyecto_id'] : null,
+        'titulo' => $_POST['titulo'],
+        'descripcion' => $_POST['descripcion'] ?? ''
+    ];
+
+    $id = $modeloMini->crear($datos);
+
+    if ($id) {
+        if ($datos['proyecto_id']) {
+            header('Location: ver_proyecto.php?id=' . $datos['proyecto_id'] . '&mensaje=carpeta_creada');
+        } else {
+            header('Location: dashboard_artista.php?mensaje=carpeta_creada');
+        }
+    } else {
+        header('Location: crear_carpeta.php?error=db_error');
+    }
+    exit();
+}
