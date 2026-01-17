@@ -25,60 +25,108 @@ $categorias = $modeloProyecto->obtenerCategorias();
 $estados = $modeloProyecto->obtenerEstados();
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Proyecto | ITERALL</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
 <body>
-    <h2>Editar Proyecto</h2>
-    
-    <?php if (isset($_GET['error'])): ?>
-        <p><strong>Error:</strong> Hubo un error al actualizar el proyecto. Intenta nuevamente.</p>
-    <?php endif; ?>
-
-    <form action="procesador.php?action=editar_proyecto" method="POST">
-        <input type="hidden" name="proyecto_id" value="<?php echo $proyecto['id']; ?>">
+    <div class="container" style="max-width: 800px;">
         
-        <label>Título del Proyecto *</label><br>
-        <input type="text" name="titulo" required maxlength="255" 
-               value="<?php echo htmlspecialchars($proyecto['titulo']); ?>"><br><br>
+        <div class="navbar">
+            <a href="ver_proyecto.php?id=<?php echo $proyecto['id']; ?>" class="btn btn-secondary">← Volver al Proyecto</a>
+        </div>
 
-        <label>Descripción</label><br>
-        <textarea name="descripcion" placeholder="Describe tu proyecto..."><?php echo htmlspecialchars($proyecto['descripcion']); ?></textarea><br><br>
+        <div class="card">
+            <div class="card-body">
+                <h2>⚙️ Configuración del Proyecto</h2>
+                
+                <?php if (isset($_GET['error'])): ?>
+                    <div class="badge badge-status" style="background: rgba(239,68,68,0.2); color: var(--danger); display:block; margin-bottom: 15px;">
+                        ⚠️ Error: Hubo un error al actualizar el proyecto. Intenta nuevamente.
+                    </div>
+                <?php endif; ?>
 
-        <label>Categoría *</label><br>
-        <select name="categoria_id" required>
-            <option value="">-- Selecciona una categoría --</option>
-            <?php foreach ($categorias as $cat): ?>
-                <option value="<?php echo $cat['id']; ?>" 
-                        <?php echo ($cat['id'] == $proyecto['categoria_id']) ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($cat['nombre_categoria']); ?>
-                </option>
-            <?php endforeach; ?>
-        </select><br><br>
+                <form action="procesador.php?action=editar_proyecto" method="POST">
+                    <input type="hidden" name="proyecto_id" value="<?php echo $proyecto['id']; ?>">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Título del Proyecto *</label>
+                        <input type="text" name="titulo" class="form-control" required maxlength="255" 
+                               value="<?php echo htmlspecialchars($proyecto['titulo']); ?>">
+                    </div>
 
-        <label>Estado *</label><br>
-        <select name="estado_id" required>
-            <option value="">-- Selecciona un estado --</option>
-            <?php foreach ($estados as $est): ?>
-                <option value="<?php echo $est['id']; ?>"
-                        <?php echo ($est['id'] == $proyecto['estado_id']) ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($est['nombre_estado']); ?>
-                </option>
-            <?php endforeach; ?>
-        </select><br><br>
+                    <div class="form-group">
+                        <label class="form-label">Descripción</label>
+                        <textarea name="descripcion" class="form-control" rows="4" placeholder="Describe tu proyecto..."><?php echo htmlspecialchars($proyecto['descripcion']); ?></textarea>
+                    </div>
 
-        <input type="checkbox" name="es_publico" id="es_publico" value="1"
-               <?php echo $proyecto['es_publico'] ? 'checked' : ''; ?>>
-        <label for="es_publico">Hacer público este proyecto</label><br><br>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label class="form-label">Categoría *</label>
+                            <select name="categoria_id" class="form-control" required>
+                                <option value="">-- Selecciona una categoría --</option>
+                                <?php foreach ($categorias as $cat): ?>
+                                    <option value="<?php echo $cat['id']; ?>" 
+                                            <?php echo ($cat['id'] == $proyecto['categoria_id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($cat['nombre_categoria']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-        <button type="submit">Guardar Cambios</button>
-        <a href="ver_proyecto.php?id=<?php echo $proyecto['id']; ?>">
-            <button type="button">Cancelar</button>
-        </a>
-        <hr>
-        <h3>Eliminar</h3>
-        <form action="procesador.php?action=eliminar_proyecto" method="POST" onsubmit="return confirm('¡CUIDADO! Esto eliminará el proyecto y TODO su contenido. ¿Confirmar?');">
-            <input type="hidden" name="proyecto_id" value="<?php echo $proyecto['id']; ?>">
-            <button type="submit" style="background: red; color: white;">Eliminar Proyecto Definitivamente</button>
-        </form>
-    </form>
+                        <div class="form-group">
+                            <label class="form-label">Estado *</label>
+                            <select name="estado_id" class="form-control" required>
+                                <option value="">-- Selecciona un estado --</option>
+                                <?php foreach ($estados as $est): ?>
+                                    <option value="<?php echo $est['id']; ?>"
+                                            <?php echo ($est['id'] == $proyecto['estado_id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($est['nombre_estado']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" name="es_publico" value="1"
+                                   <?php echo $proyecto['es_publico'] ? 'checked' : ''; ?>>
+                            <span>
+                                <strong>Hacer público este proyecto</strong>
+                                <br><small class="text-muted">Si no lo marcas, solo tú podrás verlo.</small>
+                            </span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;">Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+
+        <hr style="margin: 40px 0;">
+
+        <div class="card" style="border-color: var(--danger);">
+            <div class="card-body">
+                <h3 style="color: var(--danger);">🗑️ Zona Peligrosa</h3>
+                <p class="text-muted" style="margin: 15px 0;">
+                    Esta acción eliminará permanentemente el proyecto y TODO su contenido: miniproyectos, posts, iteraciones e imágenes.
+                    <strong>Esta acción no se puede deshacer.</strong>
+                </p>
+                
+                <form action="procesador.php?action=eliminar_proyecto" method="POST" 
+                      onsubmit="return confirm('⚠️ ADVERTENCIA FINAL\n\n¿Estás COMPLETAMENTE SEGURO de eliminar este proyecto?\n\nSe perderá:\n- Todos los miniproyectos\n- Todos los posts\n- Todas las iteraciones\n- Todas las imágenes\n\nEsta acción es IRREVERSIBLE.');"
+                      style="margin-top: 15px;">
+                    <input type="hidden" name="proyecto_id" value="<?php echo $proyecto['id']; ?>">
+                    <button type="submit" class="btn btn-danger" style="width: 100%; padding: 12px;">
+                        Eliminar Proyecto Definitivamente
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
 </body>
 </html>

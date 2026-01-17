@@ -56,6 +56,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
         
         <div class="navbar">
             <a href="crear_post_rapido.php" class="btn btn-primary">+ Post Rápido</a>
+            <a href="crear_carpeta.php" class="btn btn-secondary">+ Nueva Carpeta</a>
             <a href="crear_proyecto.php" class="btn btn-secondary">+ Nuevo Proyecto Grande</a>
             <a href="mis_proyectos.php" class="btn btn-secondary">Ver Todos mis Proyectos</a>
         </div>
@@ -92,7 +93,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
         <?php endif; ?>
 
         <div class="section-header">
-            <h2>🕒 Actividad Reciente</h2>
+            <h2>Actividad Reciente</h2>
         </div>
 
         <div class="grid-gallery">
@@ -102,14 +103,18 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
                 <?php foreach ($recientes as $item): ?>
                     <div class="card">
                         <div class="card-body">
-                            <?php if ($item['cantidad_posts'] == 1): 
-                                $primer_post_id = $modeloMini->obtenerPrimerPostId($item['id']); ?>
+                            <?php 
+                            $esPostIndividual = $item['es_post_individual'] > 0;
+                            
+                            if ($esPostIndividual): 
+                                $primer_post_id = $modeloMini->obtenerPrimerPostId($item['id']); 
+                            ?>
                                 <h3>📄 <?php echo htmlspecialchars($item['titulo']); ?></h3>
                                 <p>Post Individual</p>
                                 <a href="ver_post.php?id=<?php echo $primer_post_id; ?>" class="btn btn-secondary" style="width:100%">Ver Post</a>
                             <?php else: ?>
                                 <h3>📁 <?php echo htmlspecialchars($item['titulo']); ?></h3>
-                                <p>Colección (<?php echo $item['cantidad_posts']; ?> posts)</p>
+                                <p>Carpeta (<?php echo $item['cantidad_posts']; ?> posts)</p>
                                 <a href="ver_miniproyecto.php?id=<?php echo $item['id']; ?>" class="btn btn-secondary" style="width:100%">Abrir Carpeta</a>
                             <?php endif; ?>
                         </div>
@@ -119,7 +124,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
         </div>
         
         <div class="section-header">
-            <h2>🚀 Proyectos Principales</h2>
+            <h2>Proyectos Principales</h2>
         </div>
         <div class="grid-gallery">
              <?php foreach ($proyectos as $proy): ?>

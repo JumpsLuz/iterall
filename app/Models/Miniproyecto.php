@@ -1,9 +1,29 @@
 <?php
 class Miniproyecto {
     private $db;
+    
+    const ETIQUETA_POST_INDIVIDUAL = '#@#_no_mini_proyecto_#@#';
 
     public function __construct() {
         $this->db = Database::getInstance();
+    }
+
+    
+    public function esPostIndividual($miniproyecto_id) {
+        try {
+            $sql = "SELECT COUNT(*) FROM post_etiquetas pe
+                    INNER JOIN posts p ON pe.post_id = p.id
+                    INNER JOIN etiquetas e ON pe.etiqueta_id = e.id
+                    WHERE p.miniproyecto_id = ? AND e.nombre_etiqueta = ?";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$miniproyecto_id, self::ETIQUETA_POST_INDIVIDUAL]);
+            
+            return $stmt->fetchColumn() > 0;
+        } catch (PDOException $e) {
+            error_log("Error al verificar si es post individual: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function crear($datos) {
@@ -39,13 +59,17 @@ class Miniproyecto {
                      WHERE p.miniproyecto_id = mp.id 
                      ORDER BY p.fecha_creacion ASC LIMIT 1) as categoria_heredada,
                     (SELECT titulo FROM posts p WHERE p.miniproyecto_id = mp.id ORDER BY p.fecha_creacion ASC LIMIT 1) as titulo_primer_post,
-                    (SELECT id FROM posts p WHERE p.miniproyecto_id = mp.id ORDER BY p.fecha_creacion ASC LIMIT 1) as id_primer_post
+                    (SELECT id FROM posts p WHERE p.miniproyecto_id = mp.id ORDER BY p.fecha_creacion ASC LIMIT 1) as id_primer_post,
+                    (SELECT COUNT(*) FROM post_etiquetas pe
+                     INNER JOIN posts p ON pe.post_id = p.id
+                     INNER JOIN etiquetas e ON pe.etiqueta_id = e.id
+                     WHERE p.miniproyecto_id = mp.id AND e.nombre_etiqueta = ?) as es_post_individual
                     FROM miniproyectos mp 
-                    WHERE mp.creador_id = ? 
+                    WHERE mp.creador_id = ? AND mp.proyecto_id IS NULL
                     ORDER BY mp.fecha_creacion DESC";
                     
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([$usuario_id]);
+            $stmt->execute([self::ETIQUETA_POST_INDIVIDUAL, $usuario_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error al obtener miniproyectos: " . $e->getMessage());
@@ -80,15 +104,19 @@ class Miniproyecto {
     public function obtenerPorProyectoPadre($proyecto_id) {
     try {
         $sql = "SELECT mp.*, 
-                (SELECT COUNT(*) FROM posts p WHERE p.miniproyecto_id = mp.id) as cantidad_posts 
+                (SELECT COUNT(*) FROM posts p WHERE p.miniproyecto_id = mp.id) as cantidad_posts,
+                (SELECT COUNT(*) FROM post_etiquetas pe
+                INNER JOIN posts p ON pe.post_id = p.id
+                INNER JOIN etiquetas e ON pe.etiqueta_id = e.id
+                WHERE p.miniproyecto_id = mp.id AND e.nombre_etiqueta = ?) as es_post_individual
                 FROM miniproyectos mp 
                 WHERE mp.proyecto_id = ? 
                 ORDER BY mp.fecha_creacion DESC";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$proyecto_id]);
+        $stmt->execute([self::ETIQUETA_POST_INDIVIDUAL, $proyecto_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
+        error_log("Error al obtener miniproyectos por proyecto: " . $e->getMessage());
         return [];
-    }
-}
+    }}
 }

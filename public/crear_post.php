@@ -10,23 +10,38 @@ $miniproyecto_id = $_GET['miniproyecto_id'] ?? null;
 $proyecto_id = $_GET['proyecto_id'] ?? null; 
 
 if (!$miniproyecto_id && !$proyecto_id) {
-    die("<div class='container'><h3 style='color:red'>Error: Acceso no válido. Debes entrar desde una carpeta.</h3></div>");
+    die("<div class='container'><h3 style='color:red'>Error: Acceso no válido. Debes entrar desde una carpeta o proyecto.</h3></div>");
 }
-$tituloPadre = $nombrePadre; 
-$forzarRenombre = ($esColeccion && $cantidadPostsActuales == 1);
-$esColeccion = false;
+
 $cantidadPostsActuales = 0;
+$forzarRenombre = false;
 
 if ($miniproyecto_id) {
     $modeloMini = new Miniproyecto();
     $padre = $modeloMini->obtenerPorId($miniproyecto_id, $_SESSION['usuario_id']);
+    
     if ($padre) {
         $nombrePadre = $padre['titulo'];
+        $esColeccion = true;
+        
         $db = Database::getInstance();
         $stmt = $db->prepare("SELECT COUNT(*) FROM posts WHERE miniproyecto_id = ?");
         $stmt->execute([$miniproyecto_id]);
         $cantidadPostsActuales = $stmt->fetchColumn();
-        $esColeccion = true;
+        
+        $forzarRenombre = ($esColeccion && $cantidadPostsActuales == 1);
+    } else {
+        die("<div class='container'><h3 style='color:red'>Error: Carpeta no encontrada.</h3></div>");
+    }
+} else if ($proyecto_id) {
+    $modeloProyecto = new Proyecto();
+    $padre = $modeloProyecto->obtenerPorId($proyecto_id, $_SESSION['usuario_id']);
+    
+    if ($padre) {
+        $nombrePadre = $padre['titulo'];
+        $esColeccion = false; 
+    } else {
+        die("<div class='container'><h3 style='color:red'>Error: Proyecto no encontrado.</h3></div>");
     }
 }
 
@@ -45,7 +60,11 @@ $categorias = $modeloProyecto->obtenerCategorias();
     <div class="container" style="max-width: 700px;">
         
         <div class="navbar">
-            <a href="<?php echo $miniproyecto_id ? 'ver_miniproyecto.php?id='.$miniproyecto_id : 'dashboard_artista.php'; ?>" class="btn btn-secondary">← Cancelar</a>
+            <?php if ($miniproyecto_id): ?>
+                <a href="ver_miniproyecto.php?id=<?php echo $miniproyecto_id; ?>" class="btn btn-secondary">← Cancelar</a>
+            <?php else: ?>
+                <a href="ver_proyecto.php?id=<?php echo $proyecto_id; ?>" class="btn btn-secondary">← Cancelar</a>
+            <?php endif; ?>
         </div>
 
         <div class="card">
@@ -88,30 +107,32 @@ $categorias = $modeloProyecto->obtenerCategorias();
                     <?php if ($miniproyecto_id): ?>
                         <hr style="border-color: #444; margin: 20px 0;">
                         
-                        <div style="background: #252525; padding: 15px; border-radius: var(--radius); border: 1px solid #444;">
-                            <h4 style="color: var(--primary); margin-bottom: 10px;">📂 Configuración de la Colección</h4>
+                        
                             
                             <?php if ($forzarRenombre): ?>
-                                <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 10px;">
-                                    Al agregar un segundo post, esto se convertirá en una carpeta. 
-                                    <strong>Dale un nombre general a la carpeta</strong> (ej: en lugar de "Boceto 1", ponle "Personaje X").
-                                </p>
+                                <div style="background: #252525; padding: 15px; border-radius: var(--radius); border: 1px solid #444;">     
+                                    <h4 style="color: var(--primary); margin-bottom: 10px;">📂 Configuración de la Colección</h4>
+                                    <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 10px;">
+                                        Al agregar un segundo post, esto se convertirá en una carpeta. 
+                                        <strong>Dale un nombre general a la carpeta</strong> (ej: en lugar de "Boceto 1", ponle "Personaje X").
+                                    </p>
+
+                                    <div class="form-group">
+                                    <label class="form-label">Título de la Carpeta</label>
+                                    <input type="text" name="titulo_miniproyecto" class="form-control" 
+                                        value="<?php echo htmlspecialchars($nombrePadre); ?>" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Descripción de la Carpeta</label>
+                                        <textarea name="descripcion_miniproyecto" class="form-control" rows="2"></textarea>
+                                    </div>
+                                </div>
                             <?php endif; ?>
-
-                            <div class="form-group">
-                                <label class="form-label">Título de la Carpeta</label>
-                                <input type="text" name="titulo_miniproyecto" class="form-control" 
-                                    value="<?php echo htmlspecialchars($tituloPadre); ?>" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Descripción de la Carpeta</label>
-                                <textarea name="descripcion_miniproyecto" class="form-control" rows="2"></textarea>
-                            </div>
-                        </div>
+                        
                     <?php endif; ?>
 
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar Post</button>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Guardar Post</button>
                 </form>
             </div>
         </div>

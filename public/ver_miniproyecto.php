@@ -24,7 +24,9 @@ if (!$mini) {
 $modeloPost = new Post();
 $posts = $modeloPost->obtenerPorMiniproyecto($miniproyecto_id);
 
-if (count($posts) == 1) {
+$esPostIndividual = $modeloMini->esPostIndividual($miniproyecto_id);
+
+if ($esPostIndividual && count($posts) == 1) {
     header('Location: ver_post.php?id=' . $posts[0]['id']);
     exit();
 }
@@ -36,10 +38,16 @@ if ($mini['proyecto_id']) {
 }
 ?>
 <!DOCTYPE html>
-<html>
-    <body>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title><?php echo htmlspecialchars($mini['titulo']); ?> | ITERALL</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
         
-        <nav>
+        <div class="breadcrumb">
             <a href="dashboard_artista.php">Dashboard</a> 
             
             <?php if ($proyectoPadre): ?>
@@ -47,55 +55,52 @@ if ($mini['proyecto_id']) {
                     <?php echo htmlspecialchars($proyectoPadre['titulo']); ?>
                   </a>
             <?php else: ?>
-                > <span>Colección Suelta</span>
+                > <span>Carpeta Independiente</span>
             <?php endif; ?>
             
             > <strong><?php echo htmlspecialchars($mini['titulo']); ?></strong>
-        </nav>
+        </div>
 
-        <hr>
-
-        <header>
+        <div class="card" style="margin-bottom: 30px; padding: 20px;">
             <h1>📁 <?php echo htmlspecialchars($mini['titulo']); ?></h1>
             
             <?php if (!empty($mini['descripcion'])): ?>
-                <p><?php echo nl2br(htmlspecialchars($mini['descripcion'])); ?></p>
+                <p style="margin-top: 15px; color: var(--text-muted);">
+                    <?php echo nl2br(htmlspecialchars($mini['descripcion'])); ?>
+                </p>
             <?php else: ?>
-                <p><em>Sin descripción de la colección.</em></p>
+                <p style="margin-top: 15px; color: var(--text-muted);">
+                    <em>Sin descripción de la carpeta.</em>
+                </p>
             <?php endif; ?>
+        </div>
 
-            <button disabled>✏️ Editar Detalles de la Carpeta (Próximamente)</button> 
-        </header>
+        <div class="section-header">
+            <h2>Contenido (<?php echo count($posts); ?> items)</h2>
+            <a href="crear_post.php?miniproyecto_id=<?php echo $mini['id']; ?>" class="btn btn-primary">+ Agregar Nuevo Post</a>
+        </div>
 
-        <hr>
-
-        <main>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>Contenido (<?php echo count($posts); ?> items)</h2>
-                
-                <a href="crear_post.php?miniproyecto_id=<?php echo $mini['id']; ?>">
-                    <button>+ Agregar Nuevo Post a esta Colección</button>
-                </a>
-            </div>
-
-            <?php if (empty($posts)): ?>
+        <?php if (empty($posts)): ?>
+            <div class="empty-state">
                 <p>Esta carpeta está vacía.</p>
-            <?php else: ?>
-                
-                <ul>
-                    <?php foreach ($posts as $post): ?>
-                        <li style="margin-bottom: 15px;">
-                            <strong><?php echo htmlspecialchars($post['titulo']); ?></strong>
-                            <br>
-                            <small>Subido el: <?php echo $post['fecha_creacion']; ?></small>
-                            <br>
-                            <a href="ver_post.php?id=<?php echo $post['id']; ?>">Ver Trabajo y Versiones</a>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
+                <p>Agrega tu primer post para comenzar a documentar tu proceso creativo.</p>
+            </div>
+        <?php else: ?>
+            <div class="grid-gallery">
+                <?php foreach ($posts as $post): ?>
+                    <div class="card">
+                        <div class="card-body">
+                            <h3><?php echo htmlspecialchars($post['titulo']); ?></h3>
+                            <small class="text-muted">Subido el: <?php echo date('d/m/Y', strtotime($post['fecha_creacion'])); ?></small>
+                        </div>
+                        <div class="card-footer">
+                            <a href="ver_post.php?id=<?php echo $post['id']; ?>" class="btn btn-primary" style="width: 100%;">Ver Trabajo y Versiones</a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
-            <?php endif; ?>
-        </main>
-
-    </body>
+    </div>
+</body>
 </html>

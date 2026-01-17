@@ -30,6 +30,23 @@ if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit();
             <span style="color: white;"><?php echo htmlspecialchars($proyecto['titulo']); ?></span>
         </div>
 
+        <?php if (isset($_GET['mensaje'])): ?>
+            <div class="badge badge-status" style="display:block; padding: 10px; margin-bottom: 20px; background: rgba(16,185,129,0.2); color: var(--success);">
+                <?php 
+                switch($_GET['mensaje']) {
+                    case 'post_creado':
+                        echo '✓ Post creado exitosamente';
+                        break;
+                    case 'actualizado':
+                        echo '✓ Proyecto actualizado correctamente';
+                        break;
+                    default:
+                        echo '✓ Acción completada';
+                }
+                ?>
+            </div>
+        <?php endif; ?>
+
         <div class="card" style="margin-bottom: 30px; padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
@@ -52,30 +69,47 @@ if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit();
         </div>
 
         <div class="section-header">
-            <h2>Carpetas y Colecciones</h2>
+            <h2>Contenido del Proyecto</h2>
             <div>
-                <a href="crear_post_rapido.php?proyecto_id=<?php echo $proyecto['id']; ?>" class="btn btn-primary">+ Nueva Carpeta</a>
-                <a href="crear_post.php?proyecto_id=<?php echo $proyecto['id']; ?>" class="btn btn-secondary">+ Post Suelto</a>
+                <a href="crear_carpeta.php?proyecto_id=<?php echo $proyecto['id']; ?>" class="btn btn-primary">+ Nueva Carpeta</a>
+                <a href="crear_post_rapido.php?proyecto_id=<?php echo $proyecto['id']; ?>" class="btn btn-secondary">+ Post Individual</a>
             </div>
         </div>
 
         <?php if (empty($miniproyectosHijos)): ?>
             <div class="empty-state">
                 <p>Este proyecto está vacío.</p>
-                <p>Crea una "Carpeta" (Mini-proyecto) para organizar personajes, escenarios o props.</p>
+                <p>Crea una "Carpeta" para organizar múltiples trabajos relacionados, o un "Post Individual" para obras únicas.</p>
             </div>
         <?php else: ?>
             <div class="grid-gallery">
                 <?php foreach ($miniproyectosHijos as $mini): ?>
-                    <div class="card">
-                        <div class="card-body">
-                            <h3>📂 <?php echo htmlspecialchars($mini['titulo']); ?></h3>
-                            <p><?php echo $mini['cantidad_posts']; ?> items dentro</p>
+                    <?php 
+                    $esPostIndividual = $mini['es_post_individual'] > 0;
+                    
+                    if ($esPostIndividual): 
+                        $primer_post_id = $modeloMini->obtenerPrimerPostId($mini['id']); 
+                    ?>
+                        <div class="card">
+                            <div class="card-body">
+                                <h3>📄 <?php echo htmlspecialchars($mini['titulo']); ?></h3>
+                                <p>Post Individual</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="ver_post.php?id=<?php echo $primer_post_id; ?>" class="btn btn-primary" style="width: 100%;">Ver Post</a>
+                            </div>
                         </div>
-                        <div class="card-footer">
-                            <a href="ver_miniproyecto.php?id=<?php echo $mini['id']; ?>" class="btn btn-primary" style="width: 100%;">Abrir Carpeta</a>
+                    <?php else: ?>
+                        <div class="card">
+                            <div class="card-body">
+                                <h3>📁 <?php echo htmlspecialchars($mini['titulo']); ?></h3>
+                                <p><?php echo $mini['cantidad_posts']; ?> items dentro</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="ver_miniproyecto.php?id=<?php echo $mini['id']; ?>" class="btn btn-primary" style="width: 100%;">Abrir Carpeta</a>
+                            </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>

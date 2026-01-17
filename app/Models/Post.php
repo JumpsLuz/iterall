@@ -11,13 +11,15 @@ class Post {
             $sql = "INSERT INTO posts (creador_id, titulo, categoria_id, miniproyecto_id, proyecto_id) VALUES (?, ?, ?, ?, ?)";
             $stmt = $this->db->prepare($sql);
 
-            return $stmt->execute([
+            $resultado = $stmt->execute([
                 $datos['creador_id'],
                 $datos['titulo'],
                 $datos['categoria_id'],
                 $datos['miniproyecto_id'] ?? null,
                 $datos['proyecto_id'] ?? null
             ]);
+            
+            return $resultado ? $this->db->lastInsertId() : false;
         } catch (PDOException $e) {
             error_log("Error al crear post: " . $e->getMessage());
             return false;
@@ -44,10 +46,11 @@ class Post {
 
     public function obtenerDestacados($usuario_id) {
         try {
-            $sql = "SELECT p.*, mp.titulo AS nombre_miniproyecto FROM posts p 
+            $sql = "SELECT p.*, mp.titulo AS nombre_miniproyecto, c.nombre_categoria FROM posts p 
                     JOIN post_etiquetas pe ON p.id = pe.post_id
                     JOIN etiquetas e ON pe.etiqueta_id = e.id
                     LEFT JOIN miniproyectos mp ON p.miniproyecto_id = mp.id
+                    LEFT JOIN categorias c ON p.categoria_id = c.id
                     WHERE p.creador_id = ? AND e.nombre_etiqueta = 'Destacado'
                     ORDER BY p.fecha_creacion DESC LIMIT 5";
             

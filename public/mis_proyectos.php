@@ -28,6 +28,46 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($_SESSION['usuario_id']);
             <a href="crear_proyecto.php" class="btn btn-primary">+ Nuevo Proyecto</a>
         </div>
 
+        <?php if (isset($_GET['mensaje'])): ?>
+            <div class="badge badge-status" style="display:block; padding: 10px; margin-bottom: 20px; background: rgba(16,185,129,0.2); color: var(--success);">
+                <?php 
+                switch($_GET['mensaje']) {
+                    case 'proyecto_creado':
+                        echo '✓ Proyecto creado exitosamente';
+                        break;
+                    case 'proyecto_eliminado':
+                        echo '✓ Proyecto eliminado correctamente';
+                        break;
+                    default:
+                        echo '✓ Acción completada';
+                }
+                ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['error'])): ?>
+            <div class="badge badge-status" style="display:block; padding: 10px; margin-bottom: 20px; background: rgba(239,68,68,0.2); color: var(--danger);">
+                <?php 
+                switch($_GET['error']) {
+                    case 'no_se_pudo_eliminar':
+                        echo '⚠️ Error al eliminar el proyecto. Intenta nuevamente.';
+                        if (isset($_GET['detalle'])) {
+                            echo '<br><small>' . htmlspecialchars($_GET['detalle']) . '</small>';
+                        }
+                        break;
+                    case 'proyecto_no_encontrado':
+                        echo '⚠️ El proyecto no existe o no tienes permiso para acceder.';
+                        break;
+                    case 'not_found':
+                        echo '⚠️ Proyecto no encontrado.';
+                        break;
+                    default:
+                        echo '⚠️ Ocurrió un error.';
+                }
+                ?>
+            </div>
+        <?php endif; ?>
+
         <?php if (empty($proyectos)): ?>
             <div class="empty-state">
                 <h3>No tienes proyectos creados aún.</h3>
@@ -48,7 +88,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($_SESSION['usuario_id']);
                             <span class="badge badge-category"><?php echo htmlspecialchars($proyecto['nombre_categoria'] ?? 'General'); ?></span>
                             <span class="badge badge-status"><?php echo htmlspecialchars($proyecto['nombre_estado'] ?? 'Activo'); ?></span>
                             <hr style="margin: 10px 0; border-color: #333;">
-                            <p><?php echo nl2br(htmlspecialchars(substr($proyecto['descripcion'], 0, 100))) . '...'; ?></p>
+                            <p><?php echo nl2br(htmlspecialchars(substr($proyecto['descripcion'], 0, 100))); ?><?php echo strlen($proyecto['descripcion']) > 100 ? '...' : ''; ?></p>
                         </div>
                         
                         <div class="card-footer">

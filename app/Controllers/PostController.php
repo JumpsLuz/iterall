@@ -6,11 +6,59 @@ class PostController {
     private $modeloPost;
     private $modeloMini;
     private $db;
+    
+    const ETIQUETA_POST_INDIVIDUAL = '#@#_no_mini_proyecto_#@#';
 
     public function __construct() {
         $this->modeloPost = new Post();
         $this->modeloMini = new Miniproyecto();
         $this->db = Database::getInstance();
+    }
+
+    private function marcarComoPostIndividual($post_id) {
+        try {
+            $stmt = $this->db->prepare("SELECT id FROM etiquetas WHERE nombre_etiqueta = ?");
+            $stmt->execute([self::ETIQUETA_POST_INDIVIDUAL]);
+            $etiqueta = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$etiqueta) {
+                $stmt = $this->db->prepare("INSERT INTO etiquetas (nombre_etiqueta) VALUES (?)");
+                $stmt->execute([self::ETIQUETA_POST_INDIVIDUAL]);
+                $etiqueta_id = $this->db->lastInsertId();
+            } else {
+                $etiqueta_id = $etiqueta['id'];
+            }
+            
+            $stmt = $this->db->prepare("INSERT IGNORE INTO post_etiquetas (post_id, etiqueta_id) VALUES (?, ?)");
+            $stmt->execute([$post_id, $etiqueta_id]);
+            
+            return true;
+        } catch (PDOException $e) {
+            error_log("Error al marcar post como individual: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function convertirAMiniproyecto($miniproyecto_id) {
+        try {
+            $stmt = $this->db->prepare("SELECT id FROM etiquetas WHERE nombre_etiqueta = ?");
+            $stmt->execute([self::ETIQUETA_POST_INDIVIDUAL]);
+            $etiqueta = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($etiqueta) {
+                $stmt = $this->db->prepare("
+                    DELETE pe FROM post_etiquetas pe
+                    INNER JOIN posts p ON pe.post_id = p.id
+                    WHERE p.miniproyecto_id = ? AND pe.etiqueta_id = ?
+                ");
+                $stmt->execute([$miniproyecto_id, $etiqueta['id']]);
+            }
+            
+            return true;
+        } catch (PDOException $e) {
+            error_log("Error al convertir a miniproyecto: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function crear() {
@@ -24,8 +72,25 @@ class PostController {
             $miniproyecto_id = !empty($_POST['miniproyecto_id']) ? $_POST['miniproyecto_id'] : null;
             $proyecto_id = !empty($_POST['proyecto_id']) ? $_POST['proyecto_id'] : null;
 
-            if ($miniproyecto_id) {
-                $proyecto_id = null; 
+            if (!$miniproyecto_id && $proyecto_id) {
+                try {
+                    $datosMini = [
+                        'creador_id' => $_SESSION['usuario_id'],
+                        'proyecto_id' => $proyecto_id,
+                        'titulo' => $_POST['titulo'],
+                        'descripcion' => $_POST['descripcion'] ?? ''
+                    ];
+                    
+                    $miniproyecto_id = $this->modeloMini->crear($datosMini);
+                    
+                    if (!$miniproyecto_id) {
+                        throw new Exception("Error al crear miniproyecto contenedor");
+                    }
+                } catch (Exception $e) {
+                    error_log("Error creando miniproyecto automático: " . $e->getMessage());
+                    header('Location: crear_post.php?error=db_error');
+                    exit();
+                }
             }
 
             $datos = [
@@ -34,7 +99,7 @@ class PostController {
                 'categoria_id' => $_POST['categoria_id'],
                 'descripcion' => $_POST['descripcion'] ?? '',
                 'miniproyecto_id' => $miniproyecto_id,
-                'proyecto_id' => $proyecto_id
+                'proyecto_id' => null 
             ];
 
             if (!empty($_POST['descripcion']) && $miniproyecto_id) {
@@ -65,13 +130,31 @@ class PostController {
                 }
             }
 
-            $exito = $this->modeloPost->crear($datos);
+            $post_id = $this->modeloPost->crear($datos);
 
-            if ($exito) {
+            if ($post_id) {
+                if ($miniproyecto_id) {
+                    $stmt = $this->db->prepare("SELECT COUNT(*) FROM posts WHERE miniproyecto_id = ?");
+                    $stmt->execute([$miniproyecto_id]);
+                    $cantidad = $stmt->fetchColumn();
+                    
+                    if ($cantidad >= 2) {
+                        $this->convertirAMiniproyecto($miniproyecto_id);
+                    }
+                }
+                
                 if ($datos['miniproyecto_id']) {
-                    header('Location: ver_miniproyecto.php?id=' . $datos['miniproyecto_id']);
+                    $stmt = $this->db->prepare("SELECT proyecto_id FROM miniproyectos WHERE id = ?");
+                    $stmt->execute([$datos['miniproyecto_id']]);
+                    $miniData = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($miniData && $miniData['proyecto_id']) {
+                        header('Location: ver_proyecto.php?id=' . $miniData['proyecto_id'] . '&mensaje=post_creado');
+                    } else {
+                        header('Location: ver_miniproyecto.php?id=' . $datos['miniproyecto_id']);
+                    }
                 } else {
-                    header('Location: ver_proyecto.php?id=' . $_POST['proyecto_id']); // Usamos el POST original para redirigir
+                    header('Location: dashboard_artista.php?mensaje=post_creado');
                 }
                 exit();
             } else {
@@ -111,13 +194,15 @@ class PostController {
                 'categoria_id' => $_POST['categoria_id'],
                 'miniproyecto_id' => $miniproyecto_id,
                 'proyecto_id' => null
-                ];
+            ];
 
-            $exitoPost = $this->modeloPost->crear($datosPost);
+            $post_id = $this->modeloPost->crear($datosPost);
 
-            if (!$exitoPost) {
+            if (!$post_id) {
                 throw new Exception("Error al guardar el post en la base de datos.");
             }
+
+            $this->marcarComoPostIndividual($post_id);
 
             $this->db->commit();
 
@@ -216,4 +301,3 @@ class PostController {
         }
     }
 }
-?>
