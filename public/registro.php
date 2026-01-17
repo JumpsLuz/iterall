@@ -1,38 +1,62 @@
-<?php require_once '../vendor/autoload.php'; ?>
 <!DOCTYPE html>
-<html>
-    <body>
-        <h2>Registro de Usuario</h2>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro | ITERALL</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>Crear cuenta en ITERALL</h2>
+            <p class="subtitle">Comienza a organizar tu trabajo creativo</p>
 
-        <?php if (isset($_GET['error'])): ?>
-            <p style="color: red;">
-                <?php 
-                switch($_GET['error']) {
-                    case 'email_exists':
-                        echo 'Este email ya está registrado.';
-                        break;
-                    case '1':
-                        echo 'Error al registrar. Intenta nuevamente.';
-                        break;
-                    default:
-                        echo 'Error desconocido.';
-                }
-                ?>
-            </p>
-        <?php endif; ?>
+            <?php if (isset($_GET['error'])): ?>
+                <div class="alert alert-error">
+                    <?php 
+                    switch($_GET['error']) {
+                        case 'email_exists':
+                            echo 'Este email ya está registrado. <a href="index.php" style="color: var(--danger); text-decoration: underline;">Inicia sesión aquí</a>';
+                            break;
+                        case '1':
+                            echo 'Error al registrar. Intenta nuevamente.';
+                            break;
+                        default:
+                            echo 'Error desconocido.';
+                    }
+                    ?>
+                </div>
+            <?php endif; ?>
 
-        <form action="procesador.php?action=registrar" method="POST">
-            <input type="email" name="email" placeholder="tucorreo@aqui.com" required><br><br>
-            <input type="password" name="password" placeholder="Contraseña" required><br><br>
+            <form action="procesador.php?action=registrar" method="POST">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" placeholder="tucorreo@ejemplo.com" required>
+                </div>
 
-            <label>Rol:</label>
-            <select name="rol_id" required>
-                <option value="1">Artista</option>
-                <option value="2">Cliente</option>
-            </select><br><br>
-            
-            <button type="submit">Registrar</button>
-            <a href="login.php">¿Ya tienes cuenta? Inicia sesión aquí.</a>
-        </form>
-    </body>
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" name="password" class="form-control" placeholder="Mínimo 6 caracteres" required minlength="6">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">¿Cómo usarás ITERALL?</label>
+                    <select name="rol_id" class="form-control" required>
+                        <option value="">-- Selecciona una opción --</option>
+                        <option value="1">Soy Artista</option>
+                        <option value="2">Soy Cliente</option>
+                    </select>
+                    <span class="form-hint">Los artistas pueden crear y gestionar proyectos</span>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Crear Cuenta</button>
+            </form>
+
+            <div class="auth-link">
+                ¿Ya tienes cuenta? <a href="index.php">Inicia sesión aquí</a>
+            </div>
+        </div>
+    </div>
+</body>
 </html>

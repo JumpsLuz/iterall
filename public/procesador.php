@@ -13,7 +13,7 @@ $action = $_GET['action'] ?? '';
 $accionesPublicas = ['login', 'registrar'];
 
 if (!in_array($action, $accionesPublicas) && !isset($_SESSION['usuario_id'])) {
-    header('Location: login.php?error=sesion_expirada');
+    header('Location: index.php?error=sesion_expirada');
     exit();
 }
 
@@ -30,7 +30,7 @@ if ($action === 'login') {
 if ($action === 'logout') {
     session_unset(); 
     session_destroy(); 
-    header("Location: login.php?mensaje=sesion_cerrada");
+    header("Location: index.php?mensaje=sesion_cerrada");
     exit();
 }
 

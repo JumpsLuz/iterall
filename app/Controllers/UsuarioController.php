@@ -27,7 +27,7 @@ class UsuarioController {
                 }
                 exit();
             } else {
-                header('Location: login.php?error=1');
+                header('Location: index.php?error=1');
             }
         }
     }

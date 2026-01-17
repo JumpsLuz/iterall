@@ -1,21 +1,75 @@
-<?php require_once '../app/Config/auth_check.php'; ?>
 <!DOCTYPE html>
-<html>
-    <body>
-        <h2>Configura tu perfil para empezar.</h2>
-        
-        <form action="procesador.php?action=actualizar_perfil" method="POST">
-            <label>Nombre Artístico:</label>
-            <input type="text" name="nombre_artistico" required><br><br>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completa tu Perfil | ITERALL</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="profile-setup-container">
+        <div class="profile-setup-card">
+            <h2>¡Bienvenido a ITERALL! 🎨</h2>
+            <p class="intro-text">
+                Configura tu perfil para comenzar a mostrar tu trabajo al mundo. 
+                Estos datos aparecerán en tu portafolio público.
+            </p>
 
-            <label>Biofrafía</label>
-            <textarea name="biografia"></textarea><br><br>
+            <?php if (isset($_GET['error'])): ?>
+                <div class="alert alert-error">
+                    ⚠️ Hubo un error al guardar tu perfil. Intenta nuevamente.
+                </div>
+            <?php endif; ?>
 
-            <label>Avatar</label><br><br>
-            <!-- Implementar carga de imagen para avatary y banner despues -->
-            <label>Banner</label><br><br>
+            <form action="procesador.php?action=actualizar_perfil" method="POST">
+                <div class="form-section">
+                    <h3 class="form-section-title">Información Básica</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Nombre Artístico *</label>
+                        <input type="text" name="nombre_artistico" class="form-control" 
+                               placeholder="Ej: ArtByJuan" required maxlength="100">
+                        <span class="form-hint">Este será tu nombre público en la plataforma</span>
+                    </div>
 
-            <button type="submit">Guardar Perfil</button>
-        </form>
-    </body>
+                    <div class="form-group">
+                        <label class="form-label">Biografía</label>
+                        <textarea name="biografia" class="form-control" rows="4" 
+                                  placeholder="Cuéntanos sobre ti, tu estilo y tu experiencia..." maxlength="500"></textarea>
+                        <span class="form-hint">Máximo 500 caracteres</span>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="form-section-title">Imágenes de Perfil</h3>
+                    <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 15px;">
+                        Estas funciones estarán disponibles próximamente
+                    </p>
+
+                    <div class="form-group">
+                        <label class="form-label">Avatar</label>
+                        <div class="upload-placeholder upload-placeholder-small">
+                            <span>a implementar</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Banner</label>
+                        <div class="upload-placeholder">
+                            <span>a implementar</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem;">
+                    Guardar y Continuar
+                </button>
+            </form>
+
+            <div class="auth-link" style="margin-top: 25px;">
+                <a href="dashboard_artista.php">Saltar este paso por ahora</a>
+            </div>
+        </div>
+    </div>
+</body>
 </html>

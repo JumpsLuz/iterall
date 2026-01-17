@@ -1,17 +1,30 @@
-<?php
-require_once '../app/Config/auth_check.php';
-if ($_SESSION['rol_id'] != 2) {
-    header('Location: dashboard_artista.php');
-    exit();
-}
-?>
 <!DOCTYPE html>
-<html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorar | ITERALL</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
 <body>
-    <h1>Panel de Exploración (Cliente)</h1>
-    <p>Bienvenido, <?php echo $_SESSION['email']; ?></p>
-    <a href="procesador.php?action=logout">Cerrar Sesión</a>
-    <hr>
-    <p>Aquí podrás buscar artistas y ver proyectos pronto.</p>
+    <div class="explorer-container">
+        <div class="explorer-header">
+            <h1>Panel de Exploración</h1>
+            <p>Bienvenido, <?php echo htmlspecialchars($_SESSION['email']); ?></p>
+        </div>
+
+        <div class="welcome-message">
+            <h3 style="margin-bottom: 10px;">Proximamente</h3>
+            <p style="color: var(--text-muted); margin: 0;">
+                despues
+            </p>
+        </div>
+
+        <div class="navbar">
+            <a href="procesador.php?action=logout" class="btn btn-danger">Cerrar Sesión</a>
+        </div>
+
+        <hr>
+    </div>
 </body>
 </html>
