@@ -30,8 +30,8 @@ class Post {
         $sql = "SELECT p.*, c.nombre_categoria, mp.descripcion as descripcion_miniproyecto,
                 (SELECT url_archivo FROM imagenes_iteracion ii
                  JOIN iteraciones i ON ii.iteracion_id = i.id
-                 WHERE i.post_id = p.id
-                 ORDER BY i.numero_version DESC, ii.orden_visual ASC LIMIT 1) as portada
+                 WHERE i.post_id = p.id AND ii.es_principal = 1
+                 ORDER BY i.numero_version DESC LIMIT 1) as portada
                 FROM posts p
                 LEFT JOIN categorias c ON p.categoria_id = c.id
                 LEFT JOIN miniproyectos mp ON p.miniproyecto_id = mp.id
@@ -53,8 +53,8 @@ class Post {
             $sql = "SELECT p.*, mp.titulo AS nombre_miniproyecto, c.nombre_categoria,
                     (SELECT url_archivo FROM imagenes_iteracion ii
                      JOIN iteraciones i ON ii.iteracion_id = i.id
-                     WHERE i.post_id = p.id
-                     ORDER BY i.numero_version DESC, ii.orden_visual ASC LIMIT 1) as portada
+                     WHERE i.post_id = p.id AND ii.es_principal = 1
+                     ORDER BY i.numero_version DESC LIMIT 1) as portada
                     FROM posts p 
                     JOIN post_etiquetas pe ON p.id = pe.post_id
                     JOIN etiquetas e ON pe.etiqueta_id = e.id
@@ -67,6 +67,7 @@ class Post {
             $stmt->execute([$usuario_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
+            error_log("Error al obtener destacados: " . $e->getMessage());
             return [];
         }
     }
@@ -137,8 +138,8 @@ class Post {
             $sql = "SELECT p.*, c.nombre_categoria,
                     (SELECT url_archivo FROM imagenes_iteracion ii
                      JOIN iteraciones i ON ii.iteracion_id = i.id
-                     WHERE i.post_id = p.id
-                     ORDER BY i.numero_version DESC, ii.orden_visual ASC LIMIT 1) as portada
+                     WHERE i.post_id = p.id AND ii.es_principal = 1
+                     ORDER BY i.numero_version DESC LIMIT 1) as portada
                     FROM posts p
                     LEFT JOIN categorias c ON p.categoria_id = c.id
                     WHERE p.miniproyecto_id = ? 
@@ -148,7 +149,51 @@ class Post {
             $stmt->execute([$miniproyecto_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
+            error_log("Error al obtener posts por miniproyecto: " . $e->getMessage());
             return [];
+        }
+    }
+    
+    public function convertirAMiniproyecto($post_id, $usuario_id) {
+        try {
+            $this->db->beginTransaction();
+            
+            $stmt = $this->db->prepare("SELECT p.*, mp.id as mini_id FROM posts p 
+                                        LEFT JOIN miniproyectos mp ON p.miniproyecto_id = mp.id
+                                        WHERE p.id = ? AND p.creador_id = ?");
+            $stmt->execute([$post_id, $usuario_id]);
+            $post = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$post) {
+                throw new Exception("Post no encontrado");
+            }
+            
+            if ($post['mini_id']) {
+                $stmtCount = $this->db->prepare("SELECT COUNT(*) FROM posts WHERE miniproyecto_id = ?");
+                $stmtCount->execute([$post['mini_id']]);
+                $count = $stmtCount->fetchColumn();
+                
+                if ($count > 1) {
+                    throw new Exception("Este post ya forma parte de un miniproyecto con múltiples items");
+                }
+                
+                $stmtEtiqueta = $this->db->prepare("SELECT id FROM etiquetas WHERE nombre_etiqueta = ?");
+                $stmtEtiqueta->execute(['#@#_no_mini_proyecto_#@#']);
+                $etiqueta = $stmtEtiqueta->fetch(PDO::FETCH_ASSOC);
+                
+                if ($etiqueta) {
+                    $stmtDel = $this->db->prepare("DELETE FROM post_etiquetas WHERE post_id = ? AND etiqueta_id = ?");
+                    $stmtDel->execute([$post_id, $etiqueta['id']]);
+                }
+            }
+            
+            $this->db->commit();
+            return true;
+            
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            error_log("Error al convertir a miniproyecto: " . $e->getMessage());
+            return false;
         }
     }
 }

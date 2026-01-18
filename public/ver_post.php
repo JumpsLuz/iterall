@@ -3,6 +3,7 @@ require_once '../app/Config/auth_check.php';
 require_once '../app/Config/Database.php';
 require_once '../app/Models/Post.php';
 require_once '../app/Models/Iteracion.php';
+require_once '../app/Models/Miniproyecto.php';
 
 if (!isset($_GET['id'])) { 
     header('Location: dashboard_artista.php'); 
@@ -14,6 +15,7 @@ $usuario_id = $_SESSION['usuario_id'];
 
 $modeloPost = new Post();
 $modeloIteracion = new Iteracion();
+$modeloMini = new Miniproyecto();
 
 $post = $modeloPost->obtenerPorId($post_id, $usuario_id);
 if (!$post) { 
@@ -23,10 +25,20 @@ if (!$post) {
 $iteraciones = $modeloIteracion->obtenerPorPost($post_id);
 $esDestacado = $modeloPost->esDestacado($post_id);
 
+$esPostIndividual = false;
+if ($post['miniproyecto_id']) {
+    $esPostIndividual = $modeloMini->esPostIndividual($post['miniproyecto_id']);
+}
+
 $totalImagenes = 0;
 foreach ($iteraciones as $iter) {
     $totalImagenes += count($iter['imagenes']);
 }
+
+$db = Database::getInstance();
+$stmt = $db->prepare("SELECT nombre_artistico, avatar_url FROM perfiles WHERE usuario_id = ?");
+$stmt->execute([$usuario_id]);
+$perfil = $stmt->fetch(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -35,390 +47,504 @@ foreach ($iteraciones as $iter) {
     <meta charset="UTF-8">
     <title><?php echo htmlspecialchars($post['titulo']); ?> | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .iteration-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .iteration-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-        }
-        .version-badge {
-            background: var(--primary);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-        
-        /* Grid adaptativo */
-        .gallery-grid {
-            display: grid;
-            gap: 15px;
-            margin: 15px 0;
-        }
-        
-        /* Grid 3x3 para 9 o menos imágenes */
-        .gallery-grid.small {
-            grid-template-columns: repeat(3, 1fr);
-        }
-        
-        /* Grid 5x4 para 10 o más imágenes */
-        .gallery-grid.large {
-            grid-template-columns: repeat(5, 1fr);
-        }
-        
-        .gallery-item {
-            position: relative;
-            border-radius: var(--radius);
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.2s;
-            aspect-ratio: 1;
-        }
-        .gallery-item:hover {
-            transform: scale(1.05);
-        }
-        .gallery-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        
-        /* Indicador visual de imagen principal */
-        .gallery-item.principal {
-            border: 3px solid var(--accent);
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
-        }
-        
-        .principal-badge {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            background: var(--accent);
-            color: black;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        /* Modal para visualizar imagen completa */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.9);
-        }
-        .modal-content {
-            margin: auto;
-            display: block;
-            max-width: 90%;
-            max-height: 90%;
-            margin-top: 50px;
-        }
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 40px;
-            color: white;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .image-counter {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .image-counter.warning {
-            border-color: var(--accent);
-            background: rgba(245, 158, 11, 0.1);
-        }
-        
-        @media (max-width: 768px) {
-            .gallery-grid.small {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .gallery-grid.large {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/post-viewer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body style="background: #0a0a0a;">
 
-    <div class="container">
-        
-        <div class="breadcrumb">
-            <a href="dashboard_artista.php">Dashboard</a> > 
-            <?php if ($post['miniproyecto_id']): ?>
-                <a href="ver_miniproyecto.php?id=<?php echo $post['miniproyecto_id']; ?>">Volver a Mini Proyecto</a> >
-            <?php endif; ?>
-            <span><?php echo htmlspecialchars($post['titulo']); ?></span>
+    <!-- Header fijo -->
+    <header class="fixed-header">
+        <div class="header-content">
+            <div class="breadcrumb-nav">
+                <a href="dashboard_artista.php"><i class="fas fa-home"></i></a>
+                <span>></span>
+                <?php if ($post['miniproyecto_id']): ?>
+                    <a href="ver_miniproyecto.php?id=<?php echo $post['miniproyecto_id']; ?>">Mini Proyecto</a>
+                    <span>></span>
+                <?php endif; ?>
+                <span class="current"><?php echo htmlspecialchars($post['titulo']); ?></span>
+            </div>
+            
+            <div class="header-actions">
+                <button class="icon-btn <?php echo $esDestacado ? 'active' : ''; ?>" 
+                        onclick="toggleDestacado()" 
+                        title="<?php echo $esDestacado ? 'Quitar destacado' : 'Destacar'; ?>">
+                    <i class="fas fa-star"></i>
+                </button>
+                
+                <button class="icon-btn" onclick="window.location.href='dashboard_artista.php'" title="Mis trabajos">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                
+                <?php if ($esPostIndividual): ?>
+                    <button class="icon-btn" onclick="convertirAMiniproyecto()" title="Convertir a Mini Proyecto">
+                        <i class="fas fa-folder-plus"></i>
+                    </button>
+                <?php endif; ?>
+                
+                <button class="icon-btn danger" onclick="eliminarPost()" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
         </div>
+    </header>
 
-        <?php if (isset($_GET['mensaje'])): ?>
-            <div class="alert alert-success" style="margin-bottom: 20px;">
-                <?php 
-                switch($_GET['mensaje']) {
-                    case 'iteracion_creada':
-                        echo '<i class="fas fa-check"></i> Nueva iteración creada exitosamente';
-                        break;
-                    case 'iteracion_eliminada':
-                        echo '<i class="fas fa-check"></i> Iteración eliminada correctamente';
-                        break;
-                    case 'iteracion_actualizada':
-                        echo '<i class="fas fa-check"></i> Iteración actualizada';
-                        break;
-                    case 'principal_actualizada':
-                        echo '<i class="fas fa-check"></i> Imagen principal actualizada';
-                        break;
-                    default:
-                        echo '<i class="fas fa-check"></i> Acción completada';
-                }
-                ?>
+    <div class="viewer-container">
+        
+        <!-- Contenido principal -->
+        <main class="main-content">
+            
+            <!-- Título -->
+            <div class="post-header">
+                <h1><?php echo htmlspecialchars($post['titulo']); ?></h1>
+                <div class="badges">
+                    <span class="badge badge-category"><?php echo htmlspecialchars($post['nombre_categoria']); ?></span>
+                    <?php if ($esPostIndividual): ?>
+                        <span class="badge badge-individual"><i class="fas fa-file"></i> INDIVIDUAL</span>
+                    <?php endif; ?>
+                </div>
             </div>
-        <?php endif; ?>
 
-        <?php if (isset($_GET['error'])): ?>
-            <div class="alert alert-error" style="margin-bottom: 20px;">
-                <i class="fas fa-exclamation-triangle"></i> Ocurrió un error. Intenta nuevamente.
-            </div>
-        <?php endif; ?>
+            <?php if (isset($_GET['mensaje'])): ?>
+                <div class="alert-message success">
+                    <i class="fas fa-check-circle"></i>
+                    <?php 
+                    switch($_GET['mensaje']) {
+                        case 'iteracion_creada': echo 'Nueva iteración creada'; break;
+                        case 'iteracion_eliminada': echo 'Iteración eliminada'; break;
+                        case 'convertido_a_miniproyecto': echo 'Convertido a Mini Proyecto'; break;
+                        default: echo 'Acción completada';
+                    }
+                    ?>
+                </div>
+            <?php endif; ?>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <div>
-                <?php if (!empty($post['portada'])): ?>
-                    <div style="margin-bottom: 15px;">
-                        <img src="<?php echo htmlspecialchars($post['portada']); ?>" alt="Portada del post" style="width: 100%; max-width: 300px; height: 150px; object-fit: cover; border-radius: var(--radius);">
+            <?php if (empty($iteraciones)): ?>
+                <!-- Sin iteraciones -->
+                <div class="empty-state">
+                    <i class="fas fa-layer-group"></i>
+                    <h3>Sin iteraciones</h3>
+                    <p>Documenta tu proceso creativo subiendo la primera versión</p>
+                    <a href="crear_iteracion.php?post_id=<?php echo $post_id; ?>" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Subir Primera Iteración
+                    </a>
+                </div>
+            <?php else: ?>
+                
+                <!-- Visor principal -->
+                <div class="image-viewer">
+                    
+                    <!-- Vista normal (default) -->
+                    <div id="normalView" class="viewer-mode active">
+                        <div class="main-image-container">
+                            <img id="mainImage" src="" alt="Imagen principal">
+                        </div>
+                    </div>
+                    
+                    <!-- Vista comparación -->
+                    <div id="compareView" class="viewer-mode">
+                        <div class="comparison-container">
+                            <div class="comparison-wrapper">
+                                <div class="comparison-before">
+                                    <img id="beforeImage" src="" alt="Before">
+                                </div>
+                                <div class="comparison-after">
+                                    <img id="afterImage" src="" alt="After">
+                                </div>
+                                <div class="comparison-slider" id="slider">
+                                    <div class="slider-handle">
+                                        <i class="fas fa-arrows-left-right"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="comparison-labels">
+                                <span class="label-before">ANTES</span>
+                                <span class="label-after">DESPUÉS</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Selector de iteración para comparar -->
+                        <div class="compare-selector">
+                            <label>Comparar con:</label>
+                            <select id="compareWithSelect" onchange="updateComparison()">
+                                <?php foreach (array_reverse($iteraciones) as $iter): ?>
+                                    <?php if (!empty($iter['imagenes'])): ?>
+                                        <option value="<?php echo $iter['id']; ?>">
+                                            Iteración <?php echo $iter['numero_version']; ?> - <?php echo date('d/m/Y', strtotime($iter['fecha_creacion'])); ?>
+                                        </option>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <!-- Galería de imágenes de la iteración actual -->
+                <div class="iteration-gallery">
+                    <h4>Imágenes de esta iteración</h4>
+                    <div class="gallery-grid" id="galleryGrid">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+
+                <!-- Información de iteración actual -->
+                <div id="iterationInfo" class="iteration-info">
+                    <!-- Se llena con JS -->
+                </div>
+
+            <?php endif; ?>
+
+        </main>
+
+        <!-- Sidebar derecho -->
+        <aside class="sidebar">
+            
+            <?php if (!empty($iteraciones)): ?>
+                <!-- Botón comparar (solo si hay 2+ iteraciones) -->
+                <?php if (count($iteraciones) >= 2): ?>
+                    <button id="toggleCompareBtn" class="btn-compare" onclick="toggleCompareMode()">
+                        <i class="fas fa-code-compare"></i> VER COMPARACIÓN
+                    </button>
+                <?php endif; ?>
+            <?php endif; ?>
+            
+            <!-- Timeline de iteraciones -->
+            <div class="timeline-section">
+                <h3><i class="fas fa-clock-rotate-left"></i> Timeline</h3>
+                
+                <?php if ($totalImagenes < 50): ?>
+                    <button onclick="window.location.href='crear_iteracion.php?post_id=<?php echo $post_id; ?>'" 
+                            class="btn btn-secondary btn-new-iteration">
+                        <i class="fas fa-plus"></i> Nueva Iteración
+                    </button>
+                <?php else: ?>
+                    <div class="limit-notice">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Límite de 50 imágenes alcanzado
                     </div>
                 <?php endif; ?>
-                <h1><?php echo htmlspecialchars($post['titulo']); ?></h1>
-                <span class="badge badge-category"><?php echo htmlspecialchars($post['nombre_categoria']); ?></span>
-            </div>
-            
-            <div style="display: flex; gap: 10px;">
-                <a href="procesador.php?action=toggle_destacado&id=<?php echo $post['id']; ?>" 
-                   class="btn <?php echo $esDestacado ? 'btn-gold' : 'btn-secondary'; ?>">
-                    <?php echo $esDestacado ? '★ Destacado' : '☆ Destacar'; ?>
-                </a>
                 
-                <form action="procesador.php?action=eliminar_post" method="POST" 
-                      onsubmit="return confirm('¿Eliminar este post y todas sus iteraciones?');" 
-                      style="display:inline;">
-                    <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
-                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Eliminar Post</button>
-                </form>
-            </div>
-        </div>
-
-        <hr>
-
-        <div style="display: grid; grid-template-columns: 1fr 300px; gap: 30px;">
-            
-            <div>
-                <!-- Contador de imágenes -->
-                <div class="image-counter <?php echo $totalImagenes >= 40 ? 'warning' : ''; ?>">
-                    <div>
-                        <strong>Total de imágenes:</strong> <?php echo $totalImagenes; ?> / 50
-                    </div>
-                    <?php if ($totalImagenes >= 40): ?>
-                        <div style="color: var(--accent); font-weight: bold;">
-                            <i class="fas fa-exclamation-triangle"></i> 
-                            <?php if ($totalImagenes >= 50): ?>
-                                Límite alcanzado
-                            <?php else: ?>
-                                Quedan <?php echo 50 - $totalImagenes; ?> espacios
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
-                <div class="section-header" style="margin-top:0;">
-                    <h2>Historial de Iteraciones (<?php echo count($iteraciones); ?>)</h2>
-                    <?php if ($totalImagenes < 50): ?>
-                        <a href="crear_iteracion.php?post_id=<?php echo $post_id; ?>" class="btn btn-primary">+ Nueva Iteración</a>
-                    <?php else: ?>
-                        <button class="btn btn-secondary" disabled title="Límite de imágenes alcanzado">Límite alcanzado</button>
-                    <?php endif; ?>
-                </div>
-
-                <?php if (empty($iteraciones)): ?>
-                    <div class="empty-state">
-                        <p>Aún no has subido ninguna iteración de este trabajo.</p>
-                        <p>Comienza documentando tu proceso creativo subiendo la primera iteración.</p>
-                        <br>
-                        <a href="crear_iteracion.php?post_id=<?php echo $post_id; ?>" class="btn btn-primary">Subir Primera Iteración</a>
-                    </div>
-                <?php else: ?>
-                    <?php foreach ($iteraciones as $iter): ?>
-                        <div class="iteration-card">
-                            <div class="iteration-header">
-                                <div>
-                                    <span class="version-badge">Iteración <?php echo $iter['numero_version']; ?></span>
-                                    <small class="text-muted" style="margin-left: 15px;">
-                                        <i class="fas fa-calendar"></i> <?php echo date('d/m/Y H:i', strtotime($iter['fecha_creacion'])); ?>
-                                    </small>
-                                    <?php if ($iter['tiempo_dedicado_min']): ?>
-                                        <small class="text-muted" style="margin-left: 10px;">
-                                            <i class="fas fa-clock"></i> <?php echo $iter['tiempo_dedicado_min']; ?> min
-                                        </small>
-                                    <?php endif; ?>
-                                </div>
-                                <form action="procesador.php?action=eliminar_iteracion" method="POST" 
-                                      onsubmit="return confirm('¿Eliminar esta iteración?');" 
-                                      style="display:inline;">
-                                    <input type="hidden" name="iteracion_id" value="<?php echo $iter['id']; ?>">
-                                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                                </form>
+                <div class="timeline">
+                    <?php foreach ($iteraciones as $index => $iter): ?>
+                        <div class="timeline-item <?php echo $index === 0 ? 'active' : ''; ?>" 
+                             data-iteration-id="<?php echo $iter['id']; ?>"
+                             onclick="selectIteration(<?php echo $iter['id']; ?>)">
+                            
+                            <div class="timeline-line">
+                                <div class="timeline-dot <?php echo $index === 0 ? 'current' : ''; ?>"></div>
                             </div>
-
-                            <?php if (!empty($iter['imagenes'])): ?>
-                                <?php 
-                                $numImagenes = count($iter['imagenes']);
-                                $gridClass = $numImagenes <= 9 ? 'small' : 'large';
-                                ?>
-                                <div class="gallery-grid <?php echo $gridClass; ?>">
-                                    <?php foreach ($iter['imagenes'] as $imagen): ?>
-                                        <div class="gallery-item <?php echo $imagen['es_principal'] ? 'principal' : ''; ?>" 
-                                             onclick="openModal('<?php echo htmlspecialchars($imagen['url_archivo']); ?>')">
-                                            <img src="<?php echo htmlspecialchars($imagen['url_archivo']); ?>" 
-                                                 alt="Imagen iteración <?php echo $iter['numero_version']; ?>" 
-                                                 loading="lazy">
-                                            <?php if ($imagen['es_principal']): ?>
-                                                <div class="principal-badge">
-                                                    ★ PRINCIPAL
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    <?php endforeach; ?>
+                            
+                            <div class="timeline-content">
+                                <?php if (!empty($iter['imagenes'])): ?>
+                                    <div class="timeline-thumb">
+                                        <img src="<?php echo htmlspecialchars($iter['imagenes'][0]['url_archivo']); ?>" alt="">
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <div class="timeline-text">
+                                    <strong>Iteración <?php echo $iter['numero_version']; ?></strong>
+                                    <span class="timeline-date">
+                                        <?php 
+                                        $fecha = new DateTime($iter['fecha_creacion']);
+                                        $ahora = new DateTime();
+                                        $diff = $ahora->diff($fecha);
+                                        
+                                        if ($diff->days == 0) echo '(Hoy)';
+                                        elseif ($diff->days == 1) echo '(Ayer)';
+                                        else echo '(' . date('d/m', strtotime($iter['fecha_creacion'])) . ')';
+                                        ?>
+                                    </span>
                                 </div>
-                            <?php else: ?>
-                                <p class="text-muted">Sin imágenes en esta iteración</p>
-                            <?php endif; ?>
-
-                            <?php if (!empty($iter['notas_cambio'])): ?>
-                                <div style="background: rgba(59, 130, 246, 0.1); padding: 12px; border-radius: var(--radius); margin-top: 15px;">
-                                    <strong style="color: var(--primary);"><i class="fas fa-sticky-note"></i> Notas:</strong>
-                                    <p style="margin-top: 5px; color: var(--text-main);">
-                                        <?php echo nl2br(htmlspecialchars($iter['notas_cambio'])); ?>
-                                    </p>
-                                </div>
-                            <?php endif; ?>
+                            </div>
+                            
+                            <button class="timeline-delete" 
+                                    onclick="event.stopPropagation(); eliminarIteracion(<?php echo $iter['id']; ?>)">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     <?php endforeach; ?>
-                <?php endif; ?>
+                </div>
             </div>
 
-            <aside>
-                <div class="card">
-                    <div class="card-body">
-                        <h4>Información del Trabajo</h4>
-                        
-                        <div style="margin-top: 20px;">
-                            <p><strong>Descripción:</strong></p>
-                            <p class="text-muted" style="margin-top: 5px;">
-                                <?php echo !empty($post['descripcion_miniproyecto']) 
-                                    ? nl2br(htmlspecialchars($post['descripcion_miniproyecto'])) 
-                                    : 'Sin descripción.'; ?>
-                            </p>
+            <!-- Autor/Colaboradores -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-user"></i> Autor</h3>
+                <div class="author-info">
+                    <?php if (!empty($perfil['avatar_url'])): ?>
+                        <img src="<?php echo htmlspecialchars($perfil['avatar_url']); ?>" alt="" class="author-avatar">
+                    <?php else: ?>
+                        <div class="author-avatar placeholder">
+                            <i class="fas fa-user"></i>
                         </div>
-
-                        <hr style="border-color:#333; margin: 20px 0;">
-
-                        <div style="display: grid; gap: 10px;">
-                            <div>
-                                <small class="text-muted">Total iteraciones:</small>
-                                <p style="font-weight: bold; font-size: 1.2rem; color: var(--primary);">
-                                    <?php echo count($iteraciones); ?>
-                                </p>
-                            </div>
-
-                            <div>
-                                <small class="text-muted">Total imágenes:</small>
-                                <p style="font-weight: bold; font-size: 1.2rem; color: var(--accent);">
-                                    <?php echo $totalImagenes; ?> / 50
-                                </p>
-                            </div>
-
-                            <?php 
-                            $tiempoTotal = 0;
-                            foreach ($iteraciones as $iter) {
-                                $tiempoTotal += $iter['tiempo_dedicado_min'] ?? 0;
-                            }
-                            if ($tiempoTotal > 0):
-                            ?>
-                            <div>
-                                <small class="text-muted">Tiempo total dedicado:</small>
-                                <p style="font-weight: bold; font-size: 1.2rem; color: var(--success);">
-                                    <?php 
-                                    $horas = floor($tiempoTotal / 60);
-                                    $minutos = $tiempoTotal % 60;
-                                    echo $horas > 0 ? "{$horas}h " : "";
-                                    echo "{$minutos}min";
-                                    ?>
-                                </p>
-                            </div>
-                            <?php endif; ?>
-
-                            <div>
-                                <small class="text-muted">Creado el:</small>
-                                <p><?php echo date('d/m/Y', strtotime($post['fecha_creacion'])); ?></p>
-                            </div>
-                        </div>
+                    <?php endif; ?>
+                    <div class="author-details">
+                        <strong><?php echo htmlspecialchars($perfil['nombre_artistico'] ?? 'Artista'); ?></strong>
+                        <span class="author-role">Editor</span>
                     </div>
                 </div>
-            </aside>
+            </div>
 
-        </div>
+            <!-- Estadísticas -->
+            <div class="sidebar-section stats">
+                <h3><i class="fas fa-chart-simple"></i> Estadísticas</h3>
+                
+                <div class="stat-row">
+                    <span>Iteraciones:</span>
+                    <strong><?php echo count($iteraciones); ?></strong>
+                </div>
+                
+                <div class="stat-row">
+                    <span>Imágenes:</span>
+                    <strong class="<?php echo $totalImagenes >= 40 ? 'warning' : ''; ?>">
+                        <?php echo $totalImagenes; ?> / 50
+                    </strong>
+                </div>
+                
+                <?php 
+                $tiempoTotal = array_sum(array_column($iteraciones, 'tiempo_dedicado_min'));
+                if ($tiempoTotal > 0):
+                ?>
+                <div class="stat-row">
+                    <span>Tiempo total:</span>
+                    <strong>
+                        <?php 
+                        $h = floor($tiempoTotal / 60);
+                        $m = $tiempoTotal % 60;
+                        echo ($h > 0 ? "{$h}h " : "") . "{$m}min";
+                        ?>
+                    </strong>
+                </div>
+                <?php endif; ?>
+                
+                <div class="stat-row">
+                    <span>Creado:</span>
+                    <strong><?php echo date('d/m/Y', strtotime($post['fecha_creacion'])); ?></strong>
+                </div>
+            </div>
+
+        </aside>
+
     </div>
 
-    <div id="imageModal" class="modal" onclick="closeModal()">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
-        <img class="modal-content" id="modalImage">
+    <!-- Modal para ver imagen completa -->
+    <div id="imageModal" class="modal-overlay" onclick="closeModal()">
+        <span class="modal-close">&times;</span>
+        <img id="modalImage" class="modal-image" src="" alt="">
     </div>
 
     <script>
-        function openModal(imageUrl) {
-            document.getElementById('imageModal').style.display = 'block';
-            document.getElementById('modalImage').src = imageUrl;
+        const iteracionesData = <?php echo json_encode($iteraciones); ?>;
+        let currentIterationId = <?php echo !empty($iteraciones) ? $iteraciones[0]['id'] : 'null'; ?>;
+        let compareMode = false;
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            if (currentIterationId) {
+                selectIteration(currentIterationId);
+            }
+            <?php if (count($iteraciones) >= 2): ?>
+                initCompareSlider();
+            <?php endif; ?>
+        });
+
+        // Seleccionar iteración
+        function selectIteration(iterationId) {
+            currentIterationId = iterationId;
+            const iteration = iteracionesData.find(i => i.id == iterationId);
+            if (!iteration) return;
+
+            // Actualizar timeline visual
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.iterationId == iterationId) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Actualizar imagen principal
+            if (iteration.imagenes && iteration.imagenes.length > 0) {
+                const mainImg = iteration.imagenes.find(img => img.es_principal) || iteration.imagenes[0];
+                document.getElementById('mainImage').src = mainImg.url_archivo;
+            }
+
+            // Actualizar galería
+            updateGallery(iteration);
+
+            // Actualizar info
+            updateInfo(iteration);
+
+            // Si está en modo comparación, actualizar
+            if (compareMode) {
+                updateComparison();
+            }
+        }
+
+        // Actualizar galería
+        function updateGallery(iteration) {
+            const gallery = document.getElementById('galleryGrid');
+            gallery.innerHTML = '';
+
+            if (iteration.imagenes && iteration.imagenes.length > 0) {
+                iteration.imagenes.forEach(img => {
+                    const item = document.createElement('div');
+                    item.className = 'gallery-item';
+                    item.innerHTML = `
+                        <img src="${img.url_archivo}" alt="" onclick="openModal('${img.url_archivo}')">
+                        ${img.es_principal ? '<span class="badge-principal">★ PRINCIPAL</span>' : ''}
+                    `;
+                    gallery.appendChild(item);
+                });
+            }
+        }
+
+        // Actualizar info
+        function updateInfo(iteration) {
+            const infoDiv = document.getElementById('iterationInfo');
+            let html = '';
+
+            if (iteration.notas_cambio && iteration.notas_cambio.trim()) {
+                html += `
+                    <div class="info-section">
+                        <h4><i class="fas fa-sticky-note"></i> Notas de Cambio</h4>
+                        <p>${iteration.notas_cambio.replace(/\n/g, '<br>')}</p>
+                    </div>
+                `;
+            }
+
+            if (iteration.tiempo_dedicado_min) {
+                const h = Math.floor(iteration.tiempo_dedicado_min / 60);
+                const m = iteration.tiempo_dedicado_min % 60;
+                const tiempo = (h > 0 ? `${h}h ` : '') + `${m}min`;
+                
+                html += `
+                    <div class="info-section">
+                        <h4><i class="fas fa-clock"></i> Tiempo Dedicado</h4>
+                        <p>${tiempo}</p>
+                    </div>
+                `;
+            }
+
+            infoDiv.innerHTML = html;
+        }
+
+        // Toggle modo comparación
+        function toggleCompareMode() {
+            compareMode = !compareMode;
+            const normalView = document.getElementById('normalView');
+            const compareView = document.getElementById('compareView');
+            const btn = document.getElementById('toggleCompareBtn');
+
+            if (compareMode) {
+                normalView.classList.remove('active');
+                compareView.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-image"></i> VER NORMAL';
+                btn.classList.add('active');
+                updateComparison();
+            } else {
+                normalView.classList.add('active');
+                compareView.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-code-compare"></i> VER COMPARACIÓN';
+                btn.classList.remove('active');
+            }
+        }
+
+        // Actualizar comparación
+        function updateComparison() {
+            const currentIteration = iteracionesData.find(i => i.id == currentIterationId);
+            const compareSelect = document.getElementById('compareWithSelect');
+            const compareIteration = iteracionesData.find(i => i.id == compareSelect.value);
+
+            if (currentIteration?.imagenes?.[0] && compareIteration?.imagenes?.[0]) {
+                const currentImg = currentIteration.imagenes.find(img => img.es_principal) || currentIteration.imagenes[0];
+                const compareImg = compareIteration.imagenes.find(img => img.es_principal) || compareIteration.imagenes[0];
+                
+                document.getElementById('afterImage').src = currentImg.url_archivo;
+                document.getElementById('beforeImage').src = compareImg.url_archivo;
+            }
+        }
+
+        // Slider de comparación
+        function initCompareSlider() {
+            const slider = document.getElementById('slider');
+            const container = slider.parentElement;
+            const afterDiv = container.querySelector('.comparison-after');
+            
+            let isDragging = false;
+
+            function updatePosition(clientX) {
+                const rect = container.getBoundingClientRect();
+                const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+                const percentage = (x / rect.width) * 100;
+                
+                slider.style.left = percentage + '%';
+                afterDiv.style.clipPath = `inset(0 0 0 ${percentage}%)`;
+            }
+
+            slider.addEventListener('mousedown', () => isDragging = true);
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) updatePosition(e.clientX);
+            });
+            document.addEventListener('mouseup', () => isDragging = false);
+
+            container.addEventListener('click', (e) => updatePosition(e.clientX));
+
+            // Touch
+            slider.addEventListener('touchstart', () => isDragging = true);
+            document.addEventListener('touchmove', (e) => {
+                if (isDragging) updatePosition(e.touches[0].clientX);
+            });
+            document.addEventListener('touchend', () => isDragging = false);
+        }
+
+        // Modal
+        function openModal(url) {
+            document.getElementById('modalImage').src = url;
+            document.getElementById('imageModal').style.display = 'flex';
         }
 
         function closeModal() {
             document.getElementById('imageModal').style.display = 'none';
         }
 
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
         });
+
+        // Acciones
+        function toggleDestacado() {
+            window.location.href = 'procesador.php?action=toggle_destacado&id=<?php echo $post_id; ?>';
+        }
+
+        function convertirAMiniproyecto() {
+            if (confirm('¿Convertir en Mini Proyecto? Podrás agregar más trabajos relacionados.')) {
+                window.location.href = 'procesador.php?action=convertir_a_miniproyecto&post_id=<?php echo $post_id; ?>';
+            }
+        }
+
+        function eliminarPost() {
+            if (confirm('¿Eliminar este post y TODAS sus iteraciones?\n\nEsta acción no se puede deshacer.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'procesador.php?action=eliminar_post';
+                form.innerHTML = '<input type="hidden" name="post_id" value="<?php echo $post_id; ?>">';
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function eliminarIteracion(id) {
+            if (confirm('¿Eliminar esta iteración?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'procesador.php?action=eliminar_iteracion';
+                form.innerHTML = `<input type="hidden" name="iteracion_id" value="${id}">`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
     </script>
+
 </body>
 </html>

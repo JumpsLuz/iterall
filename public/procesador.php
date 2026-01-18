@@ -89,15 +89,16 @@ if ($action === 'actualizar_perfil') {
     }
 }
 
- if ($action === 'go_home') {
+if ($action === 'go_home') {
     if ($_SESSION['rol_id'] == 1) {
         header('Location: dashboard_artista.php');
     } else {
         header('Location: explorar.php');
     }
     exit();
- }
- if ($action === 'crear_proyecto') {
+}
+
+if ($action === 'crear_proyecto') {
     $controller = new ProyectoController();
     $controller->crear();
 }
@@ -130,6 +131,25 @@ if ($action === 'toggle_destacado') {
 if ($action === 'eliminar_post') {
     $controller = new PostController();
     $controller->eliminar();
+}
+
+if ($action === 'convertir_a_miniproyecto') {
+    if (!isset($_GET['post_id'])) {
+        header('Location: dashboard_artista.php?error=post_no_especificado');
+        exit();
+    }
+    
+    require_once '../app/Models/Post.php';
+    $modeloPost = new Post();
+    
+    $exito = $modeloPost->convertirAMiniproyecto($_GET['post_id'], $_SESSION['usuario_id']);
+    
+    if ($exito) {
+        header('Location: ver_post.php?id=' . $_GET['post_id'] . '&mensaje=convertido_a_miniproyecto');
+    } else {
+        header('Location: ver_post.php?id=' . $_GET['post_id'] . '&error=error_convertir');
+    }
+    exit();
 }
 
 if ($action === 'crear_miniproyecto') {
