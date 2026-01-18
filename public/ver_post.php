@@ -22,6 +22,11 @@ if (!$post) {
 
 $iteraciones = $modeloIteracion->obtenerPorPost($post_id);
 $esDestacado = $modeloPost->esDestacado($post_id);
+
+$totalImagenes = 0;
+foreach ($iteraciones as $iter) {
+    $totalImagenes += count($iter['imagenes']);
+}
 ?>
 
 <!DOCTYPE html>
@@ -54,40 +59,64 @@ $esDestacado = $modeloPost->esDestacado($post_id);
             font-weight: bold;
             font-size: 0.9rem;
         }
+        
+        /* Grid adaptativo */
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 15px;
             margin: 15px 0;
         }
+        
+        /* Grid 3x3 para 9 o menos imágenes */
+        .gallery-grid.small {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        /* Grid 5x4 para 10 o más imágenes */
+        .gallery-grid.large {
+            grid-template-columns: repeat(5, 1fr);
+        }
+        
         .gallery-item {
             position: relative;
             border-radius: var(--radius);
             overflow: hidden;
             cursor: pointer;
             transition: transform 0.2s;
+            aspect-ratio: 1;
         }
         .gallery-item:hover {
             transform: scale(1.05);
         }
         .gallery-item img {
             width: 100%;
-            height: 200px;
+            height: 100%;
             object-fit: cover;
             display: block;
         }
-        .gallery-item.principal::after {
-            content: '★ PRINCIPAL';
+        
+        /* Indicador visual de imagen principal */
+        .gallery-item.principal {
+            border: 3px solid var(--accent);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+        }
+        
+        .principal-badge {
             position: absolute;
             top: 8px;
             left: 8px;
             background: var(--accent);
             color: black;
-            padding: 4px 8px;
+            padding: 6px 12px;
             border-radius: 4px;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: bold;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
+        
         /* Modal para visualizar imagen completa */
         .modal {
             display: none;
@@ -115,6 +144,31 @@ $esDestacado = $modeloPost->esDestacado($post_id);
             font-weight: bold;
             cursor: pointer;
         }
+        
+        .image-counter {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .image-counter.warning {
+            border-color: var(--accent);
+            background: rgba(245, 158, 11, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .gallery-grid.small {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .gallery-grid.large {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
@@ -134,13 +188,16 @@ $esDestacado = $modeloPost->esDestacado($post_id);
                 <?php 
                 switch($_GET['mensaje']) {
                     case 'iteracion_creada':
-                        echo '<i class="fas fa-check"></i> Nueva versión creada exitosamente';
+                        echo '<i class="fas fa-check"></i> Nueva iteración creada exitosamente';
                         break;
                     case 'iteracion_eliminada':
-                        echo '<i class="fas fa-check"></i> Versión eliminada correctamente';
+                        echo '<i class="fas fa-check"></i> Iteración eliminada correctamente';
                         break;
                     case 'iteracion_actualizada':
-                        echo '<i class="fas fa-check"></i> Versión actualizada';
+                        echo '<i class="fas fa-check"></i> Iteración actualizada';
+                        break;
+                    case 'principal_actualizada':
+                        echo '<i class="fas fa-check"></i> Imagen principal actualizada';
                         break;
                     default:
                         echo '<i class="fas fa-check"></i> Acción completada';
@@ -173,7 +230,7 @@ $esDestacado = $modeloPost->esDestacado($post_id);
                 </a>
                 
                 <form action="procesador.php?action=eliminar_post" method="POST" 
-                      onsubmit="return confirm('¿Eliminar este post y todas sus versiones?');" 
+                      onsubmit="return confirm('¿Eliminar este post y todas sus iteraciones?');" 
                       style="display:inline;">
                     <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
                     <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Eliminar Post</button>
@@ -186,24 +243,45 @@ $esDestacado = $modeloPost->esDestacado($post_id);
         <div style="display: grid; grid-template-columns: 1fr 300px; gap: 30px;">
             
             <div>
+                <!-- Contador de imágenes -->
+                <div class="image-counter <?php echo $totalImagenes >= 40 ? 'warning' : ''; ?>">
+                    <div>
+                        <strong>Total de imágenes:</strong> <?php echo $totalImagenes; ?> / 50
+                    </div>
+                    <?php if ($totalImagenes >= 40): ?>
+                        <div style="color: var(--accent); font-weight: bold;">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            <?php if ($totalImagenes >= 50): ?>
+                                Límite alcanzado
+                            <?php else: ?>
+                                Quedan <?php echo 50 - $totalImagenes; ?> espacios
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
                 <div class="section-header" style="margin-top:0;">
-                    <h2>Historial de Versiones (<?php echo count($iteraciones); ?>)</h2>
-                    <a href="crear_iteracion.php?post_id=<?php echo $post_id; ?>" class="btn btn-primary">+ Nueva Versión</a>
+                    <h2>Historial de Iteraciones (<?php echo count($iteraciones); ?>)</h2>
+                    <?php if ($totalImagenes < 50): ?>
+                        <a href="crear_iteracion.php?post_id=<?php echo $post_id; ?>" class="btn btn-primary">+ Nueva Iteración</a>
+                    <?php else: ?>
+                        <button class="btn btn-secondary" disabled title="Límite de imágenes alcanzado">Límite alcanzado</button>
+                    <?php endif; ?>
                 </div>
 
                 <?php if (empty($iteraciones)): ?>
                     <div class="empty-state">
-                        <p>Aún no has subido ninguna versión de este trabajo.</p>
+                        <p>Aún no has subido ninguna iteración de este trabajo.</p>
                         <p>Comienza documentando tu proceso creativo subiendo la primera iteración.</p>
                         <br>
-                        <a href="crear_iteracion.php?post_id=<?php echo $post_id; ?>" class="btn btn-primary">Subir Primera Versión</a>
+                        <a href="crear_iteracion.php?post_id=<?php echo $post_id; ?>" class="btn btn-primary">Subir Primera Iteración</a>
                     </div>
                 <?php else: ?>
                     <?php foreach ($iteraciones as $iter): ?>
                         <div class="iteration-card">
                             <div class="iteration-header">
                                 <div>
-                                    <span class="version-badge">Versión <?php echo $iter['numero_version']; ?></span>
+                                    <span class="version-badge">Iteración <?php echo $iter['numero_version']; ?></span>
                                     <small class="text-muted" style="margin-left: 15px;">
                                         <i class="fas fa-calendar"></i> <?php echo date('d/m/Y H:i', strtotime($iter['fecha_creacion'])); ?>
                                     </small>
@@ -214,7 +292,7 @@ $esDestacado = $modeloPost->esDestacado($post_id);
                                     <?php endif; ?>
                                 </div>
                                 <form action="procesador.php?action=eliminar_iteracion" method="POST" 
-                                      onsubmit="return confirm('¿Eliminar esta versión?');" 
+                                      onsubmit="return confirm('¿Eliminar esta iteración?');" 
                                       style="display:inline;">
                                     <input type="hidden" name="iteracion_id" value="<?php echo $iter['id']; ?>">
                                     <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
@@ -222,18 +300,27 @@ $esDestacado = $modeloPost->esDestacado($post_id);
                             </div>
 
                             <?php if (!empty($iter['imagenes'])): ?>
-                                <div class="gallery-grid">
+                                <?php 
+                                $numImagenes = count($iter['imagenes']);
+                                $gridClass = $numImagenes <= 9 ? 'small' : 'large';
+                                ?>
+                                <div class="gallery-grid <?php echo $gridClass; ?>">
                                     <?php foreach ($iter['imagenes'] as $imagen): ?>
                                         <div class="gallery-item <?php echo $imagen['es_principal'] ? 'principal' : ''; ?>" 
                                              onclick="openModal('<?php echo htmlspecialchars($imagen['url_archivo']); ?>')">
                                             <img src="<?php echo htmlspecialchars($imagen['url_archivo']); ?>" 
-                                                 alt="Imagen versión <?php echo $iter['numero_version']; ?>" 
+                                                 alt="Imagen iteración <?php echo $iter['numero_version']; ?>" 
                                                  loading="lazy">
+                                            <?php if ($imagen['es_principal']): ?>
+                                                <div class="principal-badge">
+                                                    ★ PRINCIPAL
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
                             <?php else: ?>
-                                <p class="text-muted">Sin imágenes en esta versión</p>
+                                <p class="text-muted">Sin imágenes en esta iteración</p>
                             <?php endif; ?>
 
                             <?php if (!empty($iter['notas_cambio'])): ?>
@@ -267,9 +354,16 @@ $esDestacado = $modeloPost->esDestacado($post_id);
 
                         <div style="display: grid; gap: 10px;">
                             <div>
-                                <small class="text-muted">Total versiones:</small>
+                                <small class="text-muted">Total iteraciones:</small>
                                 <p style="font-weight: bold; font-size: 1.2rem; color: var(--primary);">
                                     <?php echo count($iteraciones); ?>
+                                </p>
+                            </div>
+
+                            <div>
+                                <small class="text-muted">Total imágenes:</small>
+                                <p style="font-weight: bold; font-size: 1.2rem; color: var(--accent);">
+                                    <?php echo $totalImagenes; ?> / 50
                                 </p>
                             </div>
 
@@ -282,7 +376,7 @@ $esDestacado = $modeloPost->esDestacado($post_id);
                             ?>
                             <div>
                                 <small class="text-muted">Tiempo total dedicado:</small>
-                                <p style="font-weight: bold; font-size: 1.2rem; color: var(--accent);">
+                                <p style="font-weight: bold; font-size: 1.2rem; color: var(--success);">
                                     <?php 
                                     $horas = floor($tiempoTotal / 60);
                                     $minutos = $tiempoTotal % 60;

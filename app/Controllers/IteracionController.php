@@ -43,7 +43,9 @@ class IteracionController {
                 'tiempo_dedicado_min' => !empty($_POST['tiempo_dedicado_min']) ? (int)$_POST['tiempo_dedicado_min'] : null
             ];
 
-            $imagenes = $this->procesarImagenesMultiples($_FILES['imagenes']);
+            $imagenPrincipalIndex = isset($_POST['imagen_principal_index']) ? (int)$_POST['imagen_principal_index'] : 0;
+
+            $imagenes = $this->procesarImagenesMultiples($_FILES['imagenes'], $imagenPrincipalIndex);
 
             $iteracionId = $this->modeloIteracion->crear($datos, $imagenes);
 
@@ -145,9 +147,10 @@ class IteracionController {
 
     /**
      * @param array $filesArray 
+     * @param int $principalIndex 
      * @return array
      */
-    private function procesarImagenesMultiples($filesArray) {
+    private function procesarImagenesMultiples($filesArray, $principalIndex = 0) {
         $imagenes = [];
         $fileCount = count($filesArray['name']);
 
@@ -158,7 +161,8 @@ class IteracionController {
                     'type' => $filesArray['type'][$i],
                     'tmp_name' => $filesArray['tmp_name'][$i],
                     'error' => $filesArray['error'][$i],
-                    'size' => $filesArray['size'][$i]
+                    'size' => $filesArray['size'][$i],
+                    'es_principal' => ($i === $principalIndex) ? 1 : 0
                 ];
             }
         }

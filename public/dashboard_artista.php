@@ -100,7 +100,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
                     <div class="card" style="border-color: var(--accent);">
                         <?php if (!empty($post['portada'])): ?>
                             <div class="card-image">
-                                <img src="<?php echo htmlspecialchars($post['portada']); ?>" alt="Portada del post" style="width: 100%; height: 120px; object-fit: cover;">
+                                <img src="<?php echo htmlspecialchars($post['portada']); ?>" alt="Portada del post">
                             </div>
                         <?php endif; ?>
                         <div class="card-body">
@@ -126,32 +126,42 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
             <?php else: ?>
                 <?php foreach ($recientes as $item): ?>
                     <div class="card">
-                        <div class="card-body">
-                            <?php 
-                            $esPostIndividual = $item['es_post_individual'] > 0;
+                        <?php 
+                        $esPostIndividual = $item['es_post_individual'] > 0;
+                        
+                        if ($esPostIndividual): 
+                            $primer_post_id = $modeloMini->obtenerPrimerPostId($item['id']);
                             
-                            if ($esPostIndividual): 
-                                $primer_post_id = $modeloMini->obtenerPrimerPostId($item['id']); 
-                            ?>
-                                <?php if (!empty($post['portada'])): ?>
-                                    <div class="card-image">
-                                        <img src="<?php echo htmlspecialchars($post['portada']); ?>" alt="Portada del post" style="width: 100%; height: 120px; object-fit: cover;">
-                                    </div>
-                                <?php endif; ?>
+                            // Obtener la portada del post individual
+                            if ($primer_post_id) {
+                                $postIndividual = $modeloPost->obtenerPorId($primer_post_id, $usuario_id);
+                                $portada = $postIndividual['portada'] ?? null;
+                            } else {
+                                $portada = null;
+                            }
+                        ?>
+                            <?php if (!empty($portada)): ?>
+                                <div class="card-image">
+                                    <img src="<?php echo htmlspecialchars($portada); ?>" alt="Portada del post">
+                                </div>
+                            <?php endif; ?>
+                            <div class="card-body">
                                 <h3><i class="fas fa-file"></i> <?php echo htmlspecialchars($item['titulo']); ?></h3>
                                 <p>Post Individual</p>
                                 <a href="ver_post.php?id=<?php echo $primer_post_id; ?>" class="btn btn-secondary" style="width:100%">Ver Post</a>
-                            <?php else: ?>
-                                <?php if (!empty($item['miniatura'])): ?>
-                                    <div class="card-image">
-                                        <img src="<?php echo htmlspecialchars($item['miniatura']); ?>" alt="Portada del mini proyecto" style="width: 100%; height: 120px; object-fit: cover;">
-                                    </div>
-                                <?php endif; ?>
+                            </div>
+                        <?php else: ?>
+                            <?php if (!empty($item['miniatura'])): ?>
+                                <div class="card-image">
+                                    <img src="<?php echo htmlspecialchars($item['miniatura']); ?>" alt="Portada del mini proyecto">
+                                </div>
+                            <?php endif; ?>
+                            <div class="card-body">
                                 <h3><i class="fas fa-folder"></i> <?php echo htmlspecialchars($item['titulo']); ?></h3>
                                 <p>Mini Proyecto (<?php echo $item['cantidad_posts']; ?> posts)</p>
                                 <a href="ver_miniproyecto.php?id=<?php echo $item['id']; ?>" class="btn btn-secondary" style="width:100%">Abrir Mini Proyecto</a>
-                            <?php endif; ?>
-                        </div>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -165,7 +175,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
                 <div class="card">
                     <?php if (!empty($proy['avatar_url'])): ?>
                         <div class="card-image">
-                            <img src="<?php echo htmlspecialchars($proy['avatar_url']); ?>" alt="Avatar del proyecto" style="width: 100%; height: 120px; object-fit: cover;">
+                            <img src="<?php echo htmlspecialchars($proy['avatar_url']); ?>" alt="Avatar del proyecto">
                         </div>
                     <?php endif; ?>
                     <div class="card-body">

@@ -146,9 +146,10 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
 
 .card-image {
     width: 100%;
-    height: 120px;
+    height: 150px;
     overflow: hidden;
     border-radius: var(--radius) var(--radius) 0 0;
+    background: #222;
 }
 
 .card-image img {
@@ -626,6 +627,9 @@ select.form-control {
     .section-header .btn {
         width: 100%;
     }
+    .preview-container {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
 }
 
 @media (max-width: 480px) {
@@ -648,6 +652,13 @@ select.form-control {
     .avatar-img {
         width: 100px;
         height: 100px;
+    }
+    .preview-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .upload-zone {
+        padding: 30px 20px;
     }
 
     /* --- Animacion --- */
@@ -715,24 +726,28 @@ select.form-control {
 
     /* --- Iteraciones --- */
     .preview-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 15px;
-        margin-top: 15px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
     }
-        .preview-item {
+
+    .preview-item {
         position: relative;
         border: 2px solid var(--border);
         border-radius: var(--radius);
         overflow: hidden;
         background: var(--bg-hover);
+        aspect-ratio: 1;
     }
-        .preview-item img {
+
+    .preview-item img {
         width: 100%;
-        height: 150px;
+        height: 100%;
         object-fit: cover;
     }
-        .preview-item .remove-btn {
+
+    .preview-item .remove-btn {
         position: absolute;
         top: 5px;
         right: 5px;
@@ -740,26 +755,42 @@ select.form-control {
         color: white;
         border: none;
         border-radius: 50%;
-        width: 25px;
-        height: 25px;
+        width: 30px;
+        height: 30px;
         cursor: pointer;
         font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        line-height: 1;
+        z-index: 10;
     }
+
+    .preview-item .remove-btn:hover {
+        background: #dc2626;
+        transform: scale(1.1);
+    }
+
+    /* --- Upload Zone --- */
     .upload-zone {
-        border: 2px dashed var(--border);
-        border-radius: var(--radius);
-        padding: 40px;
-        text-align: center;
-        background: var(--bg-hover);
-        cursor: pointer;
-        transition: all 0.3s;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+    background: var(--bg-hover);
+    cursor: pointer;
+    transition: all 0.3s;
     }
+
     .upload-zone:hover {
         border-color: var(--primary);
         background: var(--bg-card);
     }
+
     .upload-zone.dragover {
         border-color: var(--accent);
         background: rgba(245, 158, 11, 0.1);
     }
+
 }

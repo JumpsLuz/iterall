@@ -61,6 +61,8 @@ class Iteracion {
                         throw new Exception("Error al subir imagen: " . $uploadResult['error']);
                     }
 
+                    $esPrincipal = isset($imagen['es_principal']) ? $imagen['es_principal'] : 0;
+
                     $sqlImagen = "INSERT INTO imagenes_iteracion 
                                  (iteracion_id, url_archivo, cloud_id, es_principal, orden_visual) 
                                  VALUES (?, ?, ?, ?, ?)";
@@ -70,7 +72,7 @@ class Iteracion {
                         $iteracionId,
                         $uploadResult['url'],
                         $uploadResult['cloud_id'],
-                        ($index === 0) ? 1 : 0, 
+                        $esPrincipal,
                         $orden++
                     ]);
                 }
@@ -203,7 +205,6 @@ class Iteracion {
      */
     public function actualizar($iteracionId, $datos, $usuarioId) {
         try {
-            // Verificar permisos
             $iteracion = $this->obtenerPorId($iteracionId, $usuarioId);
             if (!$iteracion) {
                 return false;

@@ -159,6 +159,36 @@ if ($action === 'crear_miniproyecto') {
 
 if ($action === 'crear_iteracion') {
     require_once '../app/Controllers/IteracionController.php';
+    
+    if (isset($_POST['post_id'])) {
+        $post_id = $_POST['post_id'];
+        $db = Database::getInstance();
+        
+        $stmt = $db->prepare("
+            SELECT COUNT(*) 
+            FROM imagenes_iteracion ii
+            INNER JOIN iteraciones i ON ii.iteracion_id = i.id
+            WHERE i.post_id = ?
+        ");
+        $stmt->execute([$post_id]);
+        $totalImagenes = $stmt->fetchColumn();
+        
+        $nuevasImagenes = 0;
+        if (isset($_FILES['imagenes']) && is_array($_FILES['imagenes']['name'])) {
+            $nuevasImagenes = count($_FILES['imagenes']['name']);
+        }
+        
+        if (($totalImagenes + $nuevasImagenes) > 50) {
+            header('Location: crear_iteracion.php?post_id=' . $post_id . '&error=limite_excedido');
+            exit();
+        }
+        
+        if ($nuevasImagenes > 20) {
+            header('Location: crear_iteracion.php?post_id=' . $post_id . '&error=limite_excedido');
+            exit();
+        }
+    }
+    
     $controller = new IteracionController();
     $controller->crear();
 }
