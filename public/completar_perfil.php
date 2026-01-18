@@ -11,7 +11,7 @@
 <body>
     <div class="profile-setup-container">
         <div class="profile-setup-card">
-            <h2>¡Bienvenido a ITERALL! 🎨</h2>
+            <h2>¡Bienvenido a ITERALL! <i class="fas fa-palette"></i></h2>
             <p class="intro-text">
                 Configura tu perfil para comenzar a mostrar tu trabajo al mundo. 
                 Estos datos aparecerán en tu portafolio público.
@@ -19,7 +19,7 @@
 
             <?php if (isset($_GET['error'])): ?>
                 <div class="alert alert-error">
-                    ⚠️ Hubo un error al guardar tu perfil. Intenta nuevamente.
+                    <i class="fas fa-exclamation-triangle"></i> Hubo un error al guardar tu perfil. Intenta nuevamente.
                 </div>
             <?php endif; ?>
 
@@ -49,7 +49,7 @@
                         <label class="form-label">Avatar (400x400px)</label>
                         <div class="image-preview" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">
                             <div class="placeholder-text">
-                                <p style="font-size: 2rem;">👤</p>
+                                <p style="font-size: 2rem;"><i class="fas fa-user"></i></p>
                                 <p>Click para seleccionar imagen</p>
                                 <p class="text-muted" style="font-size: 0.85rem;">JPG, PNG, GIF, WEBP | Máx. 5MB</p>
                             </div>
@@ -188,7 +188,7 @@
                                data-patron="${red.patron.source}"
                                data-ayuda="${red.ayuda}">
                         <button type="button" class="btn btn-danger" onclick="eliminarRed(this)" 
-                                style="padding: 0 15px;">🗑️</button>
+                                style="padding: 0 15px;"><i class="fas fa-trash"></i></button>
                     </div>
                     <span class="form-hint">${red.ayuda}</span>
                     <span class="error-msg" style="color: var(--danger); font-size: 0.85rem; display: none;"></span>

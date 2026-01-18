@@ -30,6 +30,7 @@ $estados = $modeloProyecto->obtenerEstados();
     <meta charset="UTF-8">
     <title>Editar Proyecto | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container" style="max-width: 800px;">
@@ -40,11 +41,11 @@ $estados = $modeloProyecto->obtenerEstados();
 
         <div class="card">
             <div class="card-body">
-                <h2>⚙️ Configuración del Proyecto</h2>
+                <h2><i class="fas fa-cog"></i> Configuración del Proyecto</h2>
                 
                 <?php if (isset($_GET['error'])): ?>
                     <div class="alert alert-error" style="margin-bottom: 15px;">
-                        ⚠️ Error: Hubo un error al actualizar el proyecto. Intenta nuevamente.
+                        <i class="fas fa-exclamation-triangle"></i> Error: Hubo un error al actualizar el proyecto. Intenta nuevamente.
                     </div>
                 <?php endif; ?>
 
@@ -107,10 +108,10 @@ $estados = $modeloProyecto->obtenerEstados();
                                 
                                 <div class="image-preview" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">
                                     <div class="placeholder-text">
-                                        <p>📸 Click para <?php echo !empty($proyecto['avatar_url']) ? 'cambiar' : 'subir'; ?> imagen</p>
+                                        <p><i class="fas fa-camera"></i> Click para <?php echo !empty($proyecto['avatar_url']) ? 'cambiar' : 'subir'; ?> imagen</p>
                                         <p class="text-muted" style="font-size: 0.75rem;">400x400px | Máx. 5MB</p>
                                     </div>
-                                    <img id="avatarImg" alt="Vista previa" style="display: none;">
+                                    <img id="avatarImg" alt="Vista previa">
                                 </div>
                                 <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display: none;">
                             </div>
@@ -128,10 +129,10 @@ $estados = $modeloProyecto->obtenerEstados();
                                 
                                 <div class="image-preview" id="bannerPreview" onclick="document.getElementById('bannerInput').click()">
                                     <div class="placeholder-text">
-                                        <p>🖼️ Click para <?php echo !empty($proyecto['banner_url']) ? 'cambiar' : 'subir'; ?> imagen</p>
+                                        <p><i class="fas fa-image"></i> Click para <?php echo !empty($proyecto['banner_url']) ? 'cambiar' : 'subir'; ?> imagen</p>
                                         <p class="text-muted" style="font-size: 0.75rem;">1500x500px | Máx. 5MB</p>
                                     </div>
-                                    <img id="bannerImg" alt="Vista previa" style="display: none;">
+                                    <img id="bannerImg" alt="Vista previa">
                                 </div>
                                 <input type="file" id="bannerInput" name="banner" accept="image/*" style="display: none;">
                             </div>
@@ -158,14 +159,14 @@ $estados = $modeloProyecto->obtenerEstados();
 
         <div class="card" style="border-color: var(--danger);">
             <div class="card-body">
-                <h3 style="color: var(--danger);">🗑️ Zona Peligrosa</h3>
+                <h3 style="color: var(--danger);"><i class="fas fa-trash"></i> Zona Peligrosa</h3>
                 <p class="text-muted" style="margin: 15px 0;">
                     Esta acción eliminará permanentemente el proyecto y TODO su contenido: miniproyectos, posts, iteraciones e imágenes.
                     <strong>Esta acción no se puede deshacer.</strong>
                 </p>
                 
                 <form action="procesador.php?action=eliminar_proyecto" method="POST" 
-                      onsubmit="return confirm('⚠️ ADVERTENCIA FINAL\n\n¿Estás COMPLETAMENTE SEGURO de eliminar este proyecto?\n\nSe perderá:\n- Todos los miniproyectos\n- Todos los posts\n- Todas las iteraciones\n- Todas las imágenes\n\nEsta acción es IRREVERSIBLE.');"
+                      onsubmit="return confirm('ADVERTENCIA FINAL\n\n¿Estás COMPLETAMENTE SEGURO de eliminar este proyecto?\n\nSe perderá:\n- Todos los miniproyectos\n- Todos los posts\n- Todas las iteraciones\n- Todas las imágenes\n\nEsta acción es IRREVERSIBLE.');"
                       style="margin-top: 15px;">
                     <input type="hidden" name="proyecto_id" value="<?php echo $proyecto['id']; ?>">
                     <button type="submit" class="btn btn-danger" style="width: 100%; padding: 12px;">

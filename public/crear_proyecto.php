@@ -16,6 +16,7 @@ $estados = $modeloProyecto->obtenerEstados();
     <meta charset="UTF-8">
     <title>Nuevo Proyecto | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container" style="max-width: 800px;">
@@ -33,7 +34,7 @@ $estados = $modeloProyecto->obtenerEstados();
 
                 <?php if (isset($_GET['error'])): ?>
                     <div class="alert alert-error">
-                        ⚠️ Error al crear el proyecto. Verifica los campos requeridos.
+                        <i class="fas fa-exclamation-triangle"></i> Error al crear el proyecto. Verifica los campos requeridos.
                     </div>
                 <?php endif; ?>
 
@@ -78,7 +79,7 @@ $estados = $modeloProyecto->obtenerEstados();
                                 <label class="form-label">Portada/Avatar (400x400px)</label>
                                 <div class="image-preview" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">
                                     <div class="placeholder-text">
-                                        <p style="font-size: 2rem;">🎨</p>
+                                        <p style="font-size: 2rem;"><i class="fas fa-palette"></i></p>
                                         <p>Click para seleccionar</p>
                                         <p class="text-muted" style="font-size: 0.85rem;">Opcional | Máx. 5MB</p>
                                     </div>
@@ -91,7 +92,7 @@ $estados = $modeloProyecto->obtenerEstados();
                                 <label class="form-label">Banner (1500x500px)</label>
                                 <div class="image-preview" id="bannerPreview" onclick="document.getElementById('bannerInput').click()">
                                     <div class="placeholder-text">
-                                        <p style="font-size: 2rem;">🖼️</p>
+                                        <p style="font-size: 2rem;"><i class="fas fa-image"></i></p>
                                         <p>Click para seleccionar</p>
                                         <p class="text-muted" style="font-size: 0.85rem;">Opcional | Máx. 5MB</p>
                                     </div>

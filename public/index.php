@@ -21,16 +21,16 @@ session_start();
                     <?php 
                     switch($_GET['error']) {
                         case '1':
-                            echo '⚠️ Credenciales incorrectas. Verifica tu email y contraseña.';
+                            echo '<i class="fas fa-exclamation-triangle"></i> Credenciales incorrectas. Verifica tu email y contraseña.';
                             break;
                         case 'sesion_requerida':
-                            echo '⚠️ Debes iniciar sesión primero.';
+                            echo '<i class="fas fa-exclamation-triangle"></i> Debes iniciar sesión primero.';
                             break;
                         case 'sesion_expirada':
-                            echo '⚠️ Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
+                            echo '<i class="fas fa-exclamation-triangle"></i> Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
                             break;
                         default:
-                            echo '⚠️ Error desconocido. Intenta nuevamente.';
+                            echo '<i class="fas fa-exclamation-triangle"></i> Error desconocido. Intenta nuevamente.';
                     }
                     ?>
                 </div>
@@ -38,7 +38,7 @@ session_start();
 
             <?php if (isset($_GET['mensaje']) && $_GET['mensaje'] == 'sesion_cerrada'): ?>
                 <div class="alert alert-success">
-                    ✓ Sesión cerrada correctamente.
+                    <i class="fas fa-check"></i> Sesión cerrada correctamente.
                 </div>
             <?php endif; ?>
 

@@ -25,6 +25,9 @@ class Proyecto {
                 return false;
             }
 
+            $avatarUrl = null;
+            $bannerUrl = null;
+
             if ($avatar_file && !empty($avatar_file['tmp_name'])) {
                 $validacion = CloudinaryConfig::validateImage($avatar_file);
                 if ($validacion['valid']) {
@@ -43,6 +46,8 @@ class Proyecto {
 
                     if ($resultado['success']) {
                         $avatarUrl = $resultado['url'];
+                    } else {
+                        error_log("Error subiendo avatar de proyecto: " . $resultado['error']);
                     }
                 }
             }
@@ -65,14 +70,14 @@ class Proyecto {
 
                     if ($resultado['success']) {
                         $bannerUrl = $resultado['url'];
+                    } else {
+                        error_log("Error subiendo banner de proyecto: " . $resultado['error']);
                     }
                 }
             }
 
-            $avatarUrl = null;
-            $bannerUrl = null;
-
-            $sql = "INSERT INTO proyectos (creador_id, titulo, descripcion, categoria_id, estado_id, es_publico, avatar_url, banner_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO proyectos (creador_id, titulo, descripcion, categoria_id, estado_id, es_publico, avatar_url, banner_url) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
             $stmt = $this->db->prepare($sql);
             $resultado = $stmt->execute([
@@ -85,7 +90,8 @@ class Proyecto {
                 $avatarUrl,
                 $bannerUrl
             ]);
-        if (!$resultado) {
+
+            if (!$resultado) {
                 throw new Exception("Error al insertar proyecto en BD");
             }
 
@@ -99,7 +105,7 @@ class Proyecto {
             error_log("Error al crear proyecto: " . $e->getMessage());
             return false;
         }
-    }
+}
     
 
     public function obtenerPorUsuario($usuario_id) {
@@ -225,7 +231,7 @@ class Proyecto {
                     WHERE id = ? AND creador_id = ?";
             
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute([
+            $result = $stmt->execute([
                 $datos['titulo'],
                 $datos['descripcion'],
                 $datos['categoria_id'],
@@ -237,8 +243,12 @@ class Proyecto {
                 $usuario_id
             ]);
 
-            $this->db->commit();
-            return $resultado;
+            if ($result) {
+                $this->db->commit();
+                return true;
+            } else {
+                throw new Exception("Error al actualizar en BD");
+            }
         } catch (Exception $e) {
             $this->db->rollBack();
             error_log("Error al actualizar proyecto: " . $e->getMessage());
@@ -251,7 +261,7 @@ class Proyecto {
      * @return bool
      */
 
-    private function eliminarImagenProyecto($url) {
+    public function eliminarImagenProyecto($url) {
         if (empty($url)) return false;
 
         try {

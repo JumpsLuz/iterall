@@ -51,13 +51,13 @@ if (!$post) {
                         <?php 
                         switch($_GET['error']) {
                             case 'sin_imagenes':
-                                echo '⚠️ Debes subir al menos una imagen';
+                                echo '<i class="fas fa-exclamation-triangle"></i> Debes subir al menos una imagen';
                                 break;
                             case 'error_crear_iteracion':
-                                echo '⚠️ Error al crear la iteración. Intenta nuevamente';
+                                echo '<i class="fas fa-exclamation-triangle"></i> Error al crear la iteración. Intenta nuevamente';
                                 break;
                             default:
-                                echo '⚠️ Error desconocido';
+                                echo '<i class="fas fa-exclamation-triangle"></i> Error desconocido';
                         }
                         ?>
                     </div>

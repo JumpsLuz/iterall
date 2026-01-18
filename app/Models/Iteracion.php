@@ -52,8 +52,8 @@ class Iteracion {
                     $uploadResult = $this->cloudinary->uploadImage(
                         $imagen['tmp_name'],
                         [
-                            'folder' => "iterall/post_{$datos['post_id']}/v{$numeroVersion}",
-                            'public_id' => "img_{$index}_" . uniqid()
+                            'folder' => "iterall/imagenes",
+                            'public_id' => "post_{$datos['post_id']}_v{$numeroVersion}_img_{$index}_" . uniqid()
                         ]
                     );
 

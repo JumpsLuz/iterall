@@ -144,6 +144,24 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
     display: none;
 }
 
+.card-image {
+    width: 100%;
+    height: 120px;
+    overflow: hidden;
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.card-image:hover img {
+    transform: scale(1.05);
+}
+
 /* --- Index --- */
 
 .landing-container {
@@ -412,6 +430,113 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
     font-size: 0.85rem;
     color: var(--text-muted);
     margin-top: 5px;
+}
+
+/* --- Proyectos --- */
+.project-card-header {
+    height: 180px;
+    background: linear-gradient(135deg, #1e1e1e 0%, #2c2c2c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.project-card-header img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.project-avatar-overlay {
+    position: absolute;
+    bottom: -40px;
+    left: 20px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 4px solid var(--bg-card);
+    background: #333;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.project-avatar-overlay img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.project-card-body-adjusted {
+    padding-top: 50px;
+}
+
+.no-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    font-size: 3rem;
+}
+
+.project-header {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.project-banner {
+    width: 100%;
+    height: 300px;
+    background: linear-gradient(135deg, #1e1e1e 0%, #2c2c2c 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.project-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.project-info-container {
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin-top: -60px;
+    position: relative;
+    z-index: 10;
+}
+
+.project-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    border: 4px solid var(--bg-card);
+    background: #333;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.project-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    font-size: 4rem;
 }
 
 /* --- Explorar (Cliente) --- */

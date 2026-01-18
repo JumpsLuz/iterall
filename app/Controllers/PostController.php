@@ -265,6 +265,22 @@ class PostController {
 
             $this->db->beginTransaction();
 
+            // Delete images from Cloudinary
+            $stmtImgs = $this->db->prepare("
+                SELECT ii.cloud_id 
+                FROM imagenes_iteracion ii
+                INNER JOIN iteraciones i ON ii.iteracion_id = i.id
+                WHERE i.post_id = ? AND ii.cloud_id IS NOT NULL
+            ");
+            $stmtImgs->execute([$post_id]);
+            $imagenesCloud = $stmtImgs->fetchAll(PDO::FETCH_COLUMN);
+
+            require_once '../app/Config/Cloudinary.php';
+            $cloudinary = CloudinaryConfig::getInstance();
+            foreach ($imagenesCloud as $cloudId) {
+                $cloudinary->deleteImage($cloudId);
+            }
+
             $sqlDelete = "DELETE FROM posts WHERE id = ? AND creador_id = ?";
             $stmtDelete = $this->db->prepare($sqlDelete);
             $stmtDelete->execute([$post_id, $usuario_id]);

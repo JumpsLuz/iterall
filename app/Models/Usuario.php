@@ -79,8 +79,8 @@ class Usuario {
                         $resultado = $this->cloudinary->uploadImage(
                             $avatarFile['tmp_name'],
                             [
-                                'folder' => "iterall/perfiles/usuario_{$usuario_id}",
-                                'public_id' => "avatar_" . uniqid()
+                                'folder' => "iterall/usuarios/avatares",
+                                'public_id' => "usuario_{$usuario_id}_avatar_" . uniqid()
                             ]
                         );
 
@@ -104,8 +104,8 @@ class Usuario {
                         $resultado = $this->cloudinary->uploadImage(
                             $bannerFile['tmp_name'],
                             [
-                                'folder' => "iterall/perfiles/usuario_{$usuario_id}",
-                                'public_id' => "banner_" . uniqid()
+                                'folder' => "iterall/usuarios/banners",
+                                'public_id' => "usuario_{$usuario_id}_banner_" . uniqid()
                             ]
                         );
 

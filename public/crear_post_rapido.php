@@ -26,14 +26,14 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
 
         <div class="card">
             <div class="card-body">
-                <h2 style="margin-bottom: 5px;">🚀 Publicar Nueva Obra</h2>
+                <h2 style="margin-bottom: 5px;"><i class="fas fa-rocket"></i> Publicar Nueva Obra</h2>
                 <p class="text-muted" style="margin-bottom: 20px;">
                     Esto creará una entrada individual. Si luego añades más archivos, se convertirá automáticamente en un Mini Proyecto.
                 </p>
 
                 <?php if (isset($_GET['error'])): ?>
                     <div class="badge badge-status" style="background: rgba(239,68,68,0.2); color: var(--danger); display:block; margin-bottom: 15px;">
-                        ⚠️ Error: Completa todos los campos obligatorios.
+                        <i class="fas fa-exclamation-triangle"></i> Error: Completa todos los campos obligatorios.
                     </div>
                 <?php endif; ?>
 

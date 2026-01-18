@@ -106,11 +106,21 @@ class ProyectoController {
             try {
                 $this->db->beginTransaction();
                 
-                $stmt = $this->db->prepare("SELECT id FROM proyectos WHERE id = ? AND creador_id = ?");
+                $stmt = $this->db->prepare("SELECT id, avatar_url, banner_url FROM proyectos WHERE id = ? AND creador_id = ?");
                 $stmt->execute([$proyecto_id, $usuario_id]);
+                $proyecto = $stmt->fetch(PDO::FETCH_ASSOC);
                 
-                if (!$stmt->fetch()) {
+                if (!$proyecto) {
                     throw new Exception("No tienes permiso para eliminar este proyecto.");
+                }
+                
+                require_once '../app/Config/Cloudinary.php';
+                $cloudinary = CloudinaryConfig::getInstance();
+                if (!empty($proyecto['avatar_url'])) {
+                    $this->modeloProyecto->eliminarImagenProyecto($proyecto['avatar_url']);
+                }
+                if (!empty($proyecto['banner_url'])) {
+                    $this->modeloProyecto->eliminarImagenProyecto($proyecto['banner_url']);
                 }
                 
                 $stmtImgs = $this->db->prepare("
@@ -124,8 +134,6 @@ class ProyectoController {
                 $stmtImgs->execute([$proyecto_id]);
                 $imagenesCloud = $stmtImgs->fetchAll(PDO::FETCH_COLUMN);
 
-                require_once '../app/Config/Cloudinary.php';
-                $cloudinary = CloudinaryConfig::getInstance();
                 foreach ($imagenesCloud as $cloudId) {
                     $cloudinary->deleteImage($cloudId);
                 }

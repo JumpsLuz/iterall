@@ -134,16 +134,16 @@ $esDestacado = $modeloPost->esDestacado($post_id);
                 <?php 
                 switch($_GET['mensaje']) {
                     case 'iteracion_creada':
-                        echo '✓ Nueva versión creada exitosamente';
+                        echo '<i class="fas fa-check"></i> Nueva versión creada exitosamente';
                         break;
                     case 'iteracion_eliminada':
-                        echo '✓ Versión eliminada correctamente';
+                        echo '<i class="fas fa-check"></i> Versión eliminada correctamente';
                         break;
                     case 'iteracion_actualizada':
-                        echo '✓ Versión actualizada';
+                        echo '<i class="fas fa-check"></i> Versión actualizada';
                         break;
                     default:
-                        echo '✓ Acción completada';
+                        echo '<i class="fas fa-check"></i> Acción completada';
                 }
                 ?>
             </div>
@@ -151,12 +151,17 @@ $esDestacado = $modeloPost->esDestacado($post_id);
 
         <?php if (isset($_GET['error'])): ?>
             <div class="alert alert-error" style="margin-bottom: 20px;">
-                ⚠️ Ocurrió un error. Intenta nuevamente.
+                <i class="fas fa-exclamation-triangle"></i> Ocurrió un error. Intenta nuevamente.
             </div>
         <?php endif; ?>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <div>
+                <?php if (!empty($post['portada'])): ?>
+                    <div style="margin-bottom: 15px;">
+                        <img src="<?php echo htmlspecialchars($post['portada']); ?>" alt="Portada del post" style="width: 100%; max-width: 300px; height: 150px; object-fit: cover; border-radius: var(--radius);">
+                    </div>
+                <?php endif; ?>
                 <h1><?php echo htmlspecialchars($post['titulo']); ?></h1>
                 <span class="badge badge-category"><?php echo htmlspecialchars($post['nombre_categoria']); ?></span>
             </div>
@@ -171,7 +176,7 @@ $esDestacado = $modeloPost->esDestacado($post_id);
                       onsubmit="return confirm('¿Eliminar este post y todas sus versiones?');" 
                       style="display:inline;">
                     <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
-                    <button type="submit" class="btn btn-danger">🗑️ Eliminar Post</button>
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Eliminar Post</button>
                 </form>
             </div>
         </div>
@@ -200,11 +205,11 @@ $esDestacado = $modeloPost->esDestacado($post_id);
                                 <div>
                                     <span class="version-badge">Versión <?php echo $iter['numero_version']; ?></span>
                                     <small class="text-muted" style="margin-left: 15px;">
-                                        📅 <?php echo date('d/m/Y H:i', strtotime($iter['fecha_creacion'])); ?>
+                                        <i class="fas fa-calendar"></i> <?php echo date('d/m/Y H:i', strtotime($iter['fecha_creacion'])); ?>
                                     </small>
                                     <?php if ($iter['tiempo_dedicado_min']): ?>
                                         <small class="text-muted" style="margin-left: 10px;">
-                                            ⏱ <?php echo $iter['tiempo_dedicado_min']; ?> min
+                                            <i class="fas fa-clock"></i> <?php echo $iter['tiempo_dedicado_min']; ?> min
                                         </small>
                                     <?php endif; ?>
                                 </div>
@@ -233,7 +238,7 @@ $esDestacado = $modeloPost->esDestacado($post_id);
 
                             <?php if (!empty($iter['notas_cambio'])): ?>
                                 <div style="background: rgba(59, 130, 246, 0.1); padding: 12px; border-radius: var(--radius); margin-top: 15px;">
-                                    <strong style="color: var(--primary);">📝 Notas:</strong>
+                                    <strong style="color: var(--primary);"><i class="fas fa-sticky-note"></i> Notas:</strong>
                                     <p style="margin-top: 5px; color: var(--text-main);">
                                         <?php echo nl2br(htmlspecialchars($iter['notas_cambio'])); ?>
                                     </p>

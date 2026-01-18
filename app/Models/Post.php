@@ -27,7 +27,11 @@ class Post {
     }
 
     public function obtenerPorId($id, $usuario_id) {
-        $sql = "SELECT p.*, c.nombre_categoria, mp.descripcion as descripcion_miniproyecto
+        $sql = "SELECT p.*, c.nombre_categoria, mp.descripcion as descripcion_miniproyecto,
+                (SELECT url_archivo FROM imagenes_iteracion ii
+                 JOIN iteraciones i ON ii.iteracion_id = i.id
+                 WHERE i.post_id = p.id
+                 ORDER BY i.numero_version DESC, ii.orden_visual ASC LIMIT 1) as portada
                 FROM posts p
                 LEFT JOIN categorias c ON p.categoria_id = c.id
                 LEFT JOIN miniproyectos mp ON p.miniproyecto_id = mp.id
@@ -46,7 +50,12 @@ class Post {
 
     public function obtenerDestacados($usuario_id) {
         try {
-            $sql = "SELECT p.*, mp.titulo AS nombre_miniproyecto, c.nombre_categoria FROM posts p 
+            $sql = "SELECT p.*, mp.titulo AS nombre_miniproyecto, c.nombre_categoria,
+                    (SELECT url_archivo FROM imagenes_iteracion ii
+                     JOIN iteraciones i ON ii.iteracion_id = i.id
+                     WHERE i.post_id = p.id
+                     ORDER BY i.numero_version DESC, ii.orden_visual ASC LIMIT 1) as portada
+                    FROM posts p 
                     JOIN post_etiquetas pe ON p.id = pe.post_id
                     JOIN etiquetas e ON pe.etiqueta_id = e.id
                     LEFT JOIN miniproyectos mp ON p.miniproyecto_id = mp.id
@@ -125,9 +134,15 @@ class Post {
 
     public function obtenerPorMiniproyecto($miniproyecto_id) {
         try {
-            $sql = "SELECT * FROM posts 
-                    WHERE miniproyecto_id = ? 
-                    ORDER BY fecha_creacion ASC";
+            $sql = "SELECT p.*, c.nombre_categoria,
+                    (SELECT url_archivo FROM imagenes_iteracion ii
+                     JOIN iteraciones i ON ii.iteracion_id = i.id
+                     WHERE i.post_id = p.id
+                     ORDER BY i.numero_version DESC, ii.orden_visual ASC LIMIT 1) as portada
+                    FROM posts p
+                    LEFT JOIN categorias c ON p.categoria_id = c.id
+                    WHERE p.miniproyecto_id = ? 
+                    ORDER BY p.fecha_creacion ASC";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$miniproyecto_id]);

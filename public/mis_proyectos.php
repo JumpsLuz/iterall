@@ -15,6 +15,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($_SESSION['usuario_id']);
     <meta charset="UTF-8">
     <title>Mis Proyectos | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -33,13 +34,13 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($_SESSION['usuario_id']);
                 <?php 
                 switch($_GET['mensaje']) {
                     case 'proyecto_creado':
-                        echo '✓ Proyecto creado exitosamente';
+                        echo '<i class="fas fa-check"></i> Proyecto creado exitosamente';
                         break;
                     case 'proyecto_eliminado':
-                        echo '✓ Proyecto eliminado correctamente';
+                        echo '<i class="fas fa-check"></i> Proyecto eliminado correctamente';
                         break;
                     default:
-                        echo '✓ Acción completada';
+                        echo '<i class="fas fa-check"></i> Acción completada';
                 }
                 ?>
             </div>
@@ -50,19 +51,19 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($_SESSION['usuario_id']);
                 <?php 
                 switch($_GET['error']) {
                     case 'no_se_pudo_eliminar':
-                        echo '⚠️ Error al eliminar el proyecto. Intenta nuevamente.';
+                        echo '<i class="fas fa-exclamation-triangle"></i> Error al eliminar el proyecto. Intenta nuevamente.';
                         if (isset($_GET['detalle'])) {
                             echo '<br><small>' . htmlspecialchars($_GET['detalle']) . '</small>';
                         }
                         break;
                     case 'proyecto_no_encontrado':
-                        echo '⚠️ El proyecto no existe o no tienes permiso para acceder.';
+                        echo '<i class="fas fa-exclamation-triangle"></i> El proyecto no existe o no tienes permiso para acceder.';
                         break;
                     case 'not_found':
-                        echo '⚠️ Proyecto no encontrado.';
+                        echo '<i class="fas fa-exclamation-triangle"></i> Proyecto no encontrado.';
                         break;
                     default:
-                        echo '⚠️ Ocurrió un error.';
+                        echo '<i class="fas fa-exclamation-triangle"></i> Ocurrió un error.';
                 }
                 ?>
             </div>
@@ -79,11 +80,27 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($_SESSION['usuario_id']);
             <div class="grid-gallery">
                 <?php foreach ($proyectos as $proyecto): ?>
                     <div class="card">
-                        <div style="height: 120px; background: #333; display:flex; align-items:center; justify-content:center; color:#555;">
-                            [Portada Proyecto]
+                        <!-- Banner del proyecto -->
+                        <div class="project-card-header">
+                            <?php if (!empty($proyecto['banner_url'])): ?>
+                                <img src="<?php echo htmlspecialchars($proyecto['banner_url']); ?>" 
+                                     alt="Banner de <?php echo htmlspecialchars($proyecto['titulo']); ?>">
+                            <?php else: ?>
+                                <div class="no-image-placeholder"><i class="fas fa-palette"></i></div>
+                            <?php endif; ?>
+                            
+                            <!-- Avatar superpuesto -->
+                            <div class="project-avatar-overlay">
+                                <?php if (!empty($proyecto['avatar_url'])): ?>
+                                    <img src="<?php echo htmlspecialchars($proyecto['avatar_url']); ?>" 
+                                         alt="Avatar de <?php echo htmlspecialchars($proyecto['titulo']); ?>">
+                                <?php else: ?>
+                                    <div class="no-image-placeholder" style="font-size: 2rem;"><i class="fas fa-folder"></i></div>
+                                <?php endif; ?>
+                            </div>
                         </div>
                         
-                        <div class="card-body">
+                        <div class="card-body project-card-body-adjusted">
                             <h3><?php echo htmlspecialchars($proyecto['titulo']); ?></h3>
                             <span class="badge badge-category"><?php echo htmlspecialchars($proyecto['nombre_categoria'] ?? 'General'); ?></span>
                             <span class="badge badge-status"><?php echo htmlspecialchars($proyecto['nombre_estado'] ?? 'Activo'); ?></span>

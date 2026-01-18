@@ -59,12 +59,12 @@ $redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
 
             <?php if (isset($_GET['error'])): ?>
                 <div class="alert alert-error">
-                    ⚠️ Hubo un error al actualizar. Intenta nuevamente.
+                    <i class="fas fa-exclamation-triangle"></i> Hubo un error al actualizar. Intenta nuevamente.
                 </div>
             <?php endif; ?>
 
             <div class="editable-section">
-                <span class="edit-label">📝 INFORMACIÓN BÁSICA</span>
+                <span class="edit-label"><i class="fas fa-edit"></i> INFORMACIÓN BÁSICA</span>
                 
                 <div class="form-group">
                     <label class="form-label">Nombre Artístico *</label>
@@ -82,7 +82,7 @@ $redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
             </div>
 
             <div class="editable-section">
-                <span class="edit-label">🌐 REDES SOCIALES</span>
+                <span class="edit-label"><i class="fas fa-globe"></i> REDES SOCIALES</span>
                 <p class="info-hint" style="margin-bottom: 15px;">
                     Agrega tus perfiles. Se validará automáticamente el formato correcto.
                 </p>
@@ -105,7 +105,7 @@ $redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
                                 echo 'placeholder="' . $red['placeholder'] . '" ';
                                 echo 'data-patron="' . htmlspecialchars($red['patron']) . '" ';
                                 echo 'data-ayuda="' . htmlspecialchars($red['ayuda']) . '">';
-                                echo '<button type="button" class="btn btn-danger" onclick="eliminarRed(this)" style="padding: 0 15px;">🗑️</button>';
+                                echo '<button type="button" class="btn btn-danger" onclick="eliminarRed(this)" style="padding: 0 15px;"><i class="fas fa-trash"></i></button>';
                                 echo '</div>';
                                 echo '<span class="error-msg" style="color: var(--danger); font-size: 0.85rem; display: none;"></span>';
                                 echo '</div>';
