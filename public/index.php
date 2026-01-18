@@ -42,6 +42,12 @@ session_start();
                 </div>
             <?php endif; ?>
 
+            <?php if (isset($_GET['mensaje']) && $_GET['mensaje'] == 'cuenta_eliminada'): ?>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Tu cuenta ha sido eliminada permanentemente.
+                </div>
+            <?php endif; ?>
+
             <form action="procesador.php?action=login" method="POST">
                 <div class="form-group">
                     <label class="form-label">Email</label>

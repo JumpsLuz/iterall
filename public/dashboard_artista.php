@@ -50,6 +50,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
             
             <div style="margin-top: 15px;">
                 <a href="editar_perfil.php" class="btn btn-secondary">Editar Perfil</a>
+                <a href="opciones.php" class="btn btn-secondary" title="Opciones"><i class="fas fa-cog"></i></a>
                 <a href="procesador.php?action=logout" class="btn btn-danger">Cerrar Sesión</a>
             </div>
             

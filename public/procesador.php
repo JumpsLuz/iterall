@@ -174,3 +174,8 @@ if ($action === 'actualizar_iteracion') {
     $controller = new IteracionController();
     $controller->actualizar();
 }
+
+if ($action === 'eliminar_cuenta') {
+    $controller = new UsuarioController();
+    $controller->eliminarCuenta();
+}

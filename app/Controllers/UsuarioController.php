@@ -117,4 +117,44 @@ class UsuarioController {
             exit();
         }
     }
+
+    public function eliminarCuenta() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: dashboard_artista.php');
+            exit();
+        }
+
+        if (!isset($_POST['confirmacion'])) {
+            header('Location: opciones.php?error=confirmacion_requerida');
+            exit();
+        }
+
+        $usuario_id = $_SESSION['usuario_id'];
+        $confirmacion = $_POST['confirmacion'];
+
+        // Check confirmation steps
+        if ($confirmacion !== 'ELIMINAR_CUENTA_PERMANENTEMENTE') {
+            header('Location: opciones.php?error=confirmacion_incorrecta');
+            exit();
+        }
+
+        try {
+            $exito = $this->modeloUsuario->eliminarCuenta($usuario_id);
+
+            if ($exito) {
+                session_unset();
+                session_destroy();
+                header('Location: index.php?mensaje=cuenta_eliminada');
+                exit();
+            } else {
+                header('Location: opciones.php?error=error_eliminar_cuenta');
+                exit();
+            }
+
+        } catch (Exception $e) {
+            error_log("Error en eliminarCuenta: " . $e->getMessage());
+            header('Location: opciones.php?error=error_inesperado');
+            exit();
+        }
+    }
 }

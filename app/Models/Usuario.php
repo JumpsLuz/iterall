@@ -158,4 +158,95 @@ class Usuario {
             }
             return false;
         }
+
+        public function eliminarCuenta($usuario_id) {
+            try {
+                $this->db->beginTransaction();
+
+                // Get all projects for this user
+                $stmtProyectos = $this->db->prepare("SELECT id, avatar_url, banner_url FROM proyectos WHERE creador_id = ?");
+                $stmtProyectos->execute([$usuario_id]);
+                $proyectos = $stmtProyectos->fetchAll(PDO::FETCH_ASSOC);
+
+                // Delete project images from Cloudinary
+                foreach ($proyectos as $proyecto) {
+                    if (!empty($proyecto['avatar_url'])) {
+                        $this->eliminarImagenProyecto($proyecto['avatar_url']);
+                    }
+                    if (!empty($proyecto['banner_url'])) {
+                        $this->eliminarImagenProyecto($proyecto['banner_url']);
+                    }
+                }
+
+                // Get all images from posts/iterations for this user
+                $stmtImgs = $this->db->prepare("
+                    SELECT ii.cloud_id 
+                    FROM imagenes_iteracion ii
+                    INNER JOIN iteraciones i ON ii.iteracion_id = i.id
+                    INNER JOIN posts p ON i.post_id = p.id
+                    WHERE p.creador_id = ? AND ii.cloud_id IS NOT NULL
+                ");
+                $stmtImgs->execute([$usuario_id]);
+                $imagenesCloud = $stmtImgs->fetchAll(PDO::FETCH_COLUMN);
+
+                // Delete images from Cloudinary
+                foreach ($imagenesCloud as $cloudId) {
+                    $this->cloudinary->deleteImage($cloudId);
+                }
+
+                // Delete profile images
+                $stmtPerfil = $this->db->prepare("SELECT avatar_url, banner_url FROM perfiles WHERE usuario_id = ?");
+                $stmtPerfil->execute([$usuario_id]);
+                $perfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
+
+                if (!empty($perfil['avatar_url'])) {
+                    $this->eliminarImagenPerfil($perfil['avatar_url']);
+                }
+                if (!empty($perfil['banner_url'])) {
+                    $this->eliminarImagenPerfil($perfil['banner_url']);
+                }
+
+                // Delete all data in correct order (to handle potential foreign keys)
+                // Delete imagenes_iteracion
+                $this->db->prepare("DELETE ii FROM imagenes_iteracion ii INNER JOIN iteraciones i ON ii.iteracion_id = i.id INNER JOIN posts p ON i.post_id = p.id WHERE p.creador_id = ?")->execute([$usuario_id]);
+
+                // Delete iteraciones
+                $this->db->prepare("DELETE i FROM iteraciones i INNER JOIN posts p ON i.post_id = p.id WHERE p.creador_id = ?")->execute([$usuario_id]);
+
+                // Delete posts
+                $this->db->prepare("DELETE FROM posts WHERE creador_id = ?")->execute([$usuario_id]);
+
+                // Delete miniproyectos
+                $this->db->prepare("DELETE FROM miniproyectos WHERE creador_id = ?")->execute([$usuario_id]);
+
+                // Delete proyectos
+                $this->db->prepare("DELETE FROM proyectos WHERE creador_id = ?")->execute([$usuario_id]);
+
+                // Delete perfil
+                $stmtDeletePerfil = $this->db->prepare("DELETE FROM perfiles WHERE usuario_id = ?");
+                $stmtDeletePerfil->execute([$usuario_id]);
+
+                // Delete usuario
+                $stmtDeleteUsuario = $this->db->prepare("DELETE FROM usuarios WHERE id = ?");
+                $stmtDeleteUsuario->execute([$usuario_id]);
+
+                $this->db->commit();
+                return true;
+
+            } catch (Exception $e) {
+                $this->db->rollBack();
+                error_log("Error al eliminar cuenta: " . $e->getMessage());
+                return false;
+            }
+        }
+
+        private function eliminarImagenProyecto($url) {
+            if (empty($url)) return false;
+
+            preg_match('/\/iterall\/[^.]+/', $url, $matches);
+            if (!empty($matches[0])) {
+                return $this->cloudinary->deleteImage(ltrim($matches[0], '/'));
+            }
+            return false;
+        }
 }
