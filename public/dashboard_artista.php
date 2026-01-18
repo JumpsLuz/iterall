@@ -13,6 +13,8 @@ $stmt = $db->prepare("SELECT * FROM perfiles WHERE usuario_id = ?");
 $stmt->execute([$usuario_id]);
 $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
 
+$redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
+
 $modeloPost = new Post();
 $destacados = $modeloPost->obtenerDestacados($usuario_id);
 
@@ -30,6 +32,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -46,9 +49,24 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
             <p class="text-muted"><?php echo htmlspecialchars($perfil['biografia'] ?? 'Sin biografía'); ?></p>
             
             <div style="margin-top: 15px;">
-                <a href="completar_perfil.php" class="btn btn-secondary">Editar Perfil</a>
+                <a href="editar_perfil.php" class="btn btn-secondary">Editar Perfil</a>
                 <a href="procesador.php?action=logout" class="btn btn-danger">Cerrar Sesión</a>
             </div>
+            
+            <?php if (!empty($redes)): ?>
+            <div style="margin-top: 15px;">
+                <?php
+                require_once '../app/Models/RedSocial.php';
+                $redesSoportadas = RedSocial::obtenerRedesSoportadas();
+                foreach ($redes as $tipo => $url) {
+                    if (!empty($url) && isset($redesSoportadas[$tipo])) {
+                        $red = $redesSoportadas[$tipo];
+                        echo '<a href="' . htmlspecialchars($url) . '" target="_blank" title="' . htmlspecialchars($red['nombre']) . '" style="margin-right: 10px; color: var(--text-main);"><i class="' . $red['icono'] . '"></i></a>';
+                    }
+                }
+                ?>
+            </div>
+            <?php endif; ?>
         </div>
     </header>
 

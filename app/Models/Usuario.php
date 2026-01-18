@@ -71,66 +71,77 @@ class Usuario {
 
                 if ($avatarFile && !empty($avatarFile['tmp_name'])) {
                     $validacion = CloudinaryConfig::validateImage($avatarFile);
-                    if (!$validacion['valid']) {
-                        throw new Exception($validacion['error']);
-                    }
+                    if ($validacion['valid']) {
+                        if (!empty($avatarUrl)) {
+                            $this->eliminarImagenPerfil($avatarUrl);
+                        }
 
-                    if (!empty($avatarUrl)) {
-                        $this->eliminarImagenPerfil($avatarUrl);
-                    }
+                        $resultado = $this->cloudinary->uploadImage(
+                            $avatarFile['tmp_name'],
+                            [
+                                'folder' => "iterall/perfiles/usuario_{$usuario_id}",
+                                'public_id' => "avatar_" . uniqid()
+                            ]
+                        );
 
-                    $resultado = $this->cloudinary->uploadImage(
-                        $avatarFile['tmp_name'],
-                        [
-                            'folder' => "iterall/perfiles/usuario_{$usuario_id}",
-                            'public_id' => "avatar_" . uniqid()
-                        ]
-                    );
-
-                    if ($resultado['success']) {
-                        $avatarUrl = $resultado['url'];
+                        if ($resultado['success']) {
+                            $avatarUrl = $resultado['url'];
+                        } else {
+                            error_log("Error subiendo avatar: " . $resultado['error']);
+                        }
+                    } else {
+                        error_log("Validación avatar falló: " . $validacion['error']);
                     }
                 }
 
                 if ($bannerFile && !empty($bannerFile['tmp_name'])) {
                     $validacion = CloudinaryConfig::validateImage($bannerFile);
-                    if (!$validacion['valid']) {
-                        throw new Exception($validacion['error']);
-                    }
+                    if ($validacion['valid']) {
+                        if (!empty($bannerUrl)) {
+                            $this->eliminarImagenPerfil($bannerUrl);
+                        }
 
-                    if (!empty($bannerUrl)) {
-                        $this->eliminarImagenPerfil($bannerUrl);
-                    }
+                        $resultado = $this->cloudinary->uploadImage(
+                            $bannerFile['tmp_name'],
+                            [
+                                'folder' => "iterall/perfiles/usuario_{$usuario_id}",
+                                'public_id' => "banner_" . uniqid()
+                            ]
+                        );
 
-                    $resultado = $this->cloudinary->uploadImage(
-                        $bannerFile['tmp_name'],
-                        [
-                            'folder' => "iterall/perfiles/usuario_{$usuario_id}",
-                            'public_id' => "banner_" . uniqid()
-                        ]
-                    );
-
-                    if ($resultado['success']) {
-                        $bannerUrl = $resultado['url'];
+                        if ($resultado['success']) {
+                            $bannerUrl = $resultado['url'];
+                        } else {
+                            error_log("Error subiendo banner: " . $resultado['error']);
+                        }
+                    } else {
+                        error_log("Validación banner falló: " . $validacion['error']);
                     }
                 }
 
-                $sql = "UPDATE perfiles SET nombre_artistico = ?, biografia = ?, redes_sociales_json = ?, avatar_url = ?, banner_url = ? WHERE usuario_id = ?";
+                $sql = "UPDATE perfiles 
+                        SET nombre_artistico = ?, 
+                            biografia = ?, 
+                            redes_sociales_json = ?, 
+                            avatar_url = ?, 
+                            banner_url = ? 
+                        WHERE usuario_id = ?";
                 
                 $stmtActu = $this->db->prepare($sql);
                 $redesJson = json_encode($redes_sociales);
 
-            $resultado = $stmtActu->execute([
-                $nombre_artistico, 
-                $biografia, 
-                $redesJson,
-                $avatarUrl,
-                $bannerUrl,
-                $usuario_id
-            ]);
+                $resultado = $stmtActu->execute([
+                    $nombre_artistico, 
+                    $biografia, 
+                    $redesJson,
+                    $avatarUrl,
+                    $bannerUrl,
+                    $usuario_id
+                ]);
 
-            $this->db->commit();
-            return $resultado;
+                $this->db->commit();
+                return $resultado;
+
             } catch (Exception $e) {
                 $this->db->rollBack();
                 error_log("Error al actualizar perfil: " . $e->getMessage());

@@ -35,19 +35,56 @@ if ($action === 'logout') {
 }
 
 if ($action === 'actualizar_perfil') {
-    $modelo = new Usuario();
-    $exito = $modelo->actualizarPerfil(
-        $_SESSION['usuario_id'],
-        $_POST['nombre_artistico'],
-        $_POST['biografia'],
-        ['instagram' => '', 'artstation' => ''] // Tengo que mejorarlo lvd
-    );
+    try {
+        require_once '../app/Models/RedSocial.php';
+        
+        $usuario_id = $_SESSION['usuario_id'];
 
-    if ($exito) {
-        header('Location: dashboard_artista.php?mensaje=perfil_actualizado');
-        exit();
-    } else {
-        header('Location: completar_perfil.php?error=actualizar_perfil');
+        $avatarFile = null;
+        $bannerFile = null;
+
+        if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+            $avatarFile = $_FILES['avatar'];
+        }
+
+        if (isset($_FILES['banner']) && $_FILES['banner']['error'] === UPLOAD_ERR_OK) {
+            $bannerFile = $_FILES['banner'];
+        }
+
+        $redesRecibidas = $_POST['redes'] ?? [];
+        $validacion = RedSocial::validarMultiples($redesRecibidas);
+        
+        if (!empty($validacion['errores'])) {
+            error_log("Errores en redes sociales: " . json_encode($validacion['errores']));
+        }
+        
+        $redesSociales = $validacion['validas'];
+
+        $modelo = new Usuario();
+        $exito = $modelo->actualizarPerfil(
+            $usuario_id,
+            $_POST['nombre_artistico'],
+            $_POST['biografia'] ?? '',
+            $redesSociales,
+            $avatarFile,
+            $bannerFile
+        );
+
+        if ($exito) {
+            $mensaje = 'perfil_actualizado';
+            if (!empty($validacion['errores'])) {
+                $mensaje .= '&redes_con_errores=1';
+            }
+            header('Location: dashboard_artista.php?mensaje=' . $mensaje);
+            exit();
+        } else {
+            header('Location: editar_perfil.php?error=actualizar_perfil');
+            exit();
+        }
+
+    } catch (Exception $e) {
+        error_log("Error en procesador actualizar_perfil: " . $e->getMessage());
+        header('Location: editar_perfil.php?error=error_inesperado');
         exit();
     }
 }

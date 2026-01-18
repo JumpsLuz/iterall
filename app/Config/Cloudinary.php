@@ -39,7 +39,13 @@ class CloudinaryConfig {
      * @return array 
      */
     public function uploadImage($filePath, $options = []) {
+        
         try {
+            error_log("=== CLOUDINARY DEBUG ===");
+            error_log("File Path: " . $filePath);
+            error_log("File exists: " . (file_exists($filePath) ? 'YES' : 'NO'));
+            error_log("Options: " . json_encode($options));
+        
             $defaultOptions = [
                 'folder' => 'iterall/iteraciones',
                 'resource_type' => 'image',
@@ -54,6 +60,8 @@ class CloudinaryConfig {
             
             $result = $this->uploadApi->upload($filePath, $uploadOptions);
 
+            error_log("Upload Success: " . json_encode($result));
+        
             return [
                 'success' => true,
                 'url' => $result['secure_url'],
@@ -64,7 +72,8 @@ class CloudinaryConfig {
             ];
 
         } catch (\Exception $e) {
-            error_log("Error al subir imagen a Cloudinary: " . $e->getMessage());
+            error_log("CLOUDINARY ERROR: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return [
                 'success' => false,
                 'error' => $e->getMessage()
@@ -91,7 +100,7 @@ class CloudinaryConfig {
      * @return array 
      */
     public static function validateImage($file) {
-        $maxSize = 5 * 1024 * 1024; // 5MB
+        $maxSize = 5 * 1024 * 1024; 
         $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
         if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {

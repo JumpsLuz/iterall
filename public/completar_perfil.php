@@ -1,3 +1,4 @@
+<?php require_once '../app/Models/RedSocial.php'; $redesDisponibles = RedSocial::obtenerRedesSoportadas(); ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Completa tu Perfil | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="profile-setup-container">
@@ -21,7 +23,7 @@
                 </div>
             <?php endif; ?>
 
-            <form action="procesador.php?action=actualizar_perfil" method="POST" enctype="multipart/form-data">
+            <form action="procesador.php?action=actualizar_perfil" method="POST" enctype="multipart/form-data" id="formCompletarPerfil">
                 <div class="form-section">
                     <h3 class="form-section-title">Información Básica</h3>
                     
@@ -72,24 +74,17 @@
 
                 <div class="form-section">
                     <h3 class="form-section-title">Redes Sociales</h3>
+                    <p class="form-hint" style="margin-bottom: 15px;">
+                        Agrega tus perfiles profesionales. Puedes agregar más de uno.
+                    </p>
                     
-                    <div class="form-group">
-                        <label class="form-label">Instagram</label>
-                        <input type="text" name="instagram" class="form-control" placeholder="@tuusuario">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">ArtStation</label>
-                        <input type="url" name="artstation" class="form-control" placeholder="https://www.artstation.com/tuusuario">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Twitter/X</label>
-                        <input type="text" name="twitter" class="form-control" placeholder="@tuusuario">
+                    <div id="redesSocialesContainer">
                     </div>
                     
-                    <!-- Tengo que arreglarlo pa q se puedan poner los enlaces y ya -->
-
+                    <button type="button" class="btn btn-secondary" onclick="agregarRed()" 
+                            style="width: 100%; margin-top: 10px;">
+                        + Agregar Red Social
+                    </button>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem;">
@@ -104,6 +99,8 @@
     </div>
 
     <script>
+        const redesDisponibles = <?php echo json_encode($redesDisponibles); ?>;
+
         document.getElementById('avatarInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -131,6 +128,112 @@
                 reader.readAsDataURL(file);
             }
         });
+
+        function obtenerRedesYaAgregadas() {
+            const items = document.querySelectorAll('.red-social-item');
+            return Array.from(items).map(item => item.dataset.tipo);
+        }
+
+        function agregarRed() {
+            const redesUsadas = obtenerRedesYaAgregadas();
+            const redesDisponiblesParaAgregar = Object.keys(redesDisponibles).filter(
+                tipo => !redesUsadas.includes(tipo)
+            );
+
+            if (redesDisponiblesParaAgregar.length === 0) {
+                alert('Ya has agregado todas las redes sociales disponibles.');
+                return;
+            }
+
+            let opciones = '<option value="">-- Selecciona una red social --</option>';
+            redesDisponiblesParaAgregar.forEach(tipo => {
+                const red = redesDisponibles[tipo];
+                opciones += `<option value="${tipo}"><i class="${red.icono}"></i> ${red.nombre}</option>`;
+            });
+
+            const selector = document.createElement('div');
+            selector.className = 'form-group';
+            selector.style.background = 'rgba(59, 130, 246, 0.1)';
+            selector.style.padding = '15px';
+            selector.style.borderRadius = 'var(--radius)';
+            selector.style.marginBottom = '10px';
+            selector.innerHTML = `
+                <label class="form-label">Selecciona la red social</label>
+                <select class="form-control selector-red" onchange="confirmarRedSeleccionada(this)">
+                    ${opciones}
+                </select>
+                <button type="button" class="btn btn-secondary" onclick="cancelarAgregarRed(this)" 
+                        style="width: 100%; margin-top: 10px;">Cancelar</button>
+            `;
+
+            document.getElementById('redesSocialesContainer').appendChild(selector);
+        }
+
+        function confirmarRedSeleccionada(select) {
+            const tipo = select.value;
+            if (!tipo) return;
+
+            const red = redesDisponibles[tipo];
+            const container = select.closest('.form-group');
+
+            const nuevoItem = document.createElement('div');
+            nuevoItem.className = 'red-social-item';
+            nuevoItem.dataset.tipo = tipo;
+            nuevoItem.innerHTML = `
+                <div class="form-group">
+                    <label class="form-label"><i class="${red.icono}"></i> ${red.nombre}</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="url" name="redes[${tipo}]" class="form-control red-input" 
+                               placeholder="${red.placeholder}" 
+                               data-patron="${red.patron.source}"
+                               data-ayuda="${red.ayuda}">
+                        <button type="button" class="btn btn-danger" onclick="eliminarRed(this)" 
+                                style="padding: 0 15px;">🗑️</button>
+                    </div>
+                    <span class="form-hint">${red.ayuda}</span>
+                    <span class="error-msg" style="color: var(--danger); font-size: 0.85rem; display: none;"></span>
+                </div>
+            `;
+
+            container.replaceWith(nuevoItem);
+
+            const input = nuevoItem.querySelector('.red-input');
+            input.addEventListener('input', validarRedEnTiempoReal);
+            input.focus();
+        }
+
+        function cancelarAgregarRed(button) {
+            button.closest('.form-group').remove();
+        }
+
+        function eliminarRed(button) {
+            if (confirm('¿Eliminar esta red social?')) {
+                button.closest('.red-social-item').remove();
+            }
+        }
+
+        function validarRedEnTiempoReal(e) {
+            const input = e.target;
+            const url = input.value.trim();
+            const errorSpan = input.closest('.form-group').querySelector('.error-msg');
+
+            if (!url) {
+                errorSpan.style.display = 'none';
+                input.style.borderColor = '';
+                return;
+            }
+
+            const patron = new RegExp(input.dataset.patron);
+
+            if (patron.test(url)) {
+                input.style.borderColor = 'var(--success)';
+                errorSpan.style.display = 'none';
+            } else {
+                input.style.borderColor = 'var(--danger)';
+                errorSpan.textContent = 'X ' + input.dataset.ayuda;
+                errorSpan.style.display = 'block';
+            }
+        }
     </script>
 </body>
 </html>
