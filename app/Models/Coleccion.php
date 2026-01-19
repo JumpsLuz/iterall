@@ -3,49 +3,25 @@
  * Modelo Coleccion
  * Maneja las colecciones privadas de los clientes/reclutadores
  * donde pueden guardar posts de artistas para referencia
+ * 
+ * Tabla: colecciones (id, usuario_id, titulo, es_privada)
+ * Tabla pivot: items_coleccion (id, coleccion_id, post_id, fecha_agregado)
  */
 class Coleccion {
     private $db;
 
     public function __construct() {
         $this->db = Database::getInstance();
-        $this->crearTablaSiNoExiste();
-    }
-
-    /**
-     * Crea las tablas necesarias si no existen
-     */
-    private function crearTablaSiNoExiste() {
-        // Tabla de colecciones
-        $this->db->exec("CREATE TABLE IF NOT EXISTS colecciones (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            usuario_id INT NOT NULL,
-            nombre VARCHAR(100) NOT NULL,
-            descripcion TEXT,
-            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-        )");
-
-        // Tabla pivote para posts guardados en colecciones
-        $this->db->exec("CREATE TABLE IF NOT EXISTS coleccion_posts (
-            coleccion_id INT NOT NULL,
-            post_id INT NOT NULL,
-            fecha_agregado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (coleccion_id, post_id),
-            FOREIGN KEY (coleccion_id) REFERENCES colecciones(id) ON DELETE CASCADE,
-            FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
-        )");
     }
 
     /**
      * Crear una nueva colección
      */
-    public function crear($usuario_id, $nombre, $descripcion = '') {
+    public function crear($usuario_id, $titulo) {
         try {
-            $sql = "INSERT INTO colecciones (usuario_id, nombre, descripcion) VALUES (?, ?, ?)";
+            $sql = "INSERT INTO colecciones (usuario_id, titulo, es_privada) VALUES (?, ?, TRUE)";
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([$usuario_id, $nombre, $descripcion]);
+            $stmt->execute([$usuario_id, $titulo]);
             return $this->db->lastInsertId();
         } catch (PDOException $e) {
             error_log("Error al crear colección: " . $e->getMessage());
@@ -58,30 +34,11 @@ class Coleccion {
      */
     public function obtenerPorUsuario($usuario_id) {
         try {
-            $sql = "SELECT c.*, 
-                    (SELECT COUNT(*) FROM coleccion_posts WHERE coleccion_id = c.id) as total_posts,
-                    (SELECT COALESCE(
-                        (SELECT ii2.url_archivo
-                         FROM iteraciones i2
-                         JOIN imagenes_iteracion ii2 ON ii2.iteracion_id = i2.id
-                         WHERE i2.post_id = p.id AND ii2.es_principal = 1
-                         ORDER BY i2.numero_version DESC, ii2.orden_visual ASC
-                         LIMIT 1),
-                        (SELECT ii3.url_archivo
-                         FROM iteraciones i3
-                         JOIN imagenes_iteracion ii3 ON ii3.iteracion_id = i3.id
-                         WHERE i3.post_id = p.id
-                         ORDER BY i3.numero_version DESC, ii3.orden_visual ASC
-                         LIMIT 1)
-                    )
-                     FROM coleccion_posts cp
-                     JOIN posts p ON cp.post_id = p.id
-                     WHERE cp.coleccion_id = c.id
-                     ORDER BY cp.fecha_agregado DESC
-                     LIMIT 1) as miniatura
+            $sql = "SELECT c.id, c.titulo as nombre, c.es_privada,
+                    (SELECT COUNT(*) FROM items_coleccion WHERE coleccion_id = c.id) as total_posts
                     FROM colecciones c
                     WHERE c.usuario_id = ?
-                    ORDER BY c.fecha_actualizacion DESC";
+                    ORDER BY c.id DESC";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$usuario_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -96,7 +53,7 @@ class Coleccion {
      */
     public function obtenerPorId($coleccion_id, $usuario_id) {
         try {
-            $sql = "SELECT * FROM colecciones WHERE id = ? AND usuario_id = ?";
+            $sql = "SELECT id, titulo as nombre, es_privada FROM colecciones WHERE id = ? AND usuario_id = ?";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$coleccion_id, $usuario_id]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -117,19 +74,19 @@ class Coleccion {
 
             $sql = "SELECT p.*, 
                     pf.nombre_artistico, pf.avatar_url as artista_avatar,
-                    c.nombre_categoria,
-                    cp.fecha_agregado,
+                    cat.nombre_categoria,
+                    ic.fecha_agregado,
                     (SELECT url_archivo FROM imagenes_iteracion ii
                      JOIN iteraciones i ON ii.iteracion_id = i.id
                      WHERE i.post_id = p.id AND ii.es_principal = 1
                      ORDER BY i.numero_version DESC LIMIT 1) as portada
-                    FROM coleccion_posts cp
-                    JOIN posts p ON cp.post_id = p.id
+                    FROM items_coleccion ic
+                    JOIN posts p ON ic.post_id = p.id
                     JOIN usuarios u ON p.creador_id = u.id
                     JOIN perfiles pf ON pf.usuario_id = u.id
-                    LEFT JOIN categorias c ON p.categoria_id = c.id
-                    WHERE cp.coleccion_id = ?
-                    ORDER BY cp.fecha_agregado DESC";
+                    LEFT JOIN categorias cat ON p.categoria_id = cat.id
+                    WHERE ic.coleccion_id = ?
+                    ORDER BY ic.fecha_agregado DESC";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$coleccion_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -148,7 +105,7 @@ class Coleccion {
             $coleccion = $this->obtenerPorId($coleccion_id, $usuario_id);
             if (!$coleccion) return false;
 
-            $sql = "INSERT IGNORE INTO coleccion_posts (coleccion_id, post_id) VALUES (?, ?)";
+            $sql = "INSERT IGNORE INTO items_coleccion (coleccion_id, post_id) VALUES (?, ?)";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([$coleccion_id, $post_id]);
         } catch (PDOException $e) {
@@ -166,7 +123,7 @@ class Coleccion {
             $coleccion = $this->obtenerPorId($coleccion_id, $usuario_id);
             if (!$coleccion) return false;
 
-            $sql = "DELETE FROM coleccion_posts WHERE coleccion_id = ? AND post_id = ?";
+            $sql = "DELETE FROM items_coleccion WHERE coleccion_id = ? AND post_id = ?";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([$coleccion_id, $post_id]);
         } catch (PDOException $e) {
@@ -178,11 +135,11 @@ class Coleccion {
     /**
      * Actualizar una colección
      */
-    public function actualizar($coleccion_id, $usuario_id, $nombre, $descripcion = '') {
+    public function actualizar($coleccion_id, $usuario_id, $titulo) {
         try {
-            $sql = "UPDATE colecciones SET nombre = ?, descripcion = ? WHERE id = ? AND usuario_id = ?";
+            $sql = "UPDATE colecciones SET titulo = ? WHERE id = ? AND usuario_id = ?";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute([$nombre, $descripcion, $coleccion_id, $usuario_id]);
+            return $stmt->execute([$titulo, $coleccion_id, $usuario_id]);
         } catch (PDOException $e) {
             error_log("Error al actualizar colección: " . $e->getMessage());
             return false;
@@ -208,9 +165,9 @@ class Coleccion {
      */
     public function postEstaGuardado($post_id, $usuario_id) {
         try {
-            $sql = "SELECT c.id, c.nombre FROM colecciones c
-                    JOIN coleccion_posts cp ON c.id = cp.coleccion_id
-                    WHERE cp.post_id = ? AND c.usuario_id = ?";
+            $sql = "SELECT c.id, c.titulo as nombre FROM colecciones c
+                    JOIN items_coleccion ic ON c.id = ic.coleccion_id
+                    WHERE ic.post_id = ? AND c.usuario_id = ?";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$post_id, $usuario_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -240,10 +197,10 @@ class Coleccion {
                          ORDER BY i2.numero_version DESC, ii2.orden_visual ASC
                          LIMIT 1)
                     ) as portada
-                    FROM coleccion_posts cp
-                    JOIN posts p ON cp.post_id = p.id
-                    WHERE cp.coleccion_id = ?
-                    ORDER BY cp.fecha_agregado DESC
+                    FROM items_coleccion ic
+                    JOIN posts p ON ic.post_id = p.id
+                    WHERE ic.coleccion_id = ?
+                    ORDER BY ic.fecha_agregado DESC
                     LIMIT ?";
             $stmt = $this->db->prepare($sql);
             $stmt->bindValue(1, (int)$coleccion_id, PDO::PARAM_INT);
@@ -269,7 +226,7 @@ class Coleccion {
             }
 
             // Verificar si ya está guardado
-            $sql = "SELECT 1 FROM coleccion_posts WHERE coleccion_id = ? AND post_id = ?";
+            $sql = "SELECT 1 FROM items_coleccion WHERE coleccion_id = ? AND post_id = ?";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$coleccion_id, $post_id]);
             

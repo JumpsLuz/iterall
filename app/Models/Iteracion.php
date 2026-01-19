@@ -7,7 +7,12 @@ class Iteracion {
 
     public function __construct() {
         $this->db = Database::getInstance();
-        $this->cloudinary = CloudinaryConfig::getInstance();
+        try {
+            $this->cloudinary = CloudinaryConfig::getInstance();
+        } catch (Exception $e) {
+            error_log('No se pudo inicializar Cloudinary en Iteracion: ' . $e->getMessage());
+            $this->cloudinary = null; // Permitir operaciones de solo lectura sin Cloudinary
+        }
     }
 
     /**

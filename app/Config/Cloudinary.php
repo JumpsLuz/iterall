@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/error_handler.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use Cloudinary\Configuration\Configuration;
@@ -12,21 +13,41 @@ class CloudinaryConfig {
     const DEFAULT_BANNER_PUBLIC_ID = 'iterall/default/default_banner';
 
     private function __construct() {
-        $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
-        $dotenv->load();
+        try {
+            $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
+            $dotenv->safeLoad();
+        } catch (Exception $e) {
+            logError("Error loading .env in Cloudinary: " . $e->getMessage());
+        }
 
-        Configuration::instance([
-            'cloud' => [
-                'cloud_name' => $_ENV['CLOUDINARY_CLOUD_NAME'],
-                'api_key' => $_ENV['CLOUDINARY_API_KEY'],
-                'api_secret' => $_ENV['CLOUDINARY_API_SECRET']
-            ],
-            'url' => [
-                'secure' => true
-            ]
-        ]);
+        $cloudName = $_ENV['CLOUDINARY_CLOUD_NAME'] ?? null;
+        $apiKey = $_ENV['CLOUDINARY_API_KEY'] ?? null;
+        $apiSecret = $_ENV['CLOUDINARY_API_SECRET'] ?? null;
 
-        $this->uploadApi = new UploadApi();
+        // Avoid fatal errors in read-only contexts if env vars are missing on hosting
+        if (empty($cloudName) || empty($apiKey) || empty($apiSecret)) {
+            logError('Cloudinary env vars missing; skipping configuration');
+            $this->uploadApi = null;
+            return;
+        }
+
+        try {
+            Configuration::instance([
+                'cloud' => [
+                    'cloud_name' => $cloudName,
+                    'api_key' => $apiKey,
+                    'api_secret' => $apiSecret
+                ],
+                'url' => [
+                    'secure' => true
+                ]
+            ]);
+
+            $this->uploadApi = new UploadApi();
+        } catch (Exception $e) {
+            logError('Cloudinary configuration error: ' . $e->getMessage());
+            $this->uploadApi = null;
+        }
     }
 
     public static function getInstance() {
@@ -56,6 +77,12 @@ class CloudinaryConfig {
      * @return array 
      */
     public function uploadImage($filePath, $options = []) {
+        if ($this->uploadApi === null) {
+            return [
+                'success' => false,
+                'error' => 'Cloudinary no configurado'
+            ];
+        }
         
         try {
             error_log("=== CLOUDINARY DEBUG ===");
@@ -103,6 +130,9 @@ class CloudinaryConfig {
      * @return bool
      */
     public function deleteImage($cloudId) {
+        if ($this->uploadApi === null) {
+            return false;
+        }
         try {
             $result = $this->uploadApi->destroy($cloudId, ['resource_type' => 'image']);
             return $result['result'] === 'ok';

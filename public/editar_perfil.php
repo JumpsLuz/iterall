@@ -154,12 +154,28 @@ $redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
     </form>
 
     <script>
+        // Obtener redes soportadas (datos del servidor)
+        const redesDisponibles = <?php 
+            require_once '../app/Models/RedSocial.php';
+            $redesSoportadas = RedSocial::obtenerRedesSoportadas();
+            echo json_encode($redesSoportadas);
+        ?>;
+
         document.getElementById('avatarInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    document.getElementById('avatarPreview').src = event.target.result;
+                    const preview = document.getElementById('avatarPreview');
+                    if (preview.tagName === 'IMG') {
+                        preview.src = event.target.result;
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.className = 'avatar-img';
+                        img.id = 'avatarPreview';
+                        preview.parentNode.replaceChild(img, preview);
+                    }
                 };
                 reader.readAsDataURL(file);
             }
@@ -176,6 +192,161 @@ $redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
                 reader.readAsDataURL(file);
             }
         });
+
+        function agregarRed() {
+            const container = document.getElementById('redesSocialesContainer');
+            const redesUsadas = Array.from(container.querySelectorAll('.red-social-item')).map(el => el.dataset.tipo);
+            const redesDisponiblesParaAgregar = Object.keys(redesDisponibles).filter(
+                tipo => !redesUsadas.includes(tipo)
+            );
+
+            if (redesDisponiblesParaAgregar.length === 0) {
+                alert('Ya has agregado todas las redes sociales disponibles.');
+                return;
+            }
+
+            let opciones = '<option value="">-- Selecciona una red social --</option>';
+            redesDisponiblesParaAgregar.forEach(tipo => {
+                const red = redesDisponibles[tipo];
+                opciones += `<option value="${tipo}"><i class="${red.icono}"></i> ${red.nombre}</option>`;
+            });
+
+            const selector = document.createElement('div');
+            selector.className = 'form-group';
+            selector.style.background = 'rgba(59, 130, 246, 0.1)';
+            selector.style.padding = '15px';
+            selector.style.borderRadius = 'var(--radius)';
+            selector.style.marginBottom = '10px';
+            selector.innerHTML = `
+                <label class="form-label">Selecciona la red social</label>
+                <select class="form-control selector-red" onchange="confirmarRedSeleccionada(this)">
+                    ${opciones}
+                </select>
+                <button type="button" class="btn btn-secondary" onclick="cancelarAgregarRed(this)" 
+                        style="width: 100%; margin-top: 10px;">Cancelar</button>
+            `;
+
+            container.appendChild(selector);
+        }
+
+        function confirmarRedSeleccionada(select) {
+            const tipo = select.value;
+            if (!tipo) return;
+
+            const red = redesDisponibles[tipo];
+            const container = select.closest('.form-group');
+
+            const nuevoItem = document.createElement('div');
+            nuevoItem.className = 'red-social-item';
+            nuevoItem.dataset.tipo = tipo;
+            nuevoItem.innerHTML = `
+                <div class="form-group">
+                    <label class="form-label"><i class="${red.icono}"></i> ${red.nombre}</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="url" name="redes[${tipo}]" class="form-control red-input" 
+                               placeholder="${red.placeholder}" 
+                               data-patron="${red.patron}"
+                               data-ayuda="${red.ayuda}">
+                        <button type="button" class="btn btn-danger" onclick="eliminarRed(this)" 
+                                style="padding: 0 15px;"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <span class="form-hint">${red.ayuda}</span>
+                    <span class="error-msg" style="color: var(--danger); font-size: 0.85rem; display: none;"></span>
+                </div>
+            `;
+
+            container.replaceWith(nuevoItem);
+
+            const input = nuevoItem.querySelector('.red-input');
+            input.addEventListener('input', validarRedEnTiempoReal);
+            input.focus();
+        }
+
+        function cancelarAgregarRed(button) {
+            button.closest('.form-group').remove();
+        }
+
+        // Validación en tiempo real de redes sociales
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('red-input')) {
+                validarRedSocial(e.target);
+            }
+        });
+
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('red-input')) {
+                validarRedEnTiempoReal(e);
+            }
+        });
+
+        document.addEventListener('blur', function(e) {
+            if (e.target.classList.contains('red-input')) {
+                validarRedSocial(e.target);
+            }
+        }, true);
+
+        function validarRedSocial(input) {
+            const errorMsg = input.closest('.form-group').querySelector('.error-msg');
+            const url = input.value.trim();
+            
+            if (!url) {
+                errorMsg.style.display = 'none';
+                input.style.borderColor = '';
+                return;
+            }
+            
+            const tipo = input.closest('.red-social-item').dataset.tipo;
+            const red = redesDisponibles[tipo];
+            let urlValidar = url;
+            
+            // Si no tiene https://, agregarlo para validación
+            if (!urlValidar.match(/^https?:\/\//)) {
+                urlValidar = 'https://' + urlValidar;
+            }
+            
+            const patron = new RegExp(red.patron.slice(1, -1)); // Remover las slashes
+            
+            if (patron.test(urlValidar)) {
+                errorMsg.style.display = 'none';
+                input.style.borderColor = '#10b981';
+            } else {
+                errorMsg.textContent = red.ayuda;
+                errorMsg.style.display = 'block';
+                input.style.borderColor = '#ef4444';
+            }
+        }
+
+        function validarRedEnTiempoReal(e) {
+            const input = e.target;
+            const url = input.value.trim();
+            const errorSpan = input.closest('.form-group').querySelector('.error-msg');
+
+            if (!url) {
+                errorSpan.style.display = 'none';
+                input.style.borderColor = '';
+                return;
+            }
+
+            const tipo = input.closest('.red-social-item').dataset.tipo;
+            const red = redesDisponibles[tipo];
+            let urlValidar = url;
+            
+            // Si no tiene https://, agregarlo para validación
+            if (!urlValidar.match(/^https?:\/\//)) {
+                urlValidar = 'https://' + urlValidar;
+            }
+            
+            const patron = new RegExp(red.patron.slice(1, -1)); // Remover las slashes
+
+            if (patron.test(urlValidar)) {
+                input.style.borderColor = 'var(--success)';
+                errorSpan.style.display = 'none';
+            } else {
+                input.style.borderColor = 'var(--danger)';
+                errorSpan.textContent = red.ayuda;
+                errorSpan.style.display = 'block';
+            }
+        }
 
         let formChanged = false;
         document.getElementById('formPerfil').addEventListener('change', () => formChanged = true);

@@ -7,7 +7,12 @@ class Proyecto {
 
     public function __construct() {
         $this->db = Database::getInstance();
-        $this->cloudinary = CloudinaryConfig::getInstance();
+        try {
+            $this->cloudinary = CloudinaryConfig::getInstance();
+        } catch (Exception $e) {
+            error_log('No se pudo inicializar Cloudinary en Proyecto: ' . $e->getMessage());
+            $this->cloudinary = null; // Permitir vistas sin romper
+        }
     }
     /**
      * @param array $datos

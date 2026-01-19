@@ -61,13 +61,8 @@ $posts = $modeloColeccion->obtenerPosts($coleccion_id, $usuario_id);
                     <?php echo htmlspecialchars($coleccion['nombre']); ?>
                 </h1>
                 
-                <?php if (!empty($coleccion['descripcion'])): ?>
-                    <p class="coleccion-descripcion"><?php echo htmlspecialchars($coleccion['descripcion']); ?></p>
-                <?php endif; ?>
-                
                 <div class="coleccion-meta">
                     <span><i class="fas fa-image"></i> <?php echo count($posts); ?> post<?php echo count($posts) != 1 ? 's' : ''; ?></span>
-                    <span><i class="fas fa-calendar"></i> Creada <?php echo date('d/m/Y', strtotime($coleccion['fecha_creacion'])); ?></span>
                 </div>
             </div>
 

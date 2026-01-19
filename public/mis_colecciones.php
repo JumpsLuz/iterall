@@ -1,7 +1,17 @@
 <?php
-require_once '../app/Config/auth_check.php';
-require_once '../app/Config/Database.php';
-require_once '../app/Models/Coleccion.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../error_log.txt');
+
+try {
+    require_once '../app/Config/auth_check.php';
+    require_once '../app/Config/Database.php';
+    require_once '../app/Models/Coleccion.php';
+} catch (Exception $e) {
+    error_log('Error loading files in mis_colecciones.php: ' . $e->getMessage());
+    die('Error cargando archivos requeridos');
+}
 
 if ($_SESSION['rol_id'] != 2) {
     header('Location: dashboard_artista.php');
@@ -13,7 +23,12 @@ $modeloColeccion = new Coleccion();
 
 $mostrarModalCrear = isset($_GET['crear']);
 
-$colecciones = $modeloColeccion->obtenerPorUsuario($usuario_id);
+try {
+    $colecciones = $modeloColeccion->obtenerPorUsuario($usuario_id);
+} catch (Exception $e) {
+    error_log('Error fetching collections in mis_colecciones.php: ' . $e->getMessage());
+    $colecciones = [];
+}
 
 ?>
 <!DOCTYPE html>
@@ -156,20 +171,45 @@ $colecciones = $modeloColeccion->obtenerPorUsuario($usuario_id);
             const id = document.getElementById('coleccionId').value;
             const nombre = document.getElementById('nombreColeccion').value;
 
+            if (!nombre.trim()) {
+                alert('Por favor ingresa un nombre para la colección');
+                return;
+            }
+
             const action = id ? 'editar_coleccion' : 'crear_coleccion';
+            
+            const submitBtn = document.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
             
             fetch('procesador.php?action=' + action, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `coleccion_id=${id}&nombre=${encodeURIComponent(nombre)}`
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) {
+                    throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+                }
+                return r.json();
+            })
             .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Guardar';
+                
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert(data.error || 'Error al guardar');
+                    console.error('Error response:', data);
+                    alert(data.error || 'Error al guardar la colección');
                 }
+            })
+            .catch(error => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Guardar';
+                
+                console.error('Error completo:', error);
+                alert('Error de conexión: ' + error.message + '\nPor favor intenta nuevamente.');
             });
         }
 

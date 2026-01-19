@@ -1,10 +1,20 @@
 <?php
-require_once '../app/Config/auth_check.php';
-require_once '../app/Config/Database.php';
-require_once '../app/Models/Post.php';
-require_once '../app/Models/Iteracion.php';
-require_once '../app/Models/Coleccion.php';
-require_once '../app/Helpers/CategoryTagHelper.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../error_log.txt');
+
+try {
+    require_once '../app/Config/auth_check.php';
+    require_once '../app/Config/Database.php';
+    require_once '../app/Models/Post.php';
+    require_once '../app/Models/Iteracion.php';
+    require_once '../app/Models/Coleccion.php';
+    require_once '../app/Helpers/CategoryTagHelper.php';
+} catch (Exception $e) {
+    error_log('Error loading files in ver_post_publico.php: ' . $e->getMessage());
+    die('Error cargando archivos requeridos');
+}
 
 if (!isset($_GET['id'])) { 
     header('Location: explorar.php'); 
@@ -15,28 +25,45 @@ $post_id = $_GET['id'];
 $usuario_id = $_SESSION['usuario_id'];
 $rol_id = $_SESSION['rol_id'];
 
-$modeloPost = new Post();
-$modeloIteracion = new Iteracion();
-$modeloColeccion = new Coleccion();
+try {
+    $modeloPost = new Post();
+    $modeloIteracion = new Iteracion();
+    $modeloColeccion = new Coleccion();
 
-$post = $modeloPost->obtenerPublicoPorId($post_id);
+    $post = $modeloPost->obtenerPublicoPorId($post_id);
 
-if (!$post) { 
-    header('Location: explorar.php?error=no_encontrado');
-    exit();
+    if (!$post) { 
+        header('Location: explorar.php?error=no_encontrado');
+        exit();
+    }
+} catch (Exception $e) {
+    error_log('Error fetching post in ver_post_publico.php: ' . $e->getMessage());
+    die('Error cargando el post: ' . htmlspecialchars($e->getMessage()));
 }
 
-$postCategories = CategoryTagHelper::getPostCategories($post_id);
-$postTags = CategoryTagHelper::getPostTags($post_id);
-
-$iteraciones = $modeloIteracion->obtenerPorPost($post_id);
+try {
+    $postCategories = CategoryTagHelper::getPostCategories($post_id);
+    $postTags = CategoryTagHelper::getPostTags($post_id);
+    $iteraciones = $modeloIteracion->obtenerPorPost($post_id);
+} catch (Exception $e) {
+    error_log('Error fetching post data in ver_post_publico.php: ' . $e->getMessage());
+    $postCategories = [];
+    $postTags = [];
+    $iteraciones = [];
+}
 
 $esCliente = ($rol_id == 2);
 $coleccionesUsuario = [];
 $postGuardadoEn = [];
 if ($esCliente) {
-    $coleccionesUsuario = $modeloColeccion->obtenerPorUsuario($usuario_id);
-    $postGuardadoEn = $modeloColeccion->postEstaGuardado($post_id, $usuario_id);
+    try {
+        $coleccionesUsuario = $modeloColeccion->obtenerPorUsuario($usuario_id);
+        $postGuardadoEn = $modeloColeccion->postEstaGuardado($post_id, $usuario_id);
+    } catch (Exception $e) {
+        error_log('Error fetching collections in ver_post_publico.php: ' . $e->getMessage());
+        $coleccionesUsuario = [];
+        $postGuardadoEn = [];
+    }
 }
 
 $esPropietario = ($post['artista_id'] == $usuario_id);

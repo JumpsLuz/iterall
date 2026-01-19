@@ -1,37 +1,61 @@
 <?php
-require_once '../app/Config/auth_check.php';
-require_once '../app/Config/Database.php';
-require_once '../app/Models/Post.php';
-require_once '../app/Models/Iteracion.php';
-require_once '../app/Models/Miniproyecto.php';
-require_once '../app/Helpers/CategoryTagHelper.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../error_log.txt');
+
+try {
+    require_once '../app/Config/auth_check.php';
+    require_once '../app/Config/Database.php';
+    require_once '../app/Models/Post.php';
+    require_once '../app/Models/Iteracion.php';
+    require_once '../app/Models/Miniproyecto.php';
+    require_once '../app/Helpers/CategoryTagHelper.php';
+} catch (Exception $e) {
+    header('Content-Type: text/html; charset=utf-8');
+    die('Error cargando archivos requeridos: ' . $e->getMessage());
+}
 
 if (!isset($_GET['id'])) { 
     header('Location: dashboard_artista.php'); 
     exit(); 
 }
 
-$post_id = $_GET['id'];
-$usuario_id = $_SESSION['usuario_id'];
+try {
+    $post_id = $_GET['id'];
+    $usuario_id = $_SESSION['usuario_id'];
 
-$modeloPost = new Post();
-$modeloIteracion = new Iteracion();
-$modeloMini = new Miniproyecto();
+    $modeloPost = new Post();
+    $modeloIteracion = new Iteracion();
+    $modeloMini = new Miniproyecto();
 
-$post = $modeloPost->obtenerPorId($post_id, $usuario_id);
-if (!$post) { 
-    die("Post no encontrado."); 
+    $post = $modeloPost->obtenerPorId($post_id, $usuario_id);
+    if (!$post) { 
+        die("Post no encontrado."); 
+    }
+} catch (Exception $e) {
+    error_log('Error en ver_post.php: ' . $e->getMessage());
+    die('Error cargando el post: ' . htmlspecialchars($e->getMessage()));
 }
 
-$postCategories = CategoryTagHelper::getPostCategories($post_id);
-$postTags = CategoryTagHelper::getPostTags($post_id);
+try {
+    $postCategories = CategoryTagHelper::getPostCategories($post_id);
+    $postTags = CategoryTagHelper::getPostTags($post_id);
 
-$iteraciones = $modeloIteracion->obtenerPorPost($post_id);
-$esDestacado = $modeloPost->esDestacado($post_id);
+    $iteraciones = $modeloIteracion->obtenerPorPost($post_id);
+    $esDestacado = $modeloPost->esDestacado($post_id);
 
-$esPostIndividual = false;
-if ($post['miniproyecto_id']) {
-    $esPostIndividual = $modeloMini->esPostIndividual($post['miniproyecto_id']);
+    $esPostIndividual = false;
+    if ($post['miniproyecto_id']) {
+        $esPostIndividual = $modeloMini->esPostIndividual($post['miniproyecto_id']);
+    }
+} catch (Exception $e) {
+    error_log('Error fetching post data: ' . $e->getMessage());
+    $postCategories = [];
+    $postTags = [];
+    $iteraciones = [];
+    $esDestacado = false;
+    $esPostIndividual = false;
 }
 
 $totalImagenes = 0;
@@ -39,10 +63,18 @@ foreach ($iteraciones as $iter) {
     $totalImagenes += count($iter['imagenes']);
 }
 
-$db = Database::getInstance();
-$stmt = $db->prepare("SELECT nombre_artistico, avatar_url FROM perfiles WHERE usuario_id = ?");
-$stmt->execute([$usuario_id]);
-$perfil = $stmt->fetch(PDO::FETCH_ASSOC);
+try {
+    $db = Database::getInstance();
+    $stmt = $db->prepare("SELECT nombre_artistico, avatar_url FROM perfiles WHERE usuario_id = ?");
+    $stmt->execute([$usuario_id]);
+    $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$perfil) {
+        $perfil = ['nombre_artistico' => 'Artista', 'avatar_url' => null];
+    }
+} catch (Exception $e) {
+    error_log('Error fetching profile: ' . $e->getMessage());
+    $perfil = ['nombre_artistico' => 'Artista', 'avatar_url' => null];
+}
 ?>
 
 <!DOCTYPE html>

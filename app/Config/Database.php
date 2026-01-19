@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/error_handler.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use Dotenv\Dotenv;
@@ -8,8 +9,12 @@ class Database {
     private $conn;
 
     private function __construct() {
-        $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
-        $dotenv->safeLoad();
+        try {
+            $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+            $dotenv->safeLoad();
+        } catch (Exception $e) {
+            logError("Error loading .env: " . $e->getMessage());
+        }
 
         $host = $_ENV['DB_HOST'] ?? 'localhost';
         $db   = $_ENV['DB_NAME'] ?? 'iterall_db';
@@ -20,7 +25,8 @@ class Database {
             $this->conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            echo "Error de conexión: " . $e->getMessage();
+            logError("Database connection error: " . $e->getMessage());
+            die("Error de conexión a la base de datos. Por favor, contacta al administrador.");
         }
     }
 

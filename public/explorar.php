@@ -1,36 +1,59 @@
 <?php
-require_once '../app/Config/auth_check.php';
-require_once '../app/Config/Database.php';
-require_once '../app/Models/Post.php';
-require_once '../app/Models/Proyecto.php';
-require_once '../app/Helpers/CategoryTagHelper.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../error_log.txt');
 
-$modeloPost = new Post();
-$modeloProyecto = new Proyecto();
+try {
+    require_once '../app/Config/auth_check.php';
+    require_once '../app/Config/Database.php';
+    require_once '../app/Models/Post.php';
+    require_once '../app/Models/Proyecto.php';
+    require_once '../app/Helpers/CategoryTagHelper.php';
+} catch (Exception $e) {
+    error_log('Error cargando archivos en explorar.php: ' . $e->getMessage());
+    die('Error cargando archivos requeridos');
+}
 
-$categorias = $modeloProyecto->obtenerCategorias();
+try {
+    $modeloPost = new Post();
+    $modeloProyecto = new Proyecto();
 
-$etiquetasPopulares = $modeloPost->obtenerEtiquetasPopulares(15);
+    $categorias = $modeloProyecto->obtenerCategorias();
 
-$filtros = [
-    'categoria_id' => $_GET['categoria'] ?? null,
-    'busqueda' => $_GET['q'] ?? null,
-    'etiqueta' => $_GET['etiqueta'] ?? null,
-    'orden' => $_GET['orden'] ?? 'reciente',
-    'limite' => 24,
-    'offset' => (($_GET['pagina'] ?? 1) - 1) * 24
-];
+    $etiquetasPopulares = $modeloPost->obtenerEtiquetasPopulares(15);
+} catch (Exception $e) {
+    error_log('Error inicializando modelos en explorar.php: ' . $e->getMessage());
+    $categorias = [];
+    $etiquetasPopulares = [];
+}
 
 $tipoVista = $_GET['tipo'] ?? 'trabajos';
 $items = [];
 $totalItems = 0;
 
-if ($tipoVista === 'proyectos') {
-    $items = $modeloProyecto->obtenerPublicos($filtros);
-    $totalItems = $modeloProyecto->contarPublicos($filtros);
-} else {
-    $items = $modeloPost->obtenerPublicos($filtros);
-    $totalItems = $modeloPost->contarPublicos($filtros);
+try {
+    $filtros = [
+        'categoria_id' => $_GET['categoria'] ?? null,
+        'busqueda' => $_GET['q'] ?? null,
+        'etiqueta' => $_GET['etiqueta'] ?? null,
+        'orden' => $_GET['orden'] ?? 'reciente',
+        'limite' => 24,
+        'offset' => (($_GET['pagina'] ?? 1) - 1) * 24
+    ];
+
+    if ($tipoVista === 'proyectos') {
+        $items = $modeloProyecto->obtenerPublicos($filtros);
+        $totalItems = $modeloProyecto->contarPublicos($filtros);
+    } else {
+        $items = $modeloPost->obtenerPublicos($filtros);
+        $totalItems = $modeloPost->contarPublicos($filtros);
+    }
+} catch (Exception $e) {
+    error_log('Error fetching public items in explorar.php: ' . $e->getMessage());
+    error_log('Trace: ' . $e->getTraceAsString());
+    $items = [];
+    $totalItems = 0;
 }
 
 $totalPaginas = ceil($totalItems / 24);
@@ -162,18 +185,31 @@ $esArtista = ($_SESSION['rol_id'] == 1);
                         <p>Intenta con otros filtros o términos de búsqueda</p>
                     </div>
                 <?php else: ?>
+                    <!-- DEBUG: Total items = <?php echo count($items); ?> -->
                     <div class="galeria-posts">
                         <?php foreach ($items as $item): ?>
+                            <!-- DEBUG: Renderizando item ID: <?php echo $item['id']; ?> -->
                             <?php if ($tipoVista === 'trabajos'): ?>
                                 <?php 
-                                    $linkVer = ($item['artista_id'] == $_SESSION['usuario_id']) ? 'ver_post.php' : 'ver_post_publico.php';
-                                    $postCategories = CategoryTagHelper::getPostCategories($item['id']);
-                                    $postTags = CategoryTagHelper::getPostTags($item['id']);
+                                    try {
+                                        $linkVer = ($item['artista_id'] == $_SESSION['usuario_id']) ? 'ver_post.php' : 'ver_post_publico.php';
+                                        $postCategories = CategoryTagHelper::getPostCategories($item['id']);
+                                        $postTags = CategoryTagHelper::getPostTags($item['id']);
+                                    } catch (Exception $e) {
+                                        error_log('Error fetching post categories/tags for post ' . $item['id'] . ': ' . $e->getMessage());
+                                        $postCategories = [];
+                                        $postTags = [];
+                                    }
+
+                                    // Fallback: si no hay portada, usar avatar del artista o placeholder
+                                    $portada = $item['portada']
+                                        ?? $item['artista_avatar']
+                                        ?? 'https://res.cloudinary.com/dyqubcdf0/image/upload/v1768774226/default_user.png';
                                 ?>
                                 <a href="<?php echo $linkVer; ?>?id=<?php echo $item['id']; ?>" class="post-card-publico">
                                     <div class="post-imagen">
-                                        <?php if (!empty($item['portada'])): ?>
-                                            <img src="<?php echo htmlspecialchars($item['portada']); ?>" 
+                                        <?php if (!empty($portada)): ?>
+                                            <img src="<?php echo htmlspecialchars($portada); ?>" 
                                                  alt="<?php echo htmlspecialchars($item['titulo']); ?>"
                                                  loading="lazy">
                                         <?php else: ?>
@@ -224,14 +260,26 @@ $esArtista = ($_SESSION['rol_id'] == 1);
                                 </a>
                             <?php else: ?>
                                 <?php
-                                    $linkProyecto = ($item['artista_id'] == $_SESSION['usuario_id']) ? 'ver_proyecto.php' : 'ver_proyecto_publico.php';
-                                    $projectCategories = CategoryTagHelper::getProjectCategories($item['id']);
-                                    $projectTags = CategoryTagHelper::getProjectTags($item['id']);
+                                    try {
+                                        $linkProyecto = ($item['artista_id'] == $_SESSION['usuario_id']) ? 'ver_proyecto.php' : 'ver_proyecto_publico.php';
+                                        $projectCategories = CategoryTagHelper::getProjectCategories($item['id']);
+                                        $projectTags = CategoryTagHelper::getProjectTags($item['id']);
+                                    } catch (Exception $e) {
+                                        error_log('Error fetching project categories/tags for project ' . $item['id'] . ': ' . $e->getMessage());
+                                        $linkProyecto = ($item['artista_id'] == $_SESSION['usuario_id']) ? 'ver_proyecto.php' : 'ver_proyecto_publico.php';
+                                        $projectCategories = [];
+                                        $projectTags = [];
+                                    }
+
+                                    // Fallback: si no hay avatar del proyecto, usar avatar del artista o placeholder
+                                    $proyectoAvatar = $item['avatar_url']
+                                        ?? $item['artista_avatar']
+                                        ?? 'https://res.cloudinary.com/dyqubcdf0/image/upload/v1768774226/default_user.png';
                                 ?>
                                 <a href="<?php echo $linkProyecto; ?>?id=<?php echo $item['id']; ?>" class="post-card-publico">
                                     <div class="post-imagen">
-                                        <?php if (!empty($item['avatar_url'])): ?>
-                                            <img src="<?php echo htmlspecialchars($item['avatar_url']); ?>" 
+                                        <?php if (!empty($proyectoAvatar)): ?>
+                                            <img src="<?php echo htmlspecialchars($proyectoAvatar); ?>" 
                                                  alt="<?php echo htmlspecialchars($item['titulo']); ?>"
                                                  loading="lazy">
                                         <?php else: ?>

@@ -1,22 +1,44 @@
 <?php
-require_once '../app/Config/auth_check.php';
-require_once '../app/Config/Database.php';
-require_once '../app/Models/Proyecto.php';
-require_once '../app/Models/Miniproyecto.php';
-require_once '../app/Helpers/CategoryTagHelper.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../error_log.txt');
+
+try {
+    require_once '../app/Config/auth_check.php';
+    require_once '../app/Config/Database.php';
+    require_once '../app/Models/Proyecto.php';
+    require_once '../app/Models/Miniproyecto.php';
+    require_once '../app/Helpers/CategoryTagHelper.php';
+} catch (Exception $e) {
+    header('Content-Type: text/html; charset=utf-8');
+    die('Error cargando archivos requeridos: ' . $e->getMessage());
+}
 
 if (!isset($_GET['id'])) { header('Location: mis_proyectos.php'); exit(); }
 
-$modeloProyecto = new Proyecto();
-$proyecto = $modeloProyecto->obtenerPorId($_GET['id'], $_SESSION['usuario_id']);
+try {
+    $modeloProyecto = new Proyecto();
+    $proyecto = $modeloProyecto->obtenerPorId($_GET['id'], $_SESSION['usuario_id']);
 
-if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit(); }
+    if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit(); }
+} catch (Exception $e) {
+    error_log('Error en ver_proyecto.php: ' . $e->getMessage());
+    die('Error cargando el proyecto: ' . htmlspecialchars($e->getMessage()));
+}
 
-$modeloMini = new Miniproyecto();
-$miniproyectosHijos = $modeloMini->obtenerPorProyectoPadre($proyecto['id']);
+try {
+    $modeloMini = new Miniproyecto();
+    $miniproyectosHijos = $modeloMini->obtenerPorProyectoPadre($proyecto['id']);
 
-$projectCategories = CategoryTagHelper::getProjectCategories($proyecto['id']);
-$projectTags = CategoryTagHelper::getProjectTags($proyecto['id']);
+    $projectCategories = CategoryTagHelper::getProjectCategories($proyecto['id']);
+    $projectTags = CategoryTagHelper::getProjectTags($proyecto['id']);
+} catch (Exception $e) {
+    error_log('Error fetching project data: ' . $e->getMessage());
+    $miniproyectosHijos = [];
+    $projectCategories = [];
+    $projectTags = [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">

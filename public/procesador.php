@@ -257,7 +257,6 @@ if ($action === 'crear_coleccion') {
     }
     
     $nombre = trim($_POST['nombre'] ?? '');
-    $descripcion = trim($_POST['descripcion'] ?? '');
     
     if (empty($nombre)) {
         echo json_encode(['success' => false, 'error' => 'El nombre es requerido']);
@@ -266,16 +265,18 @@ if ($action === 'crear_coleccion') {
     
     try {
         $modelo = new Coleccion();
-        $coleccion_id = $modelo->crear($_SESSION['usuario_id'], $nombre, $descripcion);
+        $coleccion_id = $modelo->crear($_SESSION['usuario_id'], $nombre);
         
         if ($coleccion_id) {
             echo json_encode(['success' => true, 'coleccion_id' => $coleccion_id]);
         } else {
-            echo json_encode(['success' => false, 'error' => 'No se pudo crear la colección']);
+            error_log('Coleccion::crear returned null for usuario_id=' . $_SESSION['usuario_id'] . ', nombre=' . $nombre);
+            echo json_encode(['success' => false, 'error' => 'No se pudo crear la colección. Intenta nuevamente.']);
         }
     } catch (Exception $e) {
         error_log('Error creando colección: ' . $e->getMessage());
-        echo json_encode(['success' => false, 'error' => 'Error interno del servidor']);
+        error_log('Stack trace: ' . $e->getTraceAsString());
+        echo json_encode(['success' => false, 'error' => 'Error interno del servidor: ' . $e->getMessage()]);
     }
     exit();
 }
@@ -293,17 +294,21 @@ if ($action === 'editar_coleccion') {
     
     $coleccion_id = $_POST['coleccion_id'] ?? '';
     $nombre = trim($_POST['nombre'] ?? '');
-    $descripcion = trim($_POST['descripcion'] ?? '');
     
     if (empty($coleccion_id) || empty($nombre)) {
         echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
         exit();
     }
     
-    $modelo = new Coleccion();
-    $exito = $modelo->actualizar($coleccion_id, $_SESSION['usuario_id'], $nombre, $descripcion);
-    
-    echo json_encode(['success' => $exito]);
+    try {
+        $modelo = new Coleccion();
+        $exito = $modelo->actualizar($coleccion_id, $_SESSION['usuario_id'], $nombre);
+        
+        echo json_encode(['success' => $exito, 'error' => $exito ? null : 'No se pudo actualizar la colección']);
+    } catch (Exception $e) {
+        error_log('Error editando colección: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'error' => 'Error interno: ' . $e->getMessage()]);
+    }
     exit();
 }
 
@@ -325,10 +330,15 @@ if ($action === 'eliminar_coleccion') {
         exit();
     }
     
-    $modelo = new Coleccion();
-    $exito = $modelo->eliminar($coleccion_id, $_SESSION['usuario_id']);
-    
-    echo json_encode(['success' => $exito]);
+    try {
+        $modelo = new Coleccion();
+        $exito = $modelo->eliminar($coleccion_id, $_SESSION['usuario_id']);
+        
+        echo json_encode(['success' => $exito, 'error' => $exito ? null : 'No se pudo eliminar la colección']);
+    } catch (Exception $e) {
+        error_log('Error eliminando colección: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'error' => 'Error interno: ' . $e->getMessage()]);
+    }
     exit();
 }
 

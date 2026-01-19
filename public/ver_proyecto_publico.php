@@ -1,10 +1,20 @@
 <?php
-require_once '../app/Config/auth_check.php';
-require_once '../app/Config/Database.php';
-require_once '../app/Models/Proyecto.php';
-require_once '../app/Models/Miniproyecto.php';
-require_once '../app/Models/Post.php';
-require_once '../app/Helpers/CategoryTagHelper.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../error_log.txt');
+
+try {
+    require_once '../app/Config/auth_check.php';
+    require_once '../app/Config/Database.php';
+    require_once '../app/Models/Proyecto.php';
+    require_once '../app/Models/Miniproyecto.php';
+    require_once '../app/Models/Post.php';
+    require_once '../app/Helpers/CategoryTagHelper.php';
+} catch (Exception $e) {
+    error_log('Error loading files in ver_proyecto_publico.php: ' . $e->getMessage());
+    die('Error cargando archivos requeridos');
+}
 
 if (!isset($_GET['id'])) { 
     header('Location: explorar.php'); 
@@ -15,37 +25,54 @@ $proyecto_id = $_GET['id'];
 $usuario_id = $_SESSION['usuario_id'];
 $rol_id = $_SESSION['rol_id'];
 
-$modeloProyecto = new Proyecto();
-$modeloMini = new Miniproyecto();
-$modeloPost = new Post();
+try {
+    $modeloProyecto = new Proyecto();
+    $modeloMini = new Miniproyecto();
+    $modeloPost = new Post();
 
-$proyecto = $modeloProyecto->obtenerPublicoPorId($proyecto_id);
+    $proyecto = $modeloProyecto->obtenerPublicoPorId($proyecto_id);
 
-if (!$proyecto) { 
-    header('Location: explorar.php?error=proyecto_no_encontrado');
-    exit();
+    if (!$proyecto) { 
+        header('Location: explorar.php?error=proyecto_no_encontrado');
+        exit();
+    }
+
+    if ($proyecto['artista_id'] == $usuario_id) {
+        header('Location: ver_proyecto.php?id=' . $proyecto_id);
+        exit();
+    }
+} catch (Exception $e) {
+    error_log('Error fetching project in ver_proyecto_publico.php: ' . $e->getMessage());
+    die('Error cargando el proyecto: ' . htmlspecialchars($e->getMessage()));
 }
 
-if ($proyecto['artista_id'] == $usuario_id) {
-    header('Location: ver_proyecto.php?id=' . $proyecto_id);
-    exit();
+try {
+    $projectCategories = CategoryTagHelper::getProjectCategories($proyecto_id);
+    $projectTags = CategoryTagHelper::getProjectTags($proyecto_id);
+    $miniproyectosHijos = $modeloMini->obtenerPorProyectoPadre($proyecto_id);
+} catch (Exception $e) {
+    error_log('Error fetching project data in ver_proyecto_publico.php: ' . $e->getMessage());
+    $projectCategories = [];
+    $projectTags = [];
+    $miniproyectosHijos = [];
 }
 
-$projectCategories = CategoryTagHelper::getProjectCategories($proyecto_id);
-$projectTags = CategoryTagHelper::getProjectTags($proyecto_id);
+try {
+    $db = Database::getInstance();
+    $stmt = $db->prepare("SELECT COUNT(*) as total FROM posts WHERE proyecto_id = ?");
+    $stmt->execute([$proyecto_id]);
+    $totalPosts = $stmt->fetch()['total'];
 
-$miniproyectosHijos = $modeloMini->obtenerPorProyectoPadre($proyecto_id);
-
-$db = Database::getInstance();
-$stmt = $db->prepare("SELECT COUNT(*) as total FROM posts WHERE proyecto_id = ?");
-$stmt->execute([$proyecto_id]);
-$totalPosts = $stmt->fetch()['total'];
-
-$stmt = $db->prepare("SELECT COUNT(*) as total FROM iteraciones i
-        JOIN posts p ON i.post_id = p.id
-        WHERE p.proyecto_id = ?");
-$stmt->execute([$proyecto_id]);
-$totalIteraciones = $stmt->fetch()['total'];
+    $stmt = $db->prepare("SELECT COUNT(*) as total FROM iteraciones i
+            JOIN posts p ON i.post_id = p.id
+            WHERE p.proyecto_id = ?");
+    $stmt->execute([$proyecto_id]);
+    $totalIteraciones = $stmt->fetch()['total'];
+} catch (Exception $e) {
+    error_log('Error counting posts/iterations in ver_proyecto_publico.php: ' . $e->getMessage());
+    $totalPosts = 0;
+    $totalIteraciones = 0;
+}
 
 $esArtista = ($rol_id == 1);
 ?>
