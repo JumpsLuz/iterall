@@ -116,7 +116,7 @@ iterall/
 
 ---
 
-## 🔐 Roles de Usuario
+## Roles de Usuario
 
 | Rol | Descripción |
 |-----|-------------|
@@ -127,7 +127,7 @@ iterall/
 
 ---
 
-## 📸 Límites
+## Límites
 
 - Máximo **50 imágenes** por post (suma de todas las iteraciones)
 - Formatos permitidos: JPG, PNG, GIF, WEBP
@@ -135,7 +135,7 @@ iterall/
 
 ---
 
-## 🤝 Tecnologías Utilizadas
+## Tecnologías Utilizadas
 
 - **Backend**: PHP 8+ (sin framework)
 - **Base de Datos**: MySQL con PDO
@@ -146,13 +146,7 @@ iterall/
 
 ---
 
-## 👤 Autor
+## Autor
 
 **Joaquín Villalón**  
 📧 jvemillapele@outlook.com
-
----
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
