@@ -14,6 +14,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($_SESSION['usuario_id']);
 <head>
     <meta charset="UTF-8">
     <title>Mis Proyectos | ITERALL</title>
+    <?php include 'includes/favicon.php'; ?>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>

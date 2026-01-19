@@ -55,6 +55,7 @@ $esArtista = ($rol_id == 1);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($proyecto['titulo']); ?> | ITERALL</title>
+    <?php include 'includes/favicon.php'; ?>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/explorar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

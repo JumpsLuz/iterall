@@ -8,7 +8,6 @@ class Database {
     private $conn;
 
     private function __construct() {
-        // Cargar variables de entorno
         $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
         $dotenv->safeLoad();
 

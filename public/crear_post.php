@@ -54,6 +54,7 @@ $categorias = $modeloProyecto->obtenerCategorias();
 <head>
     <meta charset="UTF-8">
     <title>Agregar Trabajo | ITERALL</title>
+    <?php include 'includes/favicon.php'; ?>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
