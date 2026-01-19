@@ -8,39 +8,19 @@ class Database {
     private $conn;
 
     private function __construct() {
-        // Load .env if present; ignore if not (Railway uses env vars)
         $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
         $dotenv->safeLoad();
 
-        // Prefer Railway/MySQL variables, then generic DB_* fallbacks
-        $host = $_ENV['MYSQLHOST'] ?? $_ENV['DB_HOST'] ?? 'localhost';
-        $port = $_ENV['MYSQLPORT'] ?? $_ENV['DB_PORT'] ?? 3306;
-        $db   = $_ENV['MYSQLDATABASE'] ?? $_ENV['DB_NAME'] ?? 'iterall_db';
-        $user = $_ENV['MYSQLUSER'] ?? $_ENV['DB_USER'] ?? 'root';
-        $pass = $_ENV['MYSQLPASSWORD'] ?? $_ENV['DB_PASS'] ?? '';
-
-        // Allow DATABASE_URL override (mysql://user:pass@host:port/db)
-        if (!empty($_ENV['DATABASE_URL'])) {
-            $url = parse_url($_ENV['DATABASE_URL']);
-            if ($url && !empty($url['scheme'])) {
-                $host = $url['host'] ?? $host;
-                $port = $url['port'] ?? $port;
-                $user = $url['user'] ?? $user;
-                $pass = $url['pass'] ?? $pass;
-                $db   = ltrim($url['path'] ?? '', '/');
-            }
-        }
-
-        $dsn = "mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4";
+        $host = $_ENV['DB_HOST'] ?? 'localhost';
+        $db   = $_ENV['DB_NAME'] ?? 'iterall_db';
+        $user = $_ENV['DB_USER'] ?? 'root';
+        $pass = $_ENV['DB_PASS'] ?? '';
 
         try {
-            $this->conn = new PDO($dsn, $user, $pass, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            ]);
+            $this->conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            error_log('Error de conexión: ' . $e->getMessage());
-            throw $e;
+            echo "Error de conexión: " . $e->getMessage();
         }
     }
 
