@@ -1,5 +1,6 @@
 <?php
 require_once '../app/Models/Proyecto.php';
+require_once '../app/Helpers/CategoryTagHelper.php';
 
 class ProyectoController {
     private $modeloProyecto;
@@ -13,15 +14,19 @@ class ProyectoController {
     public function crear() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
-            if (empty($_POST['titulo']) || empty($_POST['categoria_id']) || empty($_POST['estado_id'])) {
+            if (empty($_POST['titulo']) || empty($_POST['categorias']) || empty($_POST['estado_id'])) {
                 header('Location: crear_proyecto.php?error=campos_requeridos');
                 exit();
             }
 
             try {
+                // Use first category as main category for backwards compatibility
+                $categorias = $_POST['categorias'];
+                $categoria_principal = $categorias[0];
+                
                 $datos = [
                     'creador_id' => $_SESSION['usuario_id'],
-                    'categoria_id' => $_POST['categoria_id'],
+                    'categoria_id' => $categoria_principal,
                     'estado_id' => $_POST['estado_id'],
                     'titulo' => $_POST['titulo'],
                     'descripcion' => $_POST['descripcion'] ?? '',
@@ -42,6 +47,17 @@ class ProyectoController {
                 $proyectoId = $this->modeloProyecto->crear($datos, $avatarFile, $bannerFile);
 
                 if ($proyectoId) {
+                    // Save all categories
+                    CategoryTagHelper::saveProjectCategories($proyectoId, $categorias);
+                    
+                    // Save tags
+                    if (!empty($_POST['etiquetas'])) {
+                        $tags = json_decode($_POST['etiquetas'], true);
+                        if ($tags) {
+                            CategoryTagHelper::saveProjectTags($proyectoId, $tags);
+                        }
+                    }
+                    
                     header('Location: mis_proyectos.php?mensaje=proyecto_creado');
                     exit();
                 } else {
@@ -61,8 +77,12 @@ class ProyectoController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $proyecto_id = $_POST['proyecto_id'];
             
+            // Use first category as main category for backwards compatibility
+            $categorias = $_POST['categorias'] ?? [];
+            $categoria_principal = !empty($categorias) ? $categorias[0] : $_POST['categoria_id'];
+            
             $datos = [
-                'categoria_id' => $_POST['categoria_id'],
+                'categoria_id' => $categoria_principal,
                 'estado_id' => $_POST['estado_id'],
                 'titulo' => $_POST['titulo'],
                 'descripcion' => $_POST['descripcion'] ?? '',
@@ -83,6 +103,19 @@ class ProyectoController {
             $exito = $this->modeloProyecto->actualizar($proyecto_id, $datos, $_SESSION['usuario_id'], $avatarFile, $bannerFile);
 
             if ($exito) {
+                // Save multiple categories
+                if (!empty($categorias)) {
+                    CategoryTagHelper::saveProjectCategories($proyecto_id, $categorias);
+                }
+                
+                // Save tags from JSON field
+                if (!empty($_POST['etiquetas'])) {
+                    $tags = json_decode($_POST['etiquetas'], true);
+                    if (is_array($tags)) {
+                        CategoryTagHelper::saveProjectTags($proyecto_id, $tags);
+                    }
+                }
+                
                 header('Location: ver_proyecto.php?id=' . $proyecto_id . '&mensaje=actualizado');
                 exit();
             } else {

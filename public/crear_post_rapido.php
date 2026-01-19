@@ -18,6 +18,10 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <div class="app-layout">
+        <?php $active_page = 'crear_post'; include 'includes/sidebar.php'; ?>
+
+        <main class="main-content">
     <div class="container" style="max-width: 600px;">
         
         <div class="navbar">
@@ -51,16 +55,7 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
                         <input type="text" name="titulo" class="form-control" placeholder="Ej: Boceto Personaje Principal" required>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Categoría *</label>
-                        <select name="categoria_id" class="form-control" required>
-                            <option value="">-- Selecciona --</option>
-                            <?php foreach ($categorias as $cat): ?>
-                                <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['nombre_categoria']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <span class="form-hint">La mini proyecto contenedor heredará esta categoría.</span>
-                    </div>
+                    <?php include 'includes/category_tags_selector.php'; ?>
 
                     <div class="form-group">
                         <label class="form-label">Descripción Inicial (Opcional)</label>
@@ -71,6 +66,8 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
                 </form>
             </div>
         </div>
+    </div>
+        </main>
     </div>
 </body>
 </html>

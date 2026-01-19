@@ -44,6 +44,10 @@ $espacioDisponible = 50 - $totalImagenes;
     <link rel="stylesheet" href="css/iteracion.css">
 </head>
 <body>
+    <div class="app-layout">
+        <?php $active_page = 'dashboard'; include 'includes/sidebar.php'; ?>
+
+        <main class="main-content">
     <div class="container" style="max-width: 800px;">
         
         <div class="navbar">
@@ -157,5 +161,7 @@ $espacioDisponible = 50 - $totalImagenes;
     </div>
 
     <script src="js/iteracion-upload.js"></script>
+        </main>
+    </div>
 </body>
 </html>

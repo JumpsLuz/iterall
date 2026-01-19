@@ -33,6 +33,10 @@ $estados = $modeloProyecto->obtenerEstados();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="app-layout">
+        <?php $active_page = 'mis_proyectos'; include 'includes/sidebar.php'; ?>
+
+        <main class="main-content">
     <div class="container" style="max-width: 800px;">
         
         <div class="navbar">
@@ -209,5 +213,7 @@ $estados = $modeloProyecto->obtenerEstados();
             }
         });
     </script>
+        </main>
+    </div>
 </body>
 </html>

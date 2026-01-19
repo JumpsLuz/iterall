@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="app-layout">
+        <?php include 'includes/sidebar.php'; ?>
+
+        <main class="main-content">
     <div class="profile-setup-container">
         <div class="profile-setup-card">
             <h2>¡Bienvenido a ITERALL! <i class="fas fa-palette"></i></h2>
@@ -235,5 +239,7 @@
             }
         }
     </script>
+        </main>
+    </div>
 </body>
 </html>

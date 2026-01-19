@@ -15,6 +15,10 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <div class="app-layout">
+        <?php $active_page = 'crear_mini'; include 'includes/sidebar.php'; ?>
+
+        <main class="main-content">
     <div class="container" style="max-width: 600px;">
         <div class="navbar">
             <a href="dashboard_artista.php" class="btn btn-secondary">← Cancelar</a>
@@ -46,6 +50,8 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
                 </form>
             </div>
         </div>
+    </div>
+        </main>
     </div>
 </body>
 </html>

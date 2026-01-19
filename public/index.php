@@ -8,11 +8,15 @@ session_start();
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>ITERALL</title>
         <link rel="stylesheet" href="css/style.css">
-    </head>
-
+    <style>
+        .logo-dark { filter: brightness(0) invert(1); }
+    </style>
     <body>
     <div class="auth-container">
         <div class="auth-card">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img src="https://res.cloudinary.com/dyqubcdf0/image/upload/v1768787917/ITERALL_NAME_ujwlge.svg" alt="ITERALL" style="max-width: 200px; height: auto; filter: brightness(0) invert(1);">
+            </div>
             <h2>Bienvenido de vuelta</h2>
             <p class="subtitle">Inicia sesión para continuar con tus proyectos</p>
             

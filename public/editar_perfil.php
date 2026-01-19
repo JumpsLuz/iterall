@@ -22,6 +22,10 @@ $redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="app-layout">
+        <?php $active_page = 'editar_perfil'; include 'includes/sidebar.php'; ?>
+
+        <main class="main-content">
     <form action="procesador.php?action=actualizar_perfil" method="POST" enctype="multipart/form-data" id="formPerfil">
         
         <header class="profile-header">
@@ -169,5 +173,7 @@ $redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
         
         document.getElementById('formPerfil').addEventListener('submit', () => formChanged = false);
     </script>
+        </main>
+    </div>
 </body>
 </html>

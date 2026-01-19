@@ -19,6 +19,17 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .logo-bar {
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-bottom: 1px solid #ddd;
+        }
+        
         .options-container {
             max-width: 600px;
             margin: 2rem auto;
@@ -92,6 +103,15 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body>
+    <div class="app-layout">
+        <?php $active_page = 'opciones'; include 'includes/sidebar.php'; ?>
+
+        <main class="main-content">
+    <div class="logo-bar">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <img src="https://res.cloudinary.com/dyqubcdf0/image/upload/v1768787599/ITERALL_aneaxn.svg" alt="ITERALL Logo" style="height: 30px; width: auto;">
+        </div>
+    </div>
 
     <div class="container">
         <div class="options-container">
@@ -190,6 +210,7 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
             return confirm('¿Estás ABSOLUTAMENTE seguro? Esta acción eliminará tu cuenta y todos tus datos permanentemente.');
         }
     </script>
-
+        </main>
+    </div>
 </body>
 </html>

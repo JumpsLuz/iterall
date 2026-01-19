@@ -35,7 +35,10 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="app-layout">
+        <?php $active_page = 'dashboard'; include 'includes/sidebar.php'; ?>
 
+        <main class="main-content">
     <header class="profile-header">
         <div class="banner-container">
             <?php if (!empty($perfil['banner_url'])): ?>
@@ -56,12 +59,6 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
             <h1><?php echo htmlspecialchars($perfil['nombre_artistico'] ?? 'Artista'); ?></h1>
             <p class="text-muted"><?php echo htmlspecialchars($perfil['biografia'] ?? 'Sin biografía'); ?></p>
             
-            <div style="margin-top: 15px;">
-                <a href="editar_perfil.php" class="btn btn-secondary">Editar Perfil</a>
-                <a href="opciones.php" class="btn btn-secondary" title="Opciones"><i class="fas fa-cog"></i></a>
-                <a href="procesador.php?action=logout" class="btn btn-danger">Cerrar Sesión</a>
-            </div>
-            
             <?php if (!empty($redes)): ?>
             <div style="margin-top: 15px;">
                 <?php
@@ -80,13 +77,6 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
     </header>
 
     <div class="container">
-        
-        <div class="navbar">
-            <a href="crear_post_rapido.php" class="btn btn-primary">+ Post Rápido</a>
-            <a href="crear_miniproyecto.php" class="btn btn-secondary">+ Nuevo Mini Proyecto</a>
-            <a href="crear_proyecto.php" class="btn btn-secondary">+ Nuevo Proyecto Grande</a>
-            <a href="mis_proyectos.php" class="btn btn-secondary">Ver Todos mis Proyectos</a>
-        </div>
 
         <?php if (isset($_GET['mensaje'])): ?>
             <div class="badge badge-status" style="display:block; padding: 10px; margin-bottom: 20px;">
@@ -197,6 +187,8 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
              <?php endforeach; ?>
         </div>
 
+    </div>
+        </main>
     </div>
 </body>
 </html>

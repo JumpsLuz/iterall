@@ -51,7 +51,10 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body style="background: #0a0a0a;">
+    <div class="app-layout" style="background: #0a0a0a;">
+        <?php $active_page = 'dashboard'; include 'includes/sidebar.php'; ?>
 
+        <main class="main-content" style="background: #0a0a0a;">
     <header class="fixed-header">
         <div class="header-content">
             <div class="breadcrumb-nav">
@@ -522,6 +525,7 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
             }
         }
     </script>
-
+        </main>
+    </div>
 </body>
 </html>

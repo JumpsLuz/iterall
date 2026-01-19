@@ -19,6 +19,10 @@ $estados = $modeloProyecto->obtenerEstados();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="app-layout">
+        <?php $active_page = 'crear_proyecto'; include 'includes/sidebar.php'; ?>
+
+        <main class="main-content">
     <div class="container" style="max-width: 800px;">
         
         <div class="navbar">
@@ -45,25 +49,15 @@ $estados = $modeloProyecto->obtenerEstados();
                         <input type="text" name="titulo" class="form-control" required placeholder="Ej: Proyecto Titán">
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="form-group">
-                            <label class="form-label">Categoría General *</label>
-                            <select name="categoria_id" class="form-control" required>
-                                <option value="">Selecciona...</option>
-                                <?php foreach ($categorias as $cat): ?>
-                                    <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['nombre_categoria']); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                    <?php include 'includes/category_tags_selector.php'; ?>
 
-                        <div class="form-group">
-                            <label class="form-label">Estado Inicial *</label>
-                            <select name="estado_id" class="form-control" required>
-                                <?php foreach ($estados as $est): ?>
-                                    <option value="<?php echo $est['id']; ?>"><?php echo htmlspecialchars($est['nombre_estado']); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label">Estado Inicial *</label>
+                        <select name="estado_id" class="form-control" required>
+                            <?php foreach ($estados as $est): ?>
+                                <option value="<?php echo $est['id']; ?>"><?php echo htmlspecialchars($est['nombre_estado']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -148,5 +142,8 @@ $estados = $modeloProyecto->obtenerEstados();
             }
         });
     </script>
+    </div>
+        </main>
+    </div>
 </body>
 </html>

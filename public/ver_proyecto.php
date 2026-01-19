@@ -22,7 +22,10 @@ if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="app-layout">
+        <?php $active_page = 'mis_proyectos'; include 'includes/sidebar.php'; ?>
 
+        <main class="main-content">
     <div class="container">
         
         <div class="breadcrumb">
@@ -143,6 +146,8 @@ if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit();
             </div>
         <?php endif; ?>
 
+    </div>
+        </main>
     </div>
 </body>
 </html>

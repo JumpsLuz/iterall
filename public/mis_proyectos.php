@@ -18,7 +18,10 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($_SESSION['usuario_id']);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="app-layout">
+        <?php $active_page = 'mis_proyectos'; include 'includes/sidebar.php'; ?>
 
+        <main class="main-content">
     <div class="container">
         <div class="navbar">
             <a href="dashboard_artista.php" class="btn btn-secondary">← Volver al Dashboard</a>
@@ -116,6 +119,8 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($_SESSION['usuario_id']);
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
+    </div>
+        </main>
     </div>
 </body>
 </html>
