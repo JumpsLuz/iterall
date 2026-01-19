@@ -13,20 +13,36 @@ class CloudinaryConfig {
 
     private function __construct() {
         $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
-        $dotenv->load();
+        $dotenv->safeLoad();
 
-        Configuration::instance([
-            'cloud' => [
-                'cloud_name' => $_ENV['CLOUDINARY_CLOUD_NAME'],
-                'api_key' => $_ENV['CLOUDINARY_API_KEY'],
-                'api_secret' => $_ENV['CLOUDINARY_API_SECRET']
-            ],
-            'url' => [
-                'secure' => true
-            ]
-        ]);
+        $cloudName = $_ENV['CLOUDINARY_CLOUD_NAME'] ?? null;
+        $apiKey = $_ENV['CLOUDINARY_API_KEY'] ?? null;
+        $apiSecret = $_ENV['CLOUDINARY_API_SECRET'] ?? null;
 
-        $this->uploadApi = new UploadApi();
+        // If not configured (e.g., Railway without secrets), keep running without uploads
+        if (empty($cloudName) || empty($apiKey) || empty($apiSecret)) {
+            error_log('Cloudinary env vars missing; uploads disabled');
+            $this->uploadApi = null;
+            return;
+        }
+
+        try {
+            Configuration::instance([
+                'cloud' => [
+                    'cloud_name' => $cloudName,
+                    'api_key' => $apiKey,
+                    'api_secret' => $apiSecret
+                ],
+                'url' => [
+                    'secure' => true
+                ]
+            ]);
+
+            $this->uploadApi = new UploadApi();
+        } catch (\Exception $e) {
+            error_log('Cloudinary configuration error: ' . $e->getMessage());
+            $this->uploadApi = null;
+        }
     }
 
     public static function getInstance() {
@@ -56,7 +72,13 @@ class CloudinaryConfig {
      * @return array 
      */
     public function uploadImage($filePath, $options = []) {
-        
+        if ($this->uploadApi === null) {
+            return [
+                'success' => false,
+                'error' => 'Cloudinary no configurado'
+            ];
+        }
+
         try {
             error_log("=== CLOUDINARY DEBUG ===");
             error_log("File Path: " . $filePath);
@@ -103,6 +125,9 @@ class CloudinaryConfig {
      * @return bool
      */
     public function deleteImage($cloudId) {
+        if ($this->uploadApi === null) {
+            return false;
+        }
         try {
             $result = $this->uploadApi->destroy($cloudId, ['resource_type' => 'image']);
             return $result['result'] === 'ok';
