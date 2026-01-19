@@ -3,49 +3,56 @@ require_once '../app/Config/auth_check.php';
 require_once '../app/Config/Database.php';
 require_once '../app/Models/Post.php';
 require_once '../app/Models/Iteracion.php';
-require_once '../app/Models/Miniproyecto.php';
+require_once '../app/Models/Coleccion.php';
 require_once '../app/Helpers/CategoryTagHelper.php';
 
 if (!isset($_GET['id'])) { 
-    header('Location: dashboard_artista.php'); 
+    header('Location: explorar.php'); 
     exit(); 
 }
 
 $post_id = $_GET['id'];
 $usuario_id = $_SESSION['usuario_id'];
+$rol_id = $_SESSION['rol_id'];
 
 $modeloPost = new Post();
 $modeloIteracion = new Iteracion();
-$modeloMini = new Miniproyecto();
+$modeloColeccion = new Coleccion();
 
-$post = $modeloPost->obtenerPorId($post_id, $usuario_id);
+// Obtener post público (sin verificar propiedad)
+$post = $modeloPost->obtenerPublicoPorId($post_id);
+
 if (!$post) { 
-    die("Post no encontrado."); 
+    header('Location: explorar.php?error=no_encontrado');
+    exit();
 }
 
-// Get all categories and tags for this post
+// Obtener categorías y etiquetas del post
 $postCategories = CategoryTagHelper::getPostCategories($post_id);
 $postTags = CategoryTagHelper::getPostTags($post_id);
 
+// Obtener iteraciones
 $iteraciones = $modeloIteracion->obtenerPorPost($post_id);
-$esDestacado = $modeloPost->esDestacado($post_id);
 
-$esPostIndividual = false;
-if ($post['miniproyecto_id']) {
-    $esPostIndividual = $modeloMini->esPostIndividual($post['miniproyecto_id']);
+// Verificar si el usuario es cliente y tiene colecciones
+$esCliente = ($rol_id == 2);
+$coleccionesUsuario = [];
+$postGuardadoEn = [];
+if ($esCliente) {
+    $coleccionesUsuario = $modeloColeccion->obtenerPorUsuario($usuario_id);
+    $postGuardadoEn = $modeloColeccion->postEstaGuardado($post_id, $usuario_id);
 }
+
+// Es el dueño del post?
+$esPropietario = ($post['artista_id'] == $usuario_id);
 
 $totalImagenes = 0;
 foreach ($iteraciones as $iter) {
     $totalImagenes += count($iter['imagenes']);
 }
 
-$db = Database::getInstance();
-$stmt = $db->prepare("SELECT nombre_artistico, avatar_url FROM perfiles WHERE usuario_id = ?");
-$stmt->execute([$usuario_id]);
-$perfil = $stmt->fetch(PDO::FETCH_ASSOC);
+$esArtista = ($rol_id == 1);
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -55,81 +62,279 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/post-viewer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Header action buttons */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .icon-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .icon-btn.active {
+            background: rgba(212, 175, 55, 0.2);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        /* Modal para guardar en colección */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-backdrop.active {
+            display: flex;
+        }
+        
+        .modal-coleccion {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 0;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid #333;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        
+        .modal-coleccion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid #333;
+            background: #141414;
+        }
+        
+        .modal-coleccion-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+        
+        .modal-close-btn {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+        
+        .modal-close-btn:hover {
+            color: #fff;
+        }
+        
+        .modal-coleccion-body {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        
+        .coleccion-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 25px;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            border-bottom: 1px solid #222;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.95rem;
+        }
+        
+        .coleccion-option:last-child {
+            border-bottom: none;
+        }
+        
+        .coleccion-option:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .coleccion-option.guardado {
+            background: rgba(212, 175, 55, 0.1);
+        }
+        
+        .coleccion-option.guardado i {
+            color: var(--accent);
+        }
+        
+        .coleccion-option i {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .modal-coleccion-footer {
+            padding: 15px 25px;
+            border-top: 1px solid #333;
+            background: #141414;
+        }
+        
+        .btn-nueva-coleccion {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        
+        .btn-nueva-coleccion:hover {
+            background: #3a7bd5;
+        }
+        
+        .empty-colecciones {
+            padding: 40px 25px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .empty-colecciones i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+    </style>
 </head>
 <body style="background: #0a0a0a;">
+    <!-- Header fijo -->
     <header class="fixed-header">
         <div class="header-content">
             <div class="breadcrumb-nav">
-                <a href="dashboard_artista.php"><i class="fas fa-home"></i></a>
+                <a href="explorar.php"><i class="fas fa-compass"></i> Explorar</a>
                 <span>></span>
-                <?php if ($post['miniproyecto_id']): ?>
-                    <a href="ver_miniproyecto.php?id=<?php echo $post['miniproyecto_id']; ?>">Mini Proyecto</a>
-                    <span>></span>
-                <?php endif; ?>
                 <span class="current"><?php echo htmlspecialchars($post['titulo']); ?></span>
             </div>
             
             <div class="header-actions">
-                <button class="icon-btn <?php echo $esDestacado ? 'active' : ''; ?>" 
-                        onclick="toggleDestacado()" 
-                        title="<?php echo $esDestacado ? 'Quitar destacado' : 'Destacar'; ?>">
-                    <i class="fas fa-star"></i>
-                </button>
-                
-                <button class="icon-btn" onclick="window.location.href='dashboard_artista.php'" title="Mis trabajos">
-                    <i class="fas fa-th-large"></i>
-                </button>
-                
-                <?php if ($esPostIndividual): ?>
-                    <button class="icon-btn" onclick="convertirAMiniproyecto()" title="Convertir a Mini Proyecto">
-                        <i class="fas fa-folder-plus"></i>
+                <?php if ($esCliente): ?>
+                    <!-- Botón guardar en colección -->
+                    <button class="icon-btn <?php echo !empty($postGuardadoEn) ? 'active' : ''; ?>" 
+                            onclick="abrirModalColecciones()" 
+                            title="Guardar en colección"
+                            id="btnGuardar">
+                        <i class="<?php echo !empty($postGuardadoEn) ? 'fas' : 'far'; ?> fa-bookmark"></i>
                     </button>
                 <?php endif; ?>
                 
-                <button class="icon-btn danger" onclick="eliminarPost()" title="Eliminar">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <?php if ($esPropietario): ?>
+                    <a href="ver_post.php?id=<?php echo $post_id; ?>" class="icon-btn" title="Editar mi post">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
     </header>
+    
+    <?php if ($esCliente): ?>
+    <!-- Modal para elegir colección -->
+    <div class="modal-backdrop" id="modalColecciones">
+        <div class="modal-coleccion">
+            <div class="modal-coleccion-header">
+                <h3><i class="fas fa-bookmark"></i> Guardar en colección</h3>
+                <button class="modal-close-btn" onclick="cerrarModalColecciones()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-coleccion-body">
+                <?php if (empty($coleccionesUsuario)): ?>
+                    <div class="empty-colecciones">
+                        <i class="fas fa-folder-open"></i>
+                        <p>No tienes colecciones aún</p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($coleccionesUsuario as $col): ?>
+                        <?php 
+                        $yaGuardado = false;
+                        foreach ($postGuardadoEn as $guardado) {
+                            if ($guardado['id'] == $col['id']) {
+                                $yaGuardado = true;
+                                break;
+                            }
+                        }
+                        ?>
+                        <button class="coleccion-option <?php echo $yaGuardado ? 'guardado' : ''; ?>"
+                                onclick="toggleEnColeccion(<?php echo $col['id']; ?>, <?php echo $post_id; ?>)"
+                                id="coleccion-<?php echo $col['id']; ?>">
+                            <i class="<?php echo $yaGuardado ? 'fas fa-check-circle' : 'far fa-folder'; ?>"></i>
+                            <span><?php echo htmlspecialchars($col['nombre']); ?></span>
+                        </button>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+            <div class="modal-coleccion-footer">
+                <a href="mis_colecciones.php?crear=1" class="btn-nueva-coleccion">
+                    <i class="fas fa-plus"></i> Nueva Colección
+                </a>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <div class="viewer-container">
-        
         <div class="viewer-main">
-
-            <?php if (isset($_GET['mensaje'])): ?>
-                <div class="alert-message success">
-                    <i class="fas fa-check-circle"></i>
-                    <?php 
-                    switch($_GET['mensaje']) {
-                        case 'iteracion_creada': echo 'Nueva iteración creada'; break;
-                        case 'iteracion_eliminada': echo 'Iteración eliminada'; break;
-                        case 'convertido_a_miniproyecto': echo 'Convertido a Mini Proyecto'; break;
-                        default: echo 'Acción completada';
-                    }
-                    ?>
-                </div>
-            <?php endif; ?>
-
+            
             <?php if (empty($iteraciones)): ?>
                 <div class="empty-state">
                     <i class="fas fa-layer-group"></i>
-                    <h3>Sin iteraciones</h3>
-                    <p>Documenta tu proceso creativo subiendo la primera versión</p>
-                    <a href="crear_iteracion.php?post_id=<?php echo $post_id; ?>" class="btn btn-primary">
-                        + Subir Primera Iteración
-                    </a>
+                    <h3>Este post aún no tiene iteraciones</h3>
+                    <p>El artista aún no ha subido contenido</p>
                 </div>
             <?php else: ?>
                 
                 <div class="image-viewer">
-                    
+                    <!-- Vista normal -->
                     <div id="normalView" class="viewer-mode active">
                         <div class="main-image-container">
                             <img id="mainImage" src="" alt="Imagen principal">
                         </div>
                     </div>
                     
+                    <!-- Vista comparación -->
                     <div id="compareView" class="viewer-mode">
                         <div class="comparison-container">
                             <div class="comparison-wrapper">
@@ -165,62 +370,66 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                             </select>
                         </div>
                     </div>
-                    
                 </div>
 
+                <!-- Galería de imágenes de la iteración -->
                 <div class="iteration-gallery">
                     <h4>Imágenes de esta iteración</h4>
-                    <div class="gallery-grid" id="galleryGrid">
-                    </div>
+                    <div class="gallery-grid" id="galleryGrid"></div>
                 </div>
 
-                <div id="iterationInfo" class="iteration-info">
-                </div>
+                <!-- Info de la iteración -->
+                <div id="iterationInfo" class="iteration-info"></div>
 
             <?php endif; ?>
 
         </div>
 
+        <!-- Sidebar con info del post y artista -->
         <aside class="sidebar">
             
+            <!-- Info del Post -->
             <div class="post-header">
                 <h1><?php echo htmlspecialchars($post['titulo']); ?></h1>
+                
+                <!-- Categorías -->
                 <div class="badges categories-badges">
                     <?php if (!empty($postCategories)): ?>
                         <?php foreach ($postCategories as $cat): ?>
                             <span class="badge badge-category-sm"><?php echo htmlspecialchars($cat['nombre_categoria']); ?></span>
                         <?php endforeach; ?>
-                    <?php else: ?>
+                    <?php elseif (!empty($post['nombre_categoria'])): ?>
                         <span class="badge badge-category-sm"><?php echo htmlspecialchars($post['nombre_categoria']); ?></span>
                     <?php endif; ?>
-                    <?php if ($esPostIndividual): ?>
-                        <span class="badge badge-individual"><i class="fas fa-file"></i> INDIVIDUAL</span>
-                    <?php endif; ?>
                 </div>
+                
+                <!-- Etiquetas -->
                 <?php if (!empty($postTags)): ?>
                 <div class="tags-badges">
                     <?php foreach ($postTags as $tag): ?>
                         <?php if ($tag['nombre_etiqueta'] !== '#@#_no_mini_proyecto_#@#' && strtolower($tag['nombre_etiqueta']) !== 'destacado'): ?>
-                            <span class="badge badge-tag">#<?php echo htmlspecialchars($tag['nombre_etiqueta']); ?></span>
+                            <a href="explorar.php?etiqueta=<?php echo urlencode($tag['nombre_etiqueta']); ?>" 
+                               class="badge badge-tag">#<?php echo htmlspecialchars($tag['nombre_etiqueta']); ?></a>
                         <?php endif; ?>
                     <?php endforeach; ?>
                 </div>
                 <?php endif; ?>
-                <div class="author-info">
-                <?php if (!empty($perfil['avatar_url'])): ?>
-                    <img src="<?php echo htmlspecialchars($perfil['avatar_url']); ?>" alt="" class="author-avatar">
-                <?php else: ?>
-                    <div class="author-avatar placeholder">
-                        <i class="fas fa-user"></i>
+                
+                <!-- Info del Artista -->
+                <a href="perfil_publico.php?id=<?php echo $post['artista_id']; ?>" class="author-info-link">
+                    <?php if (!empty($post['artista_avatar'])): ?>
+                        <img src="<?php echo htmlspecialchars($post['artista_avatar']); ?>" alt="" class="author-avatar">
+                    <?php else: ?>
+                        <div class="author-avatar placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    <?php endif; ?>
+                    <div class="author-details">
+                        <strong><?php echo htmlspecialchars($post['nombre_artistico'] ?? 'Artista'); ?></strong>
+                        <span class="author-role">Ver perfil</span>
                     </div>
-                <?php endif; ?>
-                <div class="author-details">
-                    <strong style= font-size:14px><?php echo htmlspecialchars($perfil['nombre_artistico'] ?? 'Artista'); ?></strong>
-                    <span class="author-role">Editor</span>
-                </div>
+                </a>
             </div>
-            </div>                            
-            
 
             <?php if (!empty($iteraciones)): ?>
                 <?php if (count($iteraciones) >= 2): ?>
@@ -230,20 +439,9 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                 <?php endif; ?>
             <?php endif; ?>
             
+            <!-- Timeline -->
             <div class="timeline-section">
-                <h3><i class="fas fa-clock-rotate-left"></i> Timeline</h3>
-                
-                <?php if ($totalImagenes < 50): ?>
-                    <button onclick="window.location.href='crear_iteracion.php?post_id=<?php echo $post_id; ?>'" 
-                            class="btn btn-secondary btn-new-iteration">
-                        <i class="fas fa-plus"></i> Nueva Iteración
-                    </button>
-                <?php else: ?>
-                    <div class="limit-notice">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Límite de 50 imágenes alcanzado
-                    </div>
-                <?php endif; ?>
+                <h3><i class="fas fa-clock-rotate-left"></i> Proceso Creativo</h3>
                 
                 <div class="timeline">
                     <?php foreach ($iteraciones as $index => $iter): ?>
@@ -273,16 +471,12 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                                     </span>
                                 </div>
                             </div>
-                            
-                            <button class="timeline-delete" 
-                                    onclick="event.stopPropagation(); eliminarIteracion(<?php echo $iter['id']; ?>)">
-                                <i class="fas fa-trash"></i>
-                            </button>
                         </div>
                     <?php endforeach; ?>
                 </div>
             </div>
 
+            <!-- Estadísticas -->
             <div class="sidebar-section stats">
                 <h3><i class="fas fa-chart-simple"></i> Estadísticas</h3>
                 
@@ -293,9 +487,7 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                 
                 <div class="stat-row">
                     <span>Imágenes:</span>
-                    <strong class="<?php echo $totalImagenes >= 40 ? 'warning' : ''; ?>">
-                        <?php echo $totalImagenes; ?> / 50
-                    </strong>
+                    <strong><?php echo $totalImagenes; ?></strong>
                 </div>
                 
                 <?php 
@@ -320,10 +512,18 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                 </div>
             </div>
 
-        </aside>
+            <!-- Botón de contacto -->
+            <div class="sidebar-section">
+                <a href="perfil_publico.php?id=<?php echo $post['artista_id']; ?>#contacto" 
+                   class="btn btn-primary" style="width: 100%; text-align: center;">
+                    <i class="fas fa-envelope"></i> Contactar Artista
+                </a>
+            </div>
 
+        </aside>
     </div>
 
+    <!-- Modal imagen grande -->
     <div id="imageModal" class="modal-overlay" onclick="closeModal()">
         <span class="modal-close">&times;</span>
         <img id="modalImage" class="modal-image" src="" alt="">
@@ -378,7 +578,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                     item.className = 'gallery-item';
                     if (index === 0) item.classList.add('active');
                     
-                    // Check es_principal properly (could be string "1" or number 1)
                     const esPrincipal = img.es_principal == 1 || img.es_principal === true;
                     
                     item.innerHTML = `
@@ -408,7 +607,7 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
             if (iteration.notas_cambio && iteration.notas_cambio.trim()) {
                 html += `
                     <div class="info-section">
-                        <h4><i class="fas fa-sticky-note"></i> Notas de Cambio</h4>
+                        <h4><i class="fas fa-sticky-note"></i> Notas del Artista</h4>
                         <p>${iteration.notas_cambio.replace(/\n/g, '<br>')}</p>
                     </div>
                 `;
@@ -466,6 +665,8 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
 
         function initCompareSlider() {
             const slider = document.getElementById('slider');
+            if (!slider) return;
+            
             const container = slider.parentElement;
             const afterDiv = container.querySelector('.comparison-after');
             
@@ -488,7 +689,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
 
             container.addEventListener('click', (e) => updatePosition(e.clientX));
 
-            // Touch
             slider.addEventListener('touchstart', () => isDragging = true);
             document.addEventListener('touchmove', (e) => {
                 if (isDragging) updatePosition(e.touches[0].clientX);
@@ -506,39 +706,65 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
         }
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Escape') {
+                closeModal();
+                cerrarModalColecciones();
+            }
         });
 
-        function toggleDestacado() {
-            window.location.href = 'procesador.php?action=toggle_destacado&id=<?php echo $post_id; ?>';
+        // Funcionalidad de guardar en colección con modal
+        function abrirModalColecciones() {
+            document.getElementById('modalColecciones').classList.add('active');
         }
-
-        function convertirAMiniproyecto() {
-            if (confirm('¿Convertir en Mini Proyecto? Podrás agregar más trabajos relacionados.')) {
-                window.location.href = 'procesador.php?action=convertir_a_miniproyecto&post_id=<?php echo $post_id; ?>';
-            }
+        
+        function cerrarModalColecciones() {
+            const modal = document.getElementById('modalColecciones');
+            if (modal) modal.classList.remove('active');
         }
-
-        function eliminarPost() {
-            if (confirm('¿Eliminar este post y TODAS sus iteraciones?\n\nEsta acción no se puede deshacer.')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = 'procesador.php?action=eliminar_post';
-                form.innerHTML = '<input type="hidden" name="post_id" value="<?php echo $post_id; ?>">';
-                document.body.appendChild(form);
-                form.submit();
+        
+        // Cerrar modal al hacer clic en el backdrop
+        document.getElementById('modalColecciones')?.addEventListener('click', (e) => {
+            if (e.target.id === 'modalColecciones') {
+                cerrarModalColecciones();
             }
-        }
+        });
 
-        function eliminarIteracion(id) {
-            if (confirm('¿Eliminar esta iteración?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = 'procesador.php?action=eliminar_iteracion';
-                form.innerHTML = `<input type="hidden" name="iteracion_id" value="${id}">`;
-                document.body.appendChild(form);
-                form.submit();
-            }
+        function toggleEnColeccion(coleccionId, postId) {
+            const btn = document.getElementById('coleccion-' + coleccionId);
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Guardando...</span>';
+            btn.disabled = true;
+            
+            fetch('procesador.php?action=toggle_coleccion', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `coleccion_id=${coleccionId}&post_id=${postId}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar UI sin recargar página
+                    const isNowSaved = data.action === 'added';
+                    btn.classList.toggle('guardado', isNowSaved);
+                    btn.querySelector('i').className = isNowSaved ? 'fas fa-check-circle' : 'far fa-folder';
+                    btn.querySelector('span').textContent = btn.querySelector('span').textContent;
+                    
+                    // Actualizar botón principal
+                    const mainBtn = document.getElementById('btnGuardar');
+                    const hayGuardados = document.querySelectorAll('.coleccion-option.guardado').length > 0;
+                    mainBtn.classList.toggle('active', hayGuardados);
+                    mainBtn.querySelector('i').className = hayGuardados ? 'fas fa-bookmark' : 'far fa-bookmark';
+                } else {
+                    alert(data.error || 'Error al guardar');
+                    btn.innerHTML = originalHtml;
+                }
+                btn.disabled = false;
+            })
+            .catch(() => {
+                alert('Error de conexión');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            });
         }
     </script>
 </body>

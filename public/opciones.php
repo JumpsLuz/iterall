@@ -3,6 +3,9 @@ require_once '../app/Config/auth_check.php';
 require_once '../app/Config/Database.php';
 
 $usuario_id = $_SESSION['usuario_id'];
+$rol_id = $_SESSION['rol_id'];
+$esCliente = ($rol_id == 2);
+
 $db = Database::getInstance();
 
 $stmt = $db->prepare("SELECT * FROM perfiles WHERE usuario_id = ?");
@@ -17,17 +20,16 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Opciones | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            display: flex;
-            flex-direction: column;
+            background: #0a0a0a;
+            color: var(--text-main);
         }
         
-        .logo-bar {
-            background: #f8f9fa; 
-            padding: 10px; 
-            border-bottom: 1px solid #ddd;
+        .main-content {
+            background: #0a0a0a;
         }
         
         .options-container {
@@ -37,8 +39,8 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
         }
 
         .option-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
+            background: #141414;
+            border: 1px solid #222;
             border-radius: 8px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
@@ -70,8 +72,9 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
         .step {
             margin-bottom: 1rem;
             padding: 1rem;
-            background: var(--bg-secondary);
+            background: #1a1a1a;
             border-radius: 4px;
+            border: 1px solid #333;
         }
 
         .step input[type="checkbox"] {
@@ -80,6 +83,7 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
 
         .step label {
             cursor: pointer;
+            color: var(--text-main);
         }
 
         .final-confirmation {
@@ -104,14 +108,16 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
 </head>
 <body>
     <div class="app-layout">
-        <?php $active_page = 'opciones'; include 'includes/sidebar.php'; ?>
+        <?php 
+        $active_page = 'opciones'; 
+        if ($esCliente) {
+            include 'includes/sidebar_cliente.php';
+        } else {
+            include 'includes/sidebar.php';
+        }
+        ?>
 
         <main class="main-content">
-    <div class="logo-bar">
-        <div style="max-width: 1200px; margin: 0 auto;">
-            <img src="https://res.cloudinary.com/dyqubcdf0/image/upload/v1768787599/ITERALL_aneaxn.svg" alt="ITERALL Logo" style="height: 30px; width: auto;">
-        </div>
-    </div>
 
     <div class="container">
         <div class="options-container">
@@ -134,8 +140,8 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
 
             <div class="option-card">
                 <h3><i class="fas fa-arrow-left"></i> Navegación</h3>
-                <p>Regresa al dashboard principal.</p>
-                <a href="dashboard_artista.php" class="btn btn-secondary">
+                <p>Regresa al inicio.</p>
+                <a href="<?php echo $esCliente ? 'explorar.php' : 'dashboard_artista.php'; ?>" class="btn btn-secondary">
                     <i class="fas fa-home"></i> Volver al Dashboard
                 </a>
             </div>
@@ -172,7 +178,7 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                         <p>Para confirmar la eliminación permanente de tu cuenta, escribe exactamente: <strong>ELIMINAR_CUENTA_PERMANENTEMENTE</strong></p>
 
                         <form method="POST" action="procesador.php?action=eliminar_cuenta" onsubmit="return confirmFinalDeletion()">
-                            <input type="text" name="confirmacion" id="confirmacionInput" placeholder="Escribe la confirmación aquí" required style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 4px;">
+                            <input type="text" name="confirmacion" id="confirmacionInput" placeholder="Escribe la confirmación aquí" required style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #333; border-radius: 4px; background: #0f0f0f; color: var(--text-main);">
                             <button type="submit" class="btn btn-danger" style="width: 100%;">
                                 <i class="fas fa-trash"></i> CONFIRMAR ELIMINACIÓN PERMANENTE
                             </button>

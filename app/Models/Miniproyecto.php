@@ -130,4 +130,30 @@ class Miniproyecto {
         error_log("Error al obtener miniproyectos por proyecto: " . $e->getMessage());
         return [];
     }}
+
+    /**
+     * Obtener miniproyecto por ID sin verificar propietario (para vista pública)
+     */
+    public function obtenerPublicoPorId($id) {
+        try {
+            $sql = "SELECT mp.*, 
+                    p.nombre_artistico as creador_nombre,
+                    p.avatar_url as creador_foto,
+                    (SELECT url_archivo FROM imagenes_iteracion ii
+                     JOIN iteraciones i ON ii.iteracion_id = i.id 
+                     JOIN posts po ON i.post_id = po.id
+                     WHERE po.miniproyecto_id = mp.id
+                     ORDER BY po.fecha_creacion DESC, i.numero_version DESC, ii.orden_visual ASC LIMIT 1) as miniatura
+                    FROM miniproyectos mp 
+                    JOIN usuarios u ON mp.creador_id = u.id
+                    LEFT JOIN perfiles p ON u.id = p.usuario_id
+                    WHERE mp.id = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener miniproyecto público: " . $e->getMessage());
+            return false;
+        }
+    }
 }

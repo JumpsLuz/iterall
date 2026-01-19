@@ -1,25 +1,46 @@
-<?php require_once '../app/Models/RedSocial.php'; $redesDisponibles = RedSocial::obtenerRedesSoportadas(); ?>
+<?php 
+require_once '../app/Config/auth_check.php';
+require_once '../app/Models/RedSocial.php'; 
+
+$redesDisponibles = RedSocial::obtenerRedesSoportadas(); 
+$esUpgrade = isset($_GET['upgrade']) && $_GET['upgrade'] == 1;
+$esCliente = ($_SESSION['rol_id'] == 2);
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Completa tu Perfil | ITERALL</title>
+    <title><?php echo $esUpgrade ? 'Configurar Perfil de Artista' : 'Completa tu Perfil'; ?> | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="app-layout">
-        <?php include 'includes/sidebar.php'; ?>
+        <?php 
+        if ($esCliente) {
+            include 'includes/sidebar_cliente.php';
+        } else {
+            include 'includes/sidebar.php';
+        }
+        ?>
 
         <main class="main-content">
     <div class="profile-setup-container">
         <div class="profile-setup-card">
-            <h2>¡Bienvenido a ITERALL! <i class="fas fa-palette"></i></h2>
-            <p class="intro-text">
-                Configura tu perfil para comenzar a mostrar tu trabajo al mundo. 
-                Estos datos aparecerán en tu portafolio público.
-            </p>
+            <?php if ($esUpgrade): ?>
+                <h2><i class="fas fa-rocket"></i> ¡Bienvenido Artista!</h2>
+                <p class="intro-text">
+                    Configura tu perfil de artista para comenzar a mostrar tu trabajo al mundo.
+                    Una vez guardado, tu cuenta será actualizada automáticamente.
+                </p>
+            <?php else: ?>
+                <h2>¡Bienvenido a ITERALL! <i class="fas fa-palette"></i></h2>
+                <p class="intro-text">
+                    Configura tu perfil para comenzar a mostrar tu trabajo al mundo. 
+                    Estos datos aparecerán en tu portafolio público.
+                </p>
+            <?php endif; ?>
 
             <?php if (isset($_GET['error'])): ?>
                 <div class="alert alert-error">
@@ -27,7 +48,7 @@
                 </div>
             <?php endif; ?>
 
-            <form action="procesador.php?action=actualizar_perfil" method="POST" enctype="multipart/form-data" id="formCompletarPerfil">
+            <form action="procesador.php?action=actualizar_perfil<?php echo $esUpgrade ? '&upgrade=1' : ''; ?>" method="POST" enctype="multipart/form-data" id="formCompletarPerfil">
                 <div class="form-section">
                     <h3 class="form-section-title">Información Básica</h3>
                     

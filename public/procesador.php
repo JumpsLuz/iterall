@@ -39,6 +39,7 @@ if ($action === 'actualizar_perfil') {
         require_once '../app/Models/RedSocial.php';
         
         $usuario_id = $_SESSION['usuario_id'];
+        $esUpgrade = isset($_GET['upgrade']) && $_GET['upgrade'] == 1;
 
         $avatarFile = null;
         $bannerFile = null;
@@ -71,20 +72,35 @@ if ($action === 'actualizar_perfil') {
         );
 
         if ($exito) {
+            // Si es upgrade de cliente a artista, actualizar el rol
+            if ($esUpgrade && $_SESSION['rol_id'] == 2) {
+                $db = Database::getInstance();
+                $stmtUpgrade = $db->prepare("UPDATE usuarios SET rol_id = 1 WHERE id = ?");
+                $stmtUpgrade->execute([$usuario_id]);
+                $_SESSION['rol_id'] = 1; // Actualizar la sesión
+                
+                header('Location: dashboard_artista.php?mensaje=bienvenido_artista');
+                exit();
+            }
+            
             $mensaje = 'perfil_actualizado';
             if (!empty($validacion['errores'])) {
                 $mensaje .= '&redes_con_errores=1';
             }
-            header('Location: dashboard_artista.php?mensaje=' . $mensaje);
+            // Redirigir según el rol
+            $redirectUrl = ($_SESSION['rol_id'] == 2) ? 'explorar.php' : 'dashboard_artista.php';
+            header('Location: ' . $redirectUrl . '?mensaje=' . $mensaje);
             exit();
         } else {
-            header('Location: editar_perfil.php?error=actualizar_perfil');
+            $errorRedirect = $esUpgrade ? 'completar_perfil.php?upgrade=1&error=actualizar_perfil' : 'editar_perfil.php?error=actualizar_perfil';
+            header('Location: ' . $errorRedirect);
             exit();
         }
 
     } catch (Exception $e) {
         error_log("Error en procesador actualizar_perfil: " . $e->getMessage());
-        header('Location: editar_perfil.php?error=error_inesperado');
+        $errorRedirect = isset($_GET['upgrade']) ? 'completar_perfil.php?upgrade=1&error=error_inesperado' : 'editar_perfil.php?error=error_inesperado';
+        header('Location: ' . $errorRedirect);
         exit();
     }
 }
@@ -228,4 +244,121 @@ if ($action === 'actualizar_iteracion') {
 if ($action === 'eliminar_cuenta') {
     $controller = new UsuarioController();
     $controller->eliminarCuenta();
+}
+
+// ===========================================
+// ACCIONES DE COLECCIONES (CLIENTES)
+// ===========================================
+
+if ($action === 'crear_coleccion') {
+    require_once '../app/Config/Database.php';
+    require_once '../app/Models/Coleccion.php';
+    
+    header('Content-Type: application/json');
+    
+    if ($_SESSION['rol_id'] != 2) {
+        echo json_encode(['success' => false, 'error' => 'Acceso denegado']);
+        exit();
+    }
+    
+    $nombre = trim($_POST['nombre'] ?? '');
+    $descripcion = trim($_POST['descripcion'] ?? '');
+    
+    if (empty($nombre)) {
+        echo json_encode(['success' => false, 'error' => 'El nombre es requerido']);
+        exit();
+    }
+    
+    try {
+        $modelo = new Coleccion();
+        $coleccion_id = $modelo->crear($_SESSION['usuario_id'], $nombre, $descripcion);
+        
+        if ($coleccion_id) {
+            echo json_encode(['success' => true, 'coleccion_id' => $coleccion_id]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'No se pudo crear la colección']);
+        }
+    } catch (Exception $e) {
+        error_log('Error creando colección: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'error' => 'Error interno del servidor']);
+    }
+    exit();
+}
+
+if ($action === 'editar_coleccion') {
+    require_once '../app/Config/Database.php';
+    require_once '../app/Models/Coleccion.php';
+    
+    header('Content-Type: application/json');
+    
+    if ($_SESSION['rol_id'] != 2) {
+        echo json_encode(['success' => false, 'error' => 'Acceso denegado']);
+        exit();
+    }
+    
+    $coleccion_id = $_POST['coleccion_id'] ?? '';
+    $nombre = trim($_POST['nombre'] ?? '');
+    $descripcion = trim($_POST['descripcion'] ?? '');
+    
+    if (empty($coleccion_id) || empty($nombre)) {
+        echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
+        exit();
+    }
+    
+    $modelo = new Coleccion();
+    $exito = $modelo->actualizar($coleccion_id, $_SESSION['usuario_id'], $nombre, $descripcion);
+    
+    echo json_encode(['success' => $exito]);
+    exit();
+}
+
+if ($action === 'eliminar_coleccion') {
+    require_once '../app/Config/Database.php';
+    require_once '../app/Models/Coleccion.php';
+    
+    header('Content-Type: application/json');
+    
+    if ($_SESSION['rol_id'] != 2) {
+        echo json_encode(['success' => false, 'error' => 'Acceso denegado']);
+        exit();
+    }
+    
+    $coleccion_id = $_POST['coleccion_id'] ?? '';
+    
+    if (empty($coleccion_id)) {
+        echo json_encode(['success' => false, 'error' => 'ID de colección requerido']);
+        exit();
+    }
+    
+    $modelo = new Coleccion();
+    $exito = $modelo->eliminar($coleccion_id, $_SESSION['usuario_id']);
+    
+    echo json_encode(['success' => $exito]);
+    exit();
+}
+
+if ($action === 'toggle_coleccion') {
+    require_once '../app/Config/Database.php';
+    require_once '../app/Models/Coleccion.php';
+    
+    header('Content-Type: application/json');
+    
+    if ($_SESSION['rol_id'] != 2) {
+        echo json_encode(['success' => false, 'error' => 'Acceso denegado']);
+        exit();
+    }
+    
+    $coleccion_id = $_POST['coleccion_id'] ?? '';
+    $post_id = $_POST['post_id'] ?? '';
+    
+    if (empty($coleccion_id) || empty($post_id)) {
+        echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
+        exit();
+    }
+    
+    $modelo = new Coleccion();
+    $resultado = $modelo->togglePost($coleccion_id, $post_id, $_SESSION['usuario_id']);
+    
+    echo json_encode($resultado);
+    exit();
 }

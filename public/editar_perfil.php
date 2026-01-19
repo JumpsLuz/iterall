@@ -4,6 +4,15 @@ require_once '../app/Config/Database.php';
 require_once '../app/Models/Usuario.php';
 
 $usuario_id = $_SESSION['usuario_id'];
+$rol_id = $_SESSION['rol_id'];
+$esCliente = ($rol_id == 2);
+
+// Si es cliente, redirigir a una página para convertirse en artista
+if ($esCliente) {
+    header('Location: convertir_a_artista.php');
+    exit();
+}
+
 $db = Database::getInstance();
 
 $stmt = $db->prepare("SELECT * FROM perfiles WHERE usuario_id = ?");
@@ -23,7 +32,14 @@ $redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
 </head>
 <body>
     <div class="app-layout">
-        <?php $active_page = 'editar_perfil'; include 'includes/sidebar.php'; ?>
+        <?php 
+        $active_page = 'editar_perfil'; 
+        if ($esCliente) {
+            include 'includes/sidebar_cliente.php';
+        } else {
+            include 'includes/sidebar.php';
+        }
+        ?>
 
         <main class="main-content">
     <form action="procesador.php?action=actualizar_perfil" method="POST" enctype="multipart/form-data" id="formPerfil">
@@ -63,7 +79,7 @@ $redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
         <div class="container">
             
             <div class="navbar">
-                <a href="dashboard_artista.php" class="btn btn-secondary">← Cancelar</a>
+                <a href="<?php echo $esCliente ? 'explorar.php' : 'dashboard_artista.php'; ?>" class="btn btn-secondary">← Cancelar</a>
                 <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
             </div>
 

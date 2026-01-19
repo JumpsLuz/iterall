@@ -6,6 +6,7 @@
 $sidebar_items = [
     'dashboard' => ['link' => 'dashboard_artista.php', 'label' => 'Mi Galería', 'icon' => 'fas fa-th-large'],
     'mis_proyectos' => ['link' => 'mis_proyectos.php', 'label' => 'Todos mis Proyectos', 'icon' => 'fas fa-list'],
+    'explorar' => ['link' => 'explorar.php', 'label' => 'Explorar', 'icon' => 'fas fa-compass'],
     'crear_post' => ['link' => 'crear_post_rapido.php', 'label' => 'Post Rápido', 'icon' => 'fas fa-image'],
     'crear_mini' => ['link' => 'crear_miniproyecto.php', 'label' => 'Mini Proyecto', 'icon' => 'fas fa-folder-plus'],
     'crear_proyecto' => ['link' => 'crear_proyecto.php', 'label' => 'Proyecto Grande', 'icon' => 'fas fa-project-diagram'],
@@ -39,6 +40,11 @@ $active_page = $active_page ?? '';
                <?php echo $active_page === 'mis_proyectos' ? 'class="active"' : ''; ?>>
                 <i class="<?php echo $sidebar_items['mis_proyectos']['icon']; ?>"></i> 
                 <?php echo $sidebar_items['mis_proyectos']['label']; ?>
+            </a>
+            <a href="<?php echo $sidebar_items['explorar']['link']; ?>" 
+               <?php echo $active_page === 'explorar' ? 'class="active"' : ''; ?>>
+                <i class="<?php echo $sidebar_items['explorar']['icon']; ?>"></i> 
+                <?php echo $sidebar_items['explorar']['label']; ?>
             </a>
         </nav>
     </div>

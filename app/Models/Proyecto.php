@@ -331,4 +331,113 @@ class Proyecto {
             return [];
         }
     }
+
+    public function obtenerPublicos($filtros = []) {
+        try {
+            $params = [];
+            $where = ["p.es_publico = 1"];
+            
+            // Filtro por categoría
+            if (!empty($filtros['categoria_id'])) {
+                $where[] = "p.categoria_id = ?";
+                $params[] = $filtros['categoria_id'];
+            }
+            
+            // Filtro por búsqueda
+            if (!empty($filtros['busqueda'])) {
+                $where[] = "(p.titulo LIKE ? OR pf.nombre_artistico LIKE ?)";
+                $busqueda = '%' . $filtros['busqueda'] . '%';
+                $params[] = $busqueda;
+                $params[] = $busqueda;
+            }
+            
+            $whereClause = implode(' AND ', $where);
+            
+            // Ordenamiento
+            $orden = "p.fecha_actualizacion DESC";
+            if (!empty($filtros['orden'])) {
+                if ($filtros['orden'] === 'antiguo') {
+                    $orden = "p.fecha_actualizacion ASC";
+                }
+            }
+
+            // Paginación
+            $limite = $filtros['limite'] ?? 24;
+            $offset = $filtros['offset'] ?? 0;
+            
+            $sql = "SELECT p.*, pf.nombre_artistico, pf.avatar_url as artista_avatar, u.id as artista_id, c.nombre_categoria
+                    FROM proyectos p
+                    JOIN usuarios u ON p.creador_id = u.id
+                    JOIN perfiles pf ON pf.usuario_id = u.id
+                    LEFT JOIN categorias c ON p.categoria_id = c.id
+                    WHERE $whereClause
+                    ORDER BY $orden
+                    LIMIT $limite OFFSET $offset";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener proyectos públicos: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function contarPublicos($filtros = []) {
+        try {
+            $params = [];
+            $where = ["p.es_publico = 1"];
+            
+            if (!empty($filtros['categoria_id'])) {
+                $where[] = "p.categoria_id = ?";
+                $params[] = $filtros['categoria_id'];
+            }
+            
+            if (!empty($filtros['busqueda'])) {
+                $where[] = "(p.titulo LIKE ? OR pf.nombre_artistico LIKE ?)";
+                $busqueda = '%' . $filtros['busqueda'] . '%';
+                $params[] = $busqueda;
+                $params[] = $busqueda;
+            }
+            
+            $whereClause = implode(' AND ', $where);
+            
+            $sql = "SELECT COUNT(*)
+                    FROM proyectos p
+                    JOIN usuarios u ON p.creador_id = u.id
+                    JOIN perfiles pf ON pf.usuario_id = u.id
+                    WHERE $whereClause";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchColumn();
+        } catch (PDOException $e) {
+            error_log("Error al contar proyectos públicos: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Obtener un proyecto público por ID (sin verificar usuario)
+     */
+    public function obtenerPublicoPorId($proyecto_id) {
+        try {
+            $sql = "SELECT p.*, 
+                    pf.nombre_artistico, pf.avatar_url as artista_avatar, pf.biografia as artista_bio,
+                    u.id as artista_id,
+                    c.nombre_categoria, e.nombre_estado
+                    FROM proyectos p
+                    JOIN usuarios u ON p.creador_id = u.id
+                    JOIN perfiles pf ON pf.usuario_id = u.id
+                    LEFT JOIN categorias c ON p.categoria_id = c.id
+                    LEFT JOIN estados_proyecto e ON p.estado_id = e.id
+                    WHERE p.id = ? AND p.es_publico = 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$proyecto_id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener proyecto público: " . $e->getMessage());
+            return false;
+        }
+    }
 }
