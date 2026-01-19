@@ -91,16 +91,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
     <div class="viewer-container">
         
         <main class="main-content">
-            
-            <div class="post-header">
-                <h1><?php echo htmlspecialchars($post['titulo']); ?></h1>
-                <div class="badges">
-                    <span class="badge badge-category"><?php echo htmlspecialchars($post['nombre_categoria']); ?></span>
-                    <?php if ($esPostIndividual): ?>
-                        <span class="badge badge-individual"><i class="fas fa-file"></i> INDIVIDUAL</span>
-                    <?php endif; ?>
-                </div>
-            </div>
 
             <?php if (isset($_GET['mensaje'])): ?>
                 <div class="alert-message success">
@@ -188,6 +178,30 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
 
         <aside class="sidebar">
             
+            <div class="post-header">
+                <h1><?php echo htmlspecialchars($post['titulo']); ?></h1>
+                <div class="badges">
+                    <span class="badge badge-category"><?php echo htmlspecialchars($post['nombre_categoria']); ?></span>
+                    <?php if ($esPostIndividual): ?>
+                        <span class="badge badge-individual"><i class="fas fa-file"></i> INDIVIDUAL</span>
+                    <?php endif; ?>
+                </div><br>
+                <div class="author-info">
+                <?php if (!empty($perfil['avatar_url'])): ?>
+                    <img src="<?php echo htmlspecialchars($perfil['avatar_url']); ?>" alt="" class="author-avatar">
+                <?php else: ?>
+                    <div class="author-avatar placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                <?php endif; ?>
+                <div class="author-details">
+                    <strong style= font-size:14px><?php echo htmlspecialchars($perfil['nombre_artistico'] ?? 'Artista'); ?></strong>
+                    <span class="author-role">Editor</span>
+                </div>
+            </div>
+            </div>                            
+            
+
             <?php if (!empty($iteraciones)): ?>
                 <?php if (count($iteraciones) >= 2): ?>
                     <button id="toggleCompareBtn" class="btn-compare" onclick="toggleCompareMode()">
@@ -253,23 +267,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                 </div>
             </div>
 
-            <div class="sidebar-section">
-                <h3><i class="fas fa-user"></i> Autor</h3>
-                <div class="author-info">
-                    <?php if (!empty($perfil['avatar_url'])): ?>
-                        <img src="<?php echo htmlspecialchars($perfil['avatar_url']); ?>" alt="" class="author-avatar">
-                    <?php else: ?>
-                        <div class="author-avatar placeholder">
-                            <i class="fas fa-user"></i>
-                        </div>
-                    <?php endif; ?>
-                    <div class="author-details">
-                        <strong><?php echo htmlspecialchars($perfil['nombre_artistico'] ?? 'Artista'); ?></strong>
-                        <span class="author-role">Editor</span>
-                    </div>
-                </div>
-            </div>
-
             <div class="sidebar-section stats">
                 <h3><i class="fas fa-chart-simple"></i> Estadísticas</h3>
                 
@@ -321,7 +318,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
         let currentIterationId = <?php echo !empty($iteraciones) ? $iteraciones[0]['id'] : 'null'; ?>;
         let compareMode = false;
 
-        // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
             if (currentIterationId) {
                 selectIteration(currentIterationId);
@@ -331,13 +327,11 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
             <?php endif; ?>
         });
 
-        // Seleccionar iteración
         function selectIteration(iterationId) {
             currentIterationId = iterationId;
             const iteration = iteracionesData.find(i => i.id == iterationId);
             if (!iteration) return;
 
-            // Actualizar timeline visual
             document.querySelectorAll('.timeline-item').forEach(item => {
                 item.classList.remove('active');
                 if (item.dataset.iterationId == iterationId) {
@@ -345,25 +339,19 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                 }
             });
 
-            // Actualizar imagen principal
             if (iteration.imagenes && iteration.imagenes.length > 0) {
                 const mainImg = iteration.imagenes.find(img => img.es_principal) || iteration.imagenes[0];
                 document.getElementById('mainImage').src = mainImg.url_archivo;
             }
 
-            // Actualizar galería
             updateGallery(iteration);
-
-            // Actualizar info
             updateInfo(iteration);
 
-            // Si está en modo comparación, actualizar
             if (compareMode) {
                 updateComparison();
             }
         }
 
-        // Actualizar galería con click para cambiar imagen principal
         function updateGallery(iteration) {
             const gallery = document.getElementById('galleryGrid');
             gallery.innerHTML = '';
@@ -379,15 +367,12 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                         ${img.es_principal ? '<span class="badge-principal">★ PRINCIPAL</span>' : ''}
                     `;
                     
-                    // Click para cambiar imagen principal en vista normal
                     item.addEventListener('click', function() {
                         if (!compareMode) {
                             document.getElementById('mainImage').src = img.url_archivo;
-                            // Actualizar clase active
                             document.querySelectorAll('.gallery-item').forEach(g => g.classList.remove('active'));
                             item.classList.add('active');
                         } else {
-                            // En modo comparación, abrir modal
                             openModal(img.url_archivo);
                         }
                     });
@@ -397,7 +382,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
             }
         }
 
-        // Actualizar info
         function updateInfo(iteration) {
             const infoDiv = document.getElementById('iterationInfo');
             let html = '';
@@ -427,7 +411,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
             infoDiv.innerHTML = html;
         }
 
-        // Toggle modo comparación
         function toggleCompareMode() {
             compareMode = !compareMode;
             const normalView = document.getElementById('normalView');
@@ -448,7 +431,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
             }
         }
 
-        // Actualizar comparación - CAMBIO: invertir after y before
         function updateComparison() {
             const currentIteration = iteracionesData.find(i => i.id == currentIterationId);
             const compareSelect = document.getElementById('compareWithSelect');
@@ -458,17 +440,15 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                 const currentImg = currentIteration.imagenes.find(img => img.es_principal) || currentIteration.imagenes[0];
                 const compareImg = compareIteration.imagenes.find(img => img.es_principal) || compareIteration.imagenes[0];
                 
-                // CAMBIO: After (actual) a la izquierda, Before (antigua) a la derecha
-                document.getElementById('afterImage').src = currentImg.url_archivo;
-                document.getElementById('beforeImage').src = compareImg.url_archivo;
+                document.getElementById('beforeImage').src = currentImg.url_archivo;
+                document.getElementById('afterImage').src = compareImg.url_archivo;
             }
         }
 
-        // Slider de comparación - CAMBIO: invertir lógica del clip-path
         function initCompareSlider() {
             const slider = document.getElementById('slider');
             const container = slider.parentElement;
-            const beforeDiv = container.querySelector('.comparison-before');
+            const afterDiv = container.querySelector('.comparison-after');
             
             let isDragging = false;
 
@@ -478,8 +458,7 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                 const percentage = (x / rect.width) * 100;
                 
                 slider.style.left = percentage + '%';
-                // CAMBIO: Ahora el clip-path afecta a before en lugar de after
-                beforeDiv.style.clipPath = `inset(0 0 0 ${percentage}%)`;
+                afterDiv.style.clipPath = `inset(0 0 0 ${percentage}%)`;
             }
 
             slider.addEventListener('mousedown', () => isDragging = true);
@@ -498,7 +477,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
             document.addEventListener('touchend', () => isDragging = false);
         }
 
-        // Modal
         function openModal(url) {
             document.getElementById('modalImage').src = url;
             document.getElementById('imageModal').style.display = 'flex';
@@ -512,7 +490,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
             if (e.key === 'Escape') closeModal();
         });
 
-        // Acciones
         function toggleDestacado() {
             window.location.href = 'procesador.php?action=toggle_destacado&id=<?php echo $post_id; ?>';
         }

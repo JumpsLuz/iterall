@@ -230,7 +230,7 @@
     object-fit: contain;
 }
 
-.comparison-before {
+.comparison-after {
     clip-path: inset(0 0 0 50%);
 }
 
@@ -272,7 +272,6 @@
     letter-spacing: 1px;
 }
 
-/* CAMBIO: Invertir los colores para reflejar la nueva disposición */
 .label-before {
     color: #666;
 }
@@ -295,7 +294,6 @@
     font-weight: 600;
 }
 
-/* NUEVO: Mejorar el estilo del select */
 .compare-selector select {
     width: 100%;
     padding: 12px 16px;
@@ -611,16 +609,15 @@
     gap: 8px;
 }
 
-/* Autor */
 .author-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 3px;
 }
 
 .author-avatar {
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid #333;
@@ -645,7 +642,7 @@
 }
 
 .author-role {
-    font-size: 0.8rem;
+    font-size: 0.6rem;
     color: var(--text-muted);
 }
 
