@@ -100,7 +100,7 @@ $categorias = $modeloProyecto->obtenerCategorias();
 
                     <div class="form-group">
                         <label class="form-label">Título del Nuevo Post *</label>
-                        <input type="text" name="titulo" class="form-control" required placeholder="Ej: Vista Lateral, Render Final...">
+                        <input type="text" name="titulo" class="form-control" required maxlength="255" placeholder="Ej: Vista Lateral, Render Final...">
                     </div>
 
                     <?php include 'includes/category_tags_selector.php'; ?>
@@ -117,7 +117,7 @@ $categorias = $modeloProyecto->obtenerCategorias();
 
                                     <div class="form-group">
                                     <label class="form-label">Título del Mini Proyecto</label>
-                                    <input type="text" name="titulo_miniproyecto" class="form-control" 
+                                    <input type="text" name="titulo_miniproyecto" class="form-control" maxlength="255"
                                         value="<?php echo htmlspecialchars($nombrePadre); ?>" required>
                                     </div>
 

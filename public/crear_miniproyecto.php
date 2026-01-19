@@ -39,7 +39,7 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
 
                     <div class="form-group">
                         <label class="form-label">Nombre del Mini Proyecto *</label>
-                        <input type="text" name="titulo" class="form-control" required placeholder="Ej: Diseño de Personaje - Guerrero">
+                        <input type="text" name="titulo" class="form-control" required maxlength="255" placeholder="Ej: Diseño de Personaje - Guerrero">
                     </div>
 
                     <div class="form-group">

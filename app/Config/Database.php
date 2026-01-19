@@ -1,13 +1,21 @@
 <?php
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+use Dotenv\Dotenv;
+
 class Database {
     private static $instance = null;
     private $conn;
 
     private function __construct() {
-        $host = 'localhost';
-        $db = 'iterall_db';
-        $user = 'root';
-        $pass = 'root';   
+        // Cargar variables de entorno
+        $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+        $dotenv->safeLoad();
+
+        $host = $_ENV['DB_HOST'] ?? 'localhost';
+        $db   = $_ENV['DB_NAME'] ?? 'iterall_db';
+        $user = $_ENV['DB_USER'] ?? 'root';
+        $pass = $_ENV['DB_PASS'] ?? '';
 
         try {
             $this->conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);

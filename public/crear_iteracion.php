@@ -140,7 +140,7 @@ $espacioDisponible = 50 - $totalImagenes;
                     <div class="form-group">
                         <label class="form-label">Tiempo Dedicado (minutos)</label>
                         <input type="number" name="tiempo_dedicado_min" class="form-control" 
-                               placeholder="Ej: 120" min="1" step="1">
+                               placeholder="Ej: 120" min="0" max="99999" step="1">
                         <span class="form-hint">Opcional: Tiempo aproximado que te tomó esta iteración</span>
                     </div>
 

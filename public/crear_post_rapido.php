@@ -53,7 +53,7 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
 
                     <div class="form-group">
                         <label class="form-label">Título de la Obra *</label>
-                        <input type="text" name="titulo" class="form-control" placeholder="Ej: Boceto Personaje Principal" required>
+                        <input type="text" name="titulo" class="form-control" placeholder="Ej: Boceto Personaje Principal" required maxlength="255">
                     </div>
 
                     <?php include 'includes/category_tags_selector.php'; ?>

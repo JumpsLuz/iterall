@@ -80,7 +80,7 @@ if ($sesionActiva) {
             <form action="procesador.php?action=login" method="POST">
                 <div class="form-group">
                     <label class="form-label">Email</label>
-                    <input type="email" name="email" class="form-control" placeholder="tucorreo@ejemplo.com" required>
+                    <input type="email" name="email" class="form-control" placeholder="tucorreo@ejemplo.com" required maxlength="255">
                 </div>
 
                 <div class="form-group">

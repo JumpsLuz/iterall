@@ -86,7 +86,7 @@ $colecciones = $modeloColeccion->obtenerPorUsuario($usuario_id);
                                 <div class="coleccion-meta">
                                     <span><?php echo $col['total_posts']; ?> post<?php echo $col['total_posts'] != 1 ? 's' : ''; ?></span>
                                     <div class="coleccion-actions">
-                                        <button onclick="editarColeccion(<?php echo $col['id']; ?>, '<?php echo htmlspecialchars(addslashes($col['nombre'])); ?>', '<?php echo htmlspecialchars(addslashes($col['descripcion'] ?? '')); ?>')" title="Editar">
+                                        <button onclick="editarColeccion(<?php echo $col['id']; ?>, '<?php echo htmlspecialchars(addslashes($col['nombre'])); ?>')" title="Editar">
                                             <i class="fas fa-pen"></i>
                                         </button>
                                         <button class="delete-btn" onclick="eliminarColeccion(<?php echo $col['id']; ?>, '<?php echo htmlspecialchars(addslashes($col['nombre'])); ?>')" title="Eliminar">
@@ -114,13 +114,8 @@ $colecciones = $modeloColeccion->obtenerPorUsuario($usuario_id);
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="nombreColeccion">Nombre *</label>
-                        <input type="text" id="nombreColeccion" required 
+                        <input type="text" id="nombreColeccion" required maxlength="255"
                                placeholder="Ej: Favoritos, Inspiración, Referencias...">
-                    </div>
-                    <div class="form-group">
-                        <label for="descripcionColeccion">Descripción (opcional)</label>
-                        <textarea id="descripcionColeccion" 
-                                  placeholder="Describe el propósito de esta colección..."></textarea>
                     </div>
                 </div>
                 <div class="modal-actions">
@@ -139,15 +134,13 @@ $colecciones = $modeloColeccion->obtenerPorUsuario($usuario_id);
         function abrirModal() {
             document.getElementById('coleccionId').value = '';
             document.getElementById('nombreColeccion').value = '';
-            document.getElementById('descripcionColeccion').value = '';
             document.getElementById('modalTitulo').textContent = 'Nueva Colección';
             document.getElementById('modalColeccion').classList.add('active');
         }
 
-        function editarColeccion(id, nombre, descripcion) {
+        function editarColeccion(id, nombre) {
             document.getElementById('coleccionId').value = id;
             document.getElementById('nombreColeccion').value = nombre;
-            document.getElementById('descripcionColeccion').value = descripcion;
             document.getElementById('modalTitulo').textContent = 'Editar Colección';
             document.getElementById('modalColeccion').classList.add('active');
         }
@@ -161,14 +154,13 @@ $colecciones = $modeloColeccion->obtenerPorUsuario($usuario_id);
             
             const id = document.getElementById('coleccionId').value;
             const nombre = document.getElementById('nombreColeccion').value;
-            const descripcion = document.getElementById('descripcionColeccion').value;
 
             const action = id ? 'editar_coleccion' : 'crear_coleccion';
             
             fetch('procesador.php?action=' + action, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `coleccion_id=${id}&nombre=${encodeURIComponent(nombre)}&descripcion=${encodeURIComponent(descripcion)}`
+                body: `coleccion_id=${id}&nombre=${encodeURIComponent(nombre)}`
             })
             .then(r => r.json())
             .then(data => {

@@ -46,7 +46,7 @@ $estados = $modeloProyecto->obtenerEstados();
                     
                     <div class="form-group">
                         <label class="form-label">Título del Proyecto *</label>
-                        <input type="text" name="titulo" class="form-control" required placeholder="Ej: Proyecto Titán">
+                        <input type="text" name="titulo" class="form-control" required maxlength="255" placeholder="Ej: Proyecto Titán">
                     </div>
 
                     <?php include 'includes/category_tags_selector.php'; ?>

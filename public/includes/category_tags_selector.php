@@ -24,7 +24,8 @@
                id="tagInput" 
                class="form-control" 
                placeholder="Escribe para buscar o crear etiquetas..."
-               autocomplete="off">
+               autocomplete="off"
+               maxlength="100">
         <div id="tagAutocomplete" class="tag-autocomplete"></div>
     </div>
     <div id="tagPills" class="tag-pills"></div>
