@@ -1,0 +1,234 @@
+body {
+    background: #0a0a0a;
+    color: var(--text-main);
+}
+
+.main-content {
+    background: #0a0a0a;
+}
+
+.colecciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 25px;
+}
+
+.coleccion-card {
+    background: #141414;
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid #222;
+    transition: all 0.3s;
+    text-decoration: none;
+    color: inherit;
+}
+
+.coleccion-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-5px);
+}
+
+.coleccion-preview {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    aspect-ratio: 1;
+    background: #0a0a0a;
+}
+
+.coleccion-preview .preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.coleccion-preview .preview-placeholder {
+    background: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+}
+
+.coleccion-info {
+    padding: 20px;
+}
+
+.coleccion-info h3 {
+    margin: 0 0 5px;
+    font-size: 1.1rem;
+}
+
+.coleccion-meta {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.coleccion-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.coleccion-actions button {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.2s;
+}
+
+.coleccion-actions button:hover {
+    color: var(--text-main);
+}
+
+.coleccion-actions .delete-btn:hover {
+    color: var(--danger);
+}
+
+.crear-coleccion-card {
+    background: #0f0f0f;
+    border: 2px dashed #333;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.crear-coleccion-card:hover {
+    border-color: var(--primary);
+    background: rgba(74, 144, 226, 0.05);
+}
+
+.crear-coleccion-card i {
+    font-size: 2.5rem;
+    color: #444;
+    margin-bottom: 10px;
+}
+
+.crear-coleccion-card span {
+    color: var(--text-muted);
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-backdrop.active {
+    display: flex;
+}
+
+.modal-content {
+    background: #1a1a1a;
+    border-radius: 15px;
+    padding: 30px;
+    width: 90%;
+    max-width: 450px;
+    border: 1px solid #333;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    color: var(--text-main);
+}
+
+.modal-body .form-group {
+    margin-bottom: 20px;
+}
+
+.modal-body label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-main);
+}
+
+.modal-body input,
+.modal-body textarea {
+    width: 100%;
+    padding: 12px 15px;
+    background: #0f0f0f;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: var(--text-main);
+    font-size: 1rem;
+}
+
+.modal-body textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 2.5rem;
+    color: #444;
+    margin-bottom: 15px;
+}
+
+.empty-state h3 {
+    color: var(--text-main);
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+@media (max-width: 768px) {
+    .colecciones-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -52,8 +52,8 @@ class Miniproyecto {
                     (SELECT url_archivo FROM imagenes_iteracion ii
                      JOIN iteraciones i ON ii.iteracion_id = i.id 
                      JOIN posts p ON i.post_id = p.id
-                     WHERE p.miniproyecto_id = mp.id AND ii.es_principal = 1
-                     ORDER BY p.fecha_creacion DESC, i.numero_version DESC LIMIT 1) as miniatura,
+                     WHERE p.miniproyecto_id = mp.id
+                     ORDER BY p.fecha_creacion DESC, i.numero_version DESC, ii.orden_visual ASC LIMIT 1) as miniatura,
                     (SELECT c.nombre_categoria FROM posts p 
                      JOIN categorias c ON p.categoria_id = c.id
                      WHERE p.miniproyecto_id = mp.id 
@@ -79,7 +79,13 @@ class Miniproyecto {
 
     public function obtenerPorId($id, $usuario_id) {
         try {
-            $sql = "SELECT * FROM miniproyectos WHERE id = ? AND creador_id = ?";
+            $sql = "SELECT mp.*, 
+                    (SELECT url_archivo FROM imagenes_iteracion ii
+                     JOIN iteraciones i ON ii.iteracion_id = i.id 
+                     JOIN posts p ON i.post_id = p.id
+                     WHERE p.miniproyecto_id = mp.id
+                     ORDER BY p.fecha_creacion DESC, i.numero_version DESC, ii.orden_visual ASC LIMIT 1) as miniatura
+                    FROM miniproyectos mp WHERE mp.id = ? AND mp.creador_id = ?";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$id, $usuario_id]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -105,6 +111,11 @@ class Miniproyecto {
     try {
         $sql = "SELECT mp.*, 
                 (SELECT COUNT(*) FROM posts p WHERE p.miniproyecto_id = mp.id) as cantidad_posts,
+                (SELECT url_archivo FROM imagenes_iteracion ii
+                 JOIN iteraciones i ON ii.iteracion_id = i.id 
+                 JOIN posts p ON i.post_id = p.id
+                 WHERE p.miniproyecto_id = mp.id
+                 ORDER BY p.fecha_creacion DESC, i.numero_version DESC, ii.orden_visual ASC LIMIT 1) as miniatura,
                 (SELECT COUNT(*) FROM post_etiquetas pe
                 INNER JOIN posts p ON pe.post_id = p.id
                 INNER JOIN etiquetas e ON pe.etiqueta_id = e.id
@@ -119,4 +130,30 @@ class Miniproyecto {
         error_log("Error al obtener miniproyectos por proyecto: " . $e->getMessage());
         return [];
     }}
+
+    /**
+     * Obtener miniproyecto por ID sin verificar propietario (para vista pública)
+     */
+    public function obtenerPublicoPorId($id) {
+        try {
+            $sql = "SELECT mp.*, 
+                    p.nombre_artistico as creador_nombre,
+                    p.avatar_url as creador_foto,
+                    (SELECT url_archivo FROM imagenes_iteracion ii
+                     JOIN iteraciones i ON ii.iteracion_id = i.id 
+                     JOIN posts po ON i.post_id = po.id
+                     WHERE po.miniproyecto_id = mp.id
+                     ORDER BY po.fecha_creacion DESC, i.numero_version DESC, ii.orden_visual ASC LIMIT 1) as miniatura
+                    FROM miniproyectos mp 
+                    JOIN usuarios u ON mp.creador_id = u.id
+                    LEFT JOIN perfiles p ON u.id = p.usuario_id
+                    WHERE mp.id = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener miniproyecto público: " . $e->getMessage());
+            return false;
+        }
+    }
 }

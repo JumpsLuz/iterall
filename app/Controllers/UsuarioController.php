@@ -66,4 +66,115 @@ class UsuarioController {
             }
         }
     }
+
+    public function actualizarPerfil() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: dashboard_artista.php');
+            exit();
+        }
+
+        try {
+            $usuario_id = $_SESSION['usuario_id'];
+
+            $avatarFile = null;
+            $bannerFile = null;
+            $avatarUrl = null;
+            $bannerUrl = null;
+
+            if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+                $avatarFile = $_FILES['avatar'];
+            } else {
+                $stmtActual = $this->db->prepare("SELECT avatar_url FROM perfiles WHERE usuario_id = ?");
+                $stmtActual->execute([$usuario_id]);
+                $perfilActual = $stmtActual->fetch(PDO::FETCH_ASSOC);
+                
+                if (empty($perfilActual['avatar_url'])) {
+                    $avatarUrl = CloudinaryConfig::getDefaultAvatarUrl();
+                }
+            }
+
+            if (isset($_FILES['banner']) && $_FILES['banner']['error'] === UPLOAD_ERR_OK) {
+                $bannerFile = $_FILES['banner'];
+            } else {
+                $stmtActual = $this->db->prepare("SELECT banner_url FROM perfiles WHERE usuario_id = ?");
+                $stmtActual->execute([$usuario_id]);
+                $perfilActual = $stmtActual->fetch(PDO::FETCH_ASSOC);
+                
+                if (empty($perfilActual['banner_url'])) {
+                    $bannerUrl = CloudinaryConfig::getDefaultBannerUrl();
+                }
+            }
+
+            $redesSociales = [
+                'instagram' => $_POST['instagram'] ?? '',
+                'artstation' => $_POST['artstation'] ?? '',
+                'twitter' => $_POST['twitter'] ?? '',
+                'behance' => $_POST['behance'] ?? ''
+            ];
+
+            $exito = $this->modeloUsuario->actualizarPerfil(
+                $usuario_id,
+                $_POST['nombre_artistico'],
+                $_POST['biografia'] ?? '',
+                $redesSociales,
+                $avatarFile,
+                $bannerFile,
+                $avatarUrl,
+                $bannerUrl
+            );
+
+            if ($exito) {
+                header('Location: dashboard_artista.php?mensaje=perfil_actualizado');
+                exit();
+            } else {
+                header('Location: completar_perfil.php?error=actualizar_perfil');
+                exit();
+            }
+
+        } catch (Exception $e) {
+            error_log("Error en actualizarPerfil: " . $e->getMessage());
+            header('Location: completar_perfil.php?error=error_inesperado');
+            exit();
+        }
+    }
+
+    public function eliminarCuenta() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: dashboard_artista.php');
+            exit();
+        }
+
+        if (!isset($_POST['confirmacion'])) {
+            header('Location: opciones.php?error=confirmacion_requerida');
+            exit();
+        }
+
+        $usuario_id = $_SESSION['usuario_id'];
+        $confirmacion = $_POST['confirmacion'];
+
+        // Check confirmation steps
+        if ($confirmacion !== 'ELIMINAR_CUENTA_PERMANENTEMENTE') {
+            header('Location: opciones.php?error=confirmacion_incorrecta');
+            exit();
+        }
+
+        try {
+            $exito = $this->modeloUsuario->eliminarCuenta($usuario_id);
+
+            if ($exito) {
+                session_unset();
+                session_destroy();
+                header('Location: index.php?mensaje=cuenta_eliminada');
+                exit();
+            } else {
+                header('Location: opciones.php?error=error_eliminar_cuenta');
+                exit();
+            }
+
+        } catch (Exception $e) {
+            error_log("Error en eliminarCuenta: " . $e->getMessage());
+            header('Location: opciones.php?error=error_inesperado');
+            exit();
+        }
+    }
 }

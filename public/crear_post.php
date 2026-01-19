@@ -57,7 +57,16 @@ $categorias = $modeloProyecto->obtenerCategorias();
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="container" style="max-width: 700px;">
+    <div class="app-layout">
+        <?php $active_page = 'crear_post'; include 'includes/sidebar.php'; ?>
+
+        <main class="main-content">
+    <div class="container" style="max-width: 800px;">
+        <div style="background: #f8f9fa; padding: 10px; border-bottom: 1px solid #ddd;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <img src="https://res.cloudinary.com/dyqubcdf0/image/upload/v1768787599/ITERALL_aneaxn.svg" alt="ITERALL Logo" style="height: 30px; width: auto;">
+        </div>
+    </div>    <div class="container" style="max-width: 700px;">
         
         <div class="navbar">
             <?php if ($miniproyecto_id): ?>
@@ -81,7 +90,7 @@ $categorias = $modeloProyecto->obtenerCategorias();
                     </div>
                 <?php endif; ?>
 
-                <form action="procesador.php?action=crear_post" method="POST" style="margin-top: 20px;">
+                <form id="formCrearPost" action="procesador.php?action=crear_post" method="POST" style="margin-top: 20px;">
                     <?php if ($miniproyecto_id): ?>
                         <input type="hidden" name="miniproyecto_id" value="<?php echo $miniproyecto_id; ?>">
                     <?php endif; ?>
@@ -91,18 +100,10 @@ $categorias = $modeloProyecto->obtenerCategorias();
 
                     <div class="form-group">
                         <label class="form-label">Título del Nuevo Post *</label>
-                        <input type="text" name="titulo" class="form-control" required placeholder="Ej: Vista Lateral, Render Final...">
+                        <input type="text" name="titulo" class="form-control" required maxlength="255" placeholder="Ej: Vista Lateral, Render Final...">
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Categoría *</label>
-                        <select name="categoria_id" class="form-control" required>
-                            <option value="">Selecciona...</option>
-                            <?php foreach ($categorias as $cat): ?>
-                                <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['nombre_categoria']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                    <?php include 'includes/category_tags_selector.php'; ?>
 
                     <?php if ($miniproyecto_id): ?>
                         <hr style="border-color: #444; margin: 20px 0;">
@@ -116,7 +117,7 @@ $categorias = $modeloProyecto->obtenerCategorias();
 
                                     <div class="form-group">
                                     <label class="form-label">Título del Mini Proyecto</label>
-                                    <input type="text" name="titulo_miniproyecto" class="form-control" 
+                                    <input type="text" name="titulo_miniproyecto" class="form-control" maxlength="255"
                                         value="<?php echo htmlspecialchars($nombrePadre); ?>" required>
                                     </div>
 
@@ -131,8 +132,23 @@ $categorias = $modeloProyecto->obtenerCategorias();
 
                     <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Guardar Post</button>
                 </form>
+                
+                <script>
+                document.getElementById('formCrearPost').addEventListener('submit', function(e) {
+                    const checkboxes = document.querySelectorAll('input[name="categorias[]"]');
+                    const checkedOne = Array.from(checkboxes).some(cb => cb.checked);
+                    
+                    if (!checkedOne) {
+                        e.preventDefault();
+                        alert('Debes seleccionar al menos una categoría');
+                        return false;
+                    }
+                });
+                </script>
             </div>
         </div>
+    </div>
+        </main>
     </div>
 </body>
 </html>

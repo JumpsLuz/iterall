@@ -43,8 +43,13 @@ if ($mini['proyecto_id']) {
     <meta charset="UTF-8">
     <title><?php echo htmlspecialchars($mini['titulo']); ?> | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="app-layout">
+        <?php $active_page = 'dashboard'; include 'includes/sidebar.php'; ?>
+
+        <main class="main-content">
     <div class="container">
         
         <div class="breadcrumb">
@@ -62,7 +67,7 @@ if ($mini['proyecto_id']) {
         </div>
 
         <div class="card" style="margin-bottom: 30px; padding: 20px;">
-            <h1>📁 <?php echo htmlspecialchars($mini['titulo']); ?></h1>
+            <h1><i class="fas fa-folder"></i> <?php echo htmlspecialchars($mini['titulo']); ?></h1>
             
             <?php if (!empty($mini['descripcion'])): ?>
                 <p style="margin-top: 15px; color: var(--text-muted);">
@@ -89,6 +94,11 @@ if ($mini['proyecto_id']) {
             <div class="grid-gallery">
                 <?php foreach ($posts as $post): ?>
                     <div class="card">
+                        <?php if (!empty($post['portada'])): ?>
+                            <div class="card-image">
+                                <img src="<?php echo htmlspecialchars($post['portada']); ?>" alt="Portada del post" style="width: 100%; height: 120px; object-fit: cover;">
+                            </div>
+                        <?php endif; ?>
                         <div class="card-body">
                             <h3><?php echo htmlspecialchars($post['titulo']); ?></h3>
                             <small class="text-muted">Subido el: <?php echo date('d/m/Y', strtotime($post['fecha_creacion'])); ?></small>
@@ -101,6 +111,8 @@ if ($mini['proyecto_id']) {
             </div>
         <?php endif; ?>
 
+    </div>
+        </main>
     </div>
 </body>
 </html>

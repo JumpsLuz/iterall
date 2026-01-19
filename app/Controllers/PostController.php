@@ -1,6 +1,7 @@
 <?php
 require_once '../app/Models/Post.php';
 require_once '../app/Models/Miniproyecto.php';
+require_once '../app/Helpers/CategoryTagHelper.php';
 
 class PostController {
     private $modeloPost;
@@ -64,10 +65,30 @@ class PostController {
     public function crear() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
-            if (empty($_POST['titulo']) || empty($_POST['categoria_id'])) {
-                header('Location: crear_post.php?error=campos_vacios');
+            // Build redirect URL with original parameters
+            $redirectParams = [];
+            if (!empty($_POST['miniproyecto_id'])) {
+                $redirectParams[] = 'miniproyecto_id=' . $_POST['miniproyecto_id'];
+            }
+            if (!empty($_POST['proyecto_id'])) {
+                $redirectParams[] = 'proyecto_id=' . $_POST['proyecto_id'];
+            }
+            $redirectBase = 'crear_post.php' . (!empty($redirectParams) ? '?' . implode('&', $redirectParams) : '');
+            
+            // Check for either categorias array or categoria_id
+            $categorias = $_POST['categorias'] ?? [];
+            if (empty($categorias) && empty($_POST['categoria_id'])) {
+                header('Location: ' . $redirectBase . (strpos($redirectBase, '?') !== false ? '&' : '?') . 'error=campos_vacios');
                 exit();
             }
+            
+            if (empty($_POST['titulo'])) {
+                header('Location: ' . $redirectBase . (strpos($redirectBase, '?') !== false ? '&' : '?') . 'error=campos_vacios');
+                exit();
+            }
+
+            // Get main category for backward compatibility
+            $categoria_principal = !empty($categorias) ? $categorias[0] : $_POST['categoria_id'];
 
             $miniproyecto_id = !empty($_POST['miniproyecto_id']) ? $_POST['miniproyecto_id'] : null;
             $proyecto_id = !empty($_POST['proyecto_id']) ? $_POST['proyecto_id'] : null;
@@ -96,7 +117,7 @@ class PostController {
             $datos = [
                 'creador_id' => $_SESSION['usuario_id'],
                 'titulo' => $_POST['titulo'],
-                'categoria_id' => $_POST['categoria_id'],
+                'categoria_id' => $categoria_principal,
                 'descripcion' => $_POST['descripcion'] ?? '',
                 'miniproyecto_id' => $miniproyecto_id,
                 'proyecto_id' => null 
@@ -133,6 +154,19 @@ class PostController {
             $post_id = $this->modeloPost->crear($datos);
 
             if ($post_id) {
+                // Save multiple categories
+                if (!empty($categorias)) {
+                    CategoryTagHelper::savePostCategories($post_id, $categorias);
+                }
+                
+                // Save tags from JSON field
+                if (!empty($_POST['etiquetas'])) {
+                    $tags = json_decode($_POST['etiquetas'], true);
+                    if (is_array($tags)) {
+                        CategoryTagHelper::savePostTags($post_id, $tags);
+                    }
+                }
+                
                 if ($miniproyecto_id) {
                     $stmt = $this->db->prepare("SELECT COUNT(*) FROM posts WHERE miniproyecto_id = ?");
                     $stmt->execute([$miniproyecto_id]);
@@ -165,10 +199,20 @@ class PostController {
     }
 
     public function crearRapido() {
-        if (empty($_POST['titulo']) || empty($_POST['categoria_id'])) {
+        // Check for either categorias array or categoria_id
+        $categorias = $_POST['categorias'] ?? [];
+        if (empty($categorias) && empty($_POST['categoria_id'])) {
             header('Location: crear_post_rapido.php?error=campos_vacios');
             exit();
         }
+        
+        if (empty($_POST['titulo'])) {
+            header('Location: crear_post_rapido.php?error=campos_vacios');
+            exit();
+        }
+
+        // Get main category for backward compatibility
+        $categoria_principal = !empty($categorias) ? $categorias[0] : $_POST['categoria_id'];
 
         try {
             $this->db->beginTransaction();
@@ -191,7 +235,7 @@ class PostController {
             $datosPost = [
                 'creador_id' => $_SESSION['usuario_id'],
                 'titulo' => $_POST['titulo'],
-                'categoria_id' => $_POST['categoria_id'],
+                'categoria_id' => $categoria_principal,
                 'miniproyecto_id' => $miniproyecto_id,
                 'proyecto_id' => null
             ];
@@ -200,6 +244,19 @@ class PostController {
 
             if (!$post_id) {
                 throw new Exception("Error al guardar el post en la base de datos.");
+            }
+
+            // Save multiple categories
+            if (!empty($categorias)) {
+                CategoryTagHelper::savePostCategories($post_id, $categorias);
+            }
+            
+            // Save tags from JSON field
+            if (!empty($_POST['etiquetas'])) {
+                $tags = json_decode($_POST['etiquetas'], true);
+                if (is_array($tags)) {
+                    CategoryTagHelper::savePostTags($post_id, $tags);
+                }
             }
 
             $this->marcarComoPostIndividual($post_id);
@@ -214,7 +271,9 @@ class PostController {
             exit();
 
         } catch (Exception $e) {
-            $this->db->rollBack();
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
             error_log("Error en creación rápida: " . $e->getMessage());
             header('Location: crear_post_rapido.php?error=db_error');
             exit();
@@ -264,6 +323,22 @@ class PostController {
             $miniproyecto_id = $post['miniproyecto_id'];
 
             $this->db->beginTransaction();
+
+            // Delete images from Cloudinary
+            $stmtImgs = $this->db->prepare("
+                SELECT ii.cloud_id 
+                FROM imagenes_iteracion ii
+                INNER JOIN iteraciones i ON ii.iteracion_id = i.id
+                WHERE i.post_id = ? AND ii.cloud_id IS NOT NULL
+            ");
+            $stmtImgs->execute([$post_id]);
+            $imagenesCloud = $stmtImgs->fetchAll(PDO::FETCH_COLUMN);
+
+            require_once '../app/Config/Cloudinary.php';
+            $cloudinary = CloudinaryConfig::getInstance();
+            foreach ($imagenesCloud as $cloudId) {
+                $cloudinary->deleteImage($cloudId);
+            }
 
             $sqlDelete = "DELETE FROM posts WHERE id = ? AND creador_id = ?";
             $stmtDelete = $this->db->prepare($sqlDelete);

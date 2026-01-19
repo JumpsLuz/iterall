@@ -16,8 +16,13 @@ $estados = $modeloProyecto->obtenerEstados();
     <meta charset="UTF-8">
     <title>Nuevo Proyecto | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="app-layout">
+        <?php $active_page = 'crear_proyecto'; include 'includes/sidebar.php'; ?>
+
+        <main class="main-content">
     <div class="container" style="max-width: 800px;">
         
         <div class="navbar">
@@ -31,32 +36,28 @@ $estados = $modeloProyecto->obtenerEstados();
                     <p class="text-muted">Utiliza esto para trabajos a gran escala que contendrán múltiples mini proyectos (Ej: Desarrollo de Videojuego, Cómic Completo).</p>
                 </div>
 
-                <form action="procesador.php?action=crear_proyecto" method="POST">
+                <?php if (isset($_GET['error'])): ?>
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-triangle"></i> Error al crear el proyecto. Verifica los campos requeridos.
+                    </div>
+                <?php endif; ?>
+
+                <form id="formCrearProyecto" action="procesador.php?action=crear_proyecto" method="POST" enctype="multipart/form-data">
                     
                     <div class="form-group">
                         <label class="form-label">Título del Proyecto *</label>
-                        <input type="text" name="titulo" class="form-control" required placeholder="Ej: Proyecto Titán">
+                        <input type="text" name="titulo" class="form-control" required maxlength="255" placeholder="Ej: Proyecto Titán">
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="form-group">
-                            <label class="form-label">Categoría General *</label>
-                            <select name="categoria_id" class="form-control" required>
-                                <option value="">Selecciona...</option>
-                                <?php foreach ($categorias as $cat): ?>
-                                    <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['nombre_categoria']); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                    <?php include 'includes/category_tags_selector.php'; ?>
 
-                        <div class="form-group">
-                            <label class="form-label">Estado Inicial *</label>
-                            <select name="estado_id" class="form-control" required>
-                                <?php foreach ($estados as $est): ?>
-                                    <option value="<?php echo $est['id']; ?>"><?php echo htmlspecialchars($est['nombre_estado']); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label">Estado Inicial *</label>
+                        <select name="estado_id" class="form-control" required>
+                            <?php foreach ($estados as $est): ?>
+                                <option value="<?php echo $est['id']; ?>"><?php echo htmlspecialchars($est['nombre_estado']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -64,7 +65,39 @@ $estados = $modeloProyecto->obtenerEstados();
                         <textarea name="descripcion" class="form-control" rows="4" placeholder="¿De qué trata este proyecto?"></textarea>
                     </div>
 
-                    <div class="form-group">
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+                        <h3 style="margin-bottom: 20px;">🖼️ Imágenes del Proyecto</h3>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">Portada/Avatar (400x400px)</label>
+                                <div class="image-preview" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">
+                                    <div class="placeholder-text">
+                                        <p style="font-size: 2rem;"><i class="fas fa-palette"></i></p>
+                                        <p>Click para seleccionar</p>
+                                        <p class="text-muted" style="font-size: 0.85rem;">Opcional | Máx. 5MB</p>
+                                    </div>
+                                    <img id="avatarImg" alt="Vista previa portada">
+                                </div>
+                                <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display: none;">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Banner (1500x500px)</label>
+                                <div class="image-preview" id="bannerPreview" onclick="document.getElementById('bannerInput').click()">
+                                    <div class="placeholder-text">
+                                        <p style="font-size: 2rem;"><i class="fas fa-image"></i></p>
+                                        <p>Click para seleccionar</p>
+                                        <p class="text-muted" style="font-size: 0.85rem;">Opcional | Máx. 5MB</p>
+                                    </div>
+                                    <img id="bannerImg" alt="Vista previa banner">
+                                </div>
+                                <input type="file" id="bannerInput" name="banner" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
                         <label class="checkbox-wrapper">
                             <input type="checkbox" name="es_publico" value="1">
                             <span>
@@ -76,8 +109,54 @@ $estados = $modeloProyecto->obtenerEstados();
                     
                     <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1.1rem;">Crear Proyecto</button>
                 </form>
+                
+                <script>
+                document.getElementById('formCrearProyecto').addEventListener('submit', function(e) {
+                    const checkboxes = document.querySelectorAll('input[name="categorias[]"]');
+                    const checkedOne = Array.from(checkboxes).some(cb => cb.checked);
+                    
+                    if (!checkedOne) {
+                        e.preventDefault();
+                        alert('Debes seleccionar al menos una categoría');
+                        return false;
+                    }
+                });
+                </script>
             </div>
         </div>
+    </div>
+
+    <script>
+        document.getElementById('avatarInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('avatarPreview');
+                    const img = document.getElementById('avatarImg');
+                    img.src = event.target.result;
+                    preview.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('bannerInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('bannerPreview');
+                    const img = document.getElementById('bannerImg');
+                    img.src = event.target.result;
+                    preview.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+    </div>
+        </main>
     </div>
 </body>
 </html>

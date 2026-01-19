@@ -1,0 +1,81 @@
+body {
+    background: #0a0a0a;
+    color: var(--text-main);
+}
+
+.main-content {
+    background: #0a0a0a;
+}
+
+.options-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.option-card {
+    background: #141414;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.option-card h3 {
+    margin-top: 0;
+    color: var(--text-main);
+}
+
+.danger-zone {
+    border-color: var(--danger);
+    background: rgba(220, 53, 69, 0.05);
+}
+
+.danger-zone h3 {
+    color: var(--danger);
+}
+
+.confirmation-steps {
+    display: none;
+    margin-top: 1rem;
+}
+
+.confirmation-steps.active {
+    display: block;
+}
+
+.step {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #1a1a1a;
+    border-radius: 4px;
+    border: 1px solid #333;
+}
+
+.step input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+.step label {
+    cursor: pointer;
+    color: var(--text-main);
+}
+
+.final-confirmation {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid var(--danger);
+    border-radius: 4px;
+}
+
+.final-confirmation.active {
+    display: block;
+}
+
+.warning-text {
+    color: var(--danger);
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
