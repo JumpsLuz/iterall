@@ -16,6 +16,7 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
     <meta charset="UTF-8">
     <title>Nuevo Post Rápido | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="app-layout">
@@ -41,7 +42,7 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
                     </div>
                 <?php endif; ?>
 
-                <form action="procesador.php?action=crear_post_rapido" method="POST">
+                <form id="formCrearPostRapido" action="procesador.php?action=crear_post_rapido" method="POST">
                     
                     <?php if($proyecto_id): ?>
                         <input type="hidden" name="proyecto_id" value="<?php echo htmlspecialchars($proyecto_id); ?>">
@@ -64,6 +65,19 @@ $proyecto_id = $_GET['proyecto_id'] ?? null;
 
                     <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;">Publicar Ahora</button>
                 </form>
+                
+                <script>
+                document.getElementById('formCrearPostRapido').addEventListener('submit', function(e) {
+                    const checkboxes = document.querySelectorAll('input[name="categorias[]"]');
+                    const checkedOne = Array.from(checkboxes).some(cb => cb.checked);
+                    
+                    if (!checkedOne) {
+                        e.preventDefault();
+                        alert('Debes seleccionar al menos una categoría');
+                        return false;
+                    }
+                });
+                </script>
             </div>
         </div>
     </div>

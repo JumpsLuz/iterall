@@ -3,15 +3,21 @@ require_once '../app/Config/auth_check.php';
 require_once '../app/Config/Database.php';
 require_once '../app/Models/Proyecto.php';
 require_once '../app/Models/Miniproyecto.php';
+require_once '../app/Helpers/CategoryTagHelper.php';
 
 if (!isset($_GET['id'])) { header('Location: mis_proyectos.php'); exit(); }
 
 $modeloProyecto = new Proyecto();
 $proyecto = $modeloProyecto->obtenerPorId($_GET['id'], $_SESSION['usuario_id']);
+
+if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit(); }
+
 $modeloMini = new Miniproyecto();
 $miniproyectosHijos = $modeloMini->obtenerPorProyectoPadre($proyecto['id']);
 
-if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit(); }
+// Get all categories and tags for this project
+$projectCategories = CategoryTagHelper::getProjectCategories($proyecto['id']);
+$projectTags = CategoryTagHelper::getProjectTags($proyecto['id']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -76,11 +82,27 @@ if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit();
                 
                 <div class="project-details">
                     <h1 style="margin: 0 0 10px 0;"><?php echo htmlspecialchars($proyecto['titulo']); ?></h1>
-                    <div style="margin-bottom: 15px;">
-                        <span class="badge badge-category"><?php echo htmlspecialchars($proyecto['nombre_categoria']); ?></span>
+                    <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 6px;">
+                        <?php if (!empty($projectCategories)): ?>
+                            <?php foreach ($projectCategories as $cat): ?>
+                                <span class="badge badge-category"><?php echo htmlspecialchars($cat['nombre_categoria']); ?></span>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <span class="badge badge-category"><?php echo htmlspecialchars($proyecto['nombre_categoria']); ?></span>
+                        <?php endif; ?>
                         <span class="badge badge-status"><?php echo htmlspecialchars($proyecto['nombre_estado']); ?></span>
                         <span class="badge" style="border: 1px solid #555;"><?php echo $proyecto['es_publico'] ? 'Público' : 'Privado'; ?></span>
                     </div>
+                    
+                    <?php if (!empty($projectTags)): ?>
+                    <div style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 6px;">
+                        <?php foreach ($projectTags as $tag): ?>
+                            <?php if ($tag['nombre_etiqueta'] !== '#@#_no_mini_proyecto_#@#' && strtolower($tag['nombre_etiqueta']) !== 'destacado'): ?>
+                                <span class="badge badge-tag">#<?php echo htmlspecialchars($tag['nombre_etiqueta']); ?></span>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
                     
                     <?php if (!empty($proyecto['descripcion'])): ?>
                         <p style="color: var(--text-muted); max-width: 800px; margin: 0;">

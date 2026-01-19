@@ -42,7 +42,7 @@ $estados = $modeloProyecto->obtenerEstados();
                     </div>
                 <?php endif; ?>
 
-                <form action="procesador.php?action=crear_proyecto" method="POST" enctype="multipart/form-data">
+                <form id="formCrearProyecto" action="procesador.php?action=crear_proyecto" method="POST" enctype="multipart/form-data">
                     
                     <div class="form-group">
                         <label class="form-label">Título del Proyecto *</label>
@@ -109,6 +109,19 @@ $estados = $modeloProyecto->obtenerEstados();
                     
                     <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1.1rem;">Crear Proyecto</button>
                 </form>
+                
+                <script>
+                document.getElementById('formCrearProyecto').addEventListener('submit', function(e) {
+                    const checkboxes = document.querySelectorAll('input[name="categorias[]"]');
+                    const checkedOne = Array.from(checkboxes).some(cb => cb.checked);
+                    
+                    if (!checkedOne) {
+                        e.preventDefault();
+                        alert('Debes seleccionar al menos una categoría');
+                        return false;
+                    }
+                });
+                </script>
             </div>
         </div>
     </div>

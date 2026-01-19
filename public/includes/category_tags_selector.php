@@ -187,26 +187,35 @@ tagInput.addEventListener('keydown', function(e) {
 });
 
 function addTag(tag) {
-    if (!selectedTags.includes(tag) && tag !== '#@#_no_mini_proyecto_#@#') {
+    const lowerTag = tag.toLowerCase();
+    if (!selectedTags.includes(tag) && tag !== '#@#_no_mini_proyecto_#@#' && lowerTag !== 'destacado') {
         selectedTags.push(tag);
         renderTags();
         updateHiddenInput();
+    } else if (lowerTag === 'destacado') {
+        alert('La etiqueta "destacado" está reservada por el sistema.');
     }
+}
+
+function renderTags() {
+    tagPills.innerHTML = selectedTags.map((tag, index) => `
+        <div class="tag-pill">
+            <span>${tag}</span>
+            <span class="remove-tag" data-index="${index}" onclick="removeTagByIndex(${index})">×</span>
+        </div>
+    `).join('');
+}
+
+function removeTagByIndex(index) {
+    selectedTags.splice(index, 1);
+    renderTags();
+    updateHiddenInput();
 }
 
 function removeTag(tag) {
     selectedTags = selectedTags.filter(t => t !== tag);
     renderTags();
     updateHiddenInput();
-}
-
-function renderTags() {
-    tagPills.innerHTML = selectedTags.map(tag => `
-        <div class="tag-pill">
-            <span>${tag}</span>
-            <span class="remove-tag" onclick="removeTag('${tag}')">×</span>
-        </div>
-    `).join('');
 }
 
 function updateHiddenInput() {

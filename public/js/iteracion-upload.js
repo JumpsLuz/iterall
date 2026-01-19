@@ -8,11 +8,11 @@ const placeholderText = document.getElementById('placeholderText');
 const maxImagenes = parseInt(document.querySelector('[name="espacio_disponible"]')?.value || 20);
 
 let selectedFiles = [];
-let draggedElement = null;
-let draggedFromIndex = null;
 
+// Click to open file picker
 uploadZone?.addEventListener('click', () => inputImagenes?.click());
 
+// Drag and drop FILES onto upload zone (not reordering)
 uploadZone?.addEventListener('dragover', (e) => {
     e.preventDefault();
     uploadZone.classList.add('dragover');
@@ -64,88 +64,79 @@ function actualizarPrevisualizacion() {
     previewContainer.className = 'preview-container';
 
     selectedFiles.forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const div = document.createElement('div');
-            div.className = 'preview-item' + (index === 0 ? ' principal' : '');
-            div.draggable = true;
-            div.dataset.index = index;
+        const div = document.createElement('div');
+        div.className = 'preview-item' + (index === 0 ? ' principal' : '');
+        div.dataset.index = index;
+        
+        const isPrincipal = index === 0;
+        const isFirst = index === 0;
+        const isLast = index === selectedFiles.length - 1;
+        const totalImages = selectedFiles.length;
+
+        // Create object URL for synchronous immediate preview
+        // Note: relying on browser garbage collection or simple lifetime management
+        const imageUrl = URL.createObjectURL(file);
+        
+        div.innerHTML = `
+            <img src="${imageUrl}" alt="Preview ${index + 1}">
+            ${isPrincipal ? '<div class="star-principal">★</div>' : ''}
+            ${isPrincipal ? '<div class="principal-badge">PRINCIPAL</div>' : ''}
+            <div class="order-number ${isPrincipal ? 'first' : ''}">${index + 1}</div>
             
-            div.innerHTML = `
-                <img src="${e.target.result}" alt="Preview ${index + 1}">
-                ${index === 0 ? '<div class="star-principal">★</div>' : ''}
-                ${index === 0 ? '<div class="principal-badge">PRINCIPAL</div>' : ''}
-                <div class="order-number ${index === 0 ? 'first' : ''}">${index + 1}</div>
-                <button type="button" class="remove-btn" onclick="event.stopPropagation(); eliminarImagen(${index})">×</button>
-            `;
+            <div class="order-controls">
+                <button type="button" class="order-btn order-up ${isFirst ? 'disabled' : ''}" 
+                        onclick="event.stopPropagation(); moverImagen(${index}, -1)" 
+                        ${isFirst ? 'disabled' : ''} title="Mover arriba">
+                    <i class="fas fa-chevron-up"></i>
+                </button>
+                <button type="button" class="order-btn order-down ${isLast ? 'disabled' : ''}" 
+                        onclick="event.stopPropagation(); moverImagen(${index}, 1)" 
+                        ${isLast ? 'disabled' : ''} title="Mover abajo">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
             
-            div.addEventListener('dragstart', handleDragStart);
-            div.addEventListener('dragend', handleDragEnd);
-            div.addEventListener('dragover', handleDragOver);
-            div.addEventListener('drop', handleDrop);
-            div.addEventListener('dragenter', handleDragEnter);
-            div.addEventListener('dragleave', handleDragLeave);
+            <button type="button" class="remove-btn" onclick="event.stopPropagation(); eliminarImagen(${index})">×</button>
             
-            previewContainer.appendChild(div);
-        };
-        reader.readAsDataURL(file);
+            ${totalImages > 1 && !isPrincipal ? `
+                <button type="button" class="make-principal-btn" 
+                        onclick="event.stopPropagation(); hacerPrincipal(${index})" 
+                        title="Hacer principal">
+                    <i class="far fa-star"></i>
+                </button>
+            ` : ''}
+        `;
+        
+        previewContainer.appendChild(div);
     });
     
     actualizarOrdenImagenes();
+    actualizarInputFile();
 }
 
-function handleDragStart(e) {
-    draggedElement = this;
-    draggedFromIndex = parseInt(this.dataset.index);
-    this.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/html', this.innerHTML);
-}
-
-function handleDragEnd(e) {
-    this.classList.remove('dragging');
-    document.querySelectorAll('.preview-item').forEach(item => {
-        item.classList.remove('drag-over');
-    });
-    draggedElement = null;
-    draggedFromIndex = null;
-}
-
-function handleDragOver(e) {
-    if (e.preventDefault) {
-        e.preventDefault();
-    }
-    e.dataTransfer.dropEffect = 'move';
-    return false;
-}
-
-function handleDragEnter(e) {
-    if (this !== draggedElement) {
-        this.classList.add('drag-over');
-    }
-}
-
-function handleDragLeave(e) {
-    this.classList.remove('drag-over');
-}
-
-function handleDrop(e) {
-    if (e.stopPropagation) {
-        e.stopPropagation();
-    }
+// Move image up (-1) or down (+1)
+function moverImagen(index, direction) {
+    const newIndex = index + direction;
     
-    const dropIndex = parseInt(this.dataset.index);
+    if (newIndex < 0 || newIndex >= selectedFiles.length) return;
     
-    if (draggedFromIndex !== null && draggedFromIndex !== dropIndex && draggedElement !== this) {
-        const draggedFile = selectedFiles[draggedFromIndex];
-        selectedFiles.splice(draggedFromIndex, 1);
-        selectedFiles.splice(dropIndex, 0, draggedFile);
-        
-        actualizarPrevisualizacion();
-    }
+    // Swap files
+    const temp = selectedFiles[index];
+    selectedFiles[index] = selectedFiles[newIndex];
+    selectedFiles[newIndex] = temp;
     
-    this.classList.remove('drag-over');
-    return false;
+    actualizarPrevisualizacion();
+}
+
+// Make an image the principal (move to position 0)
+function hacerPrincipal(index) {
+    if (index === 0) return;
+    
+    const file = selectedFiles[index];
+    selectedFiles.splice(index, 1);
+    selectedFiles.unshift(file);
+    
+    actualizarPrevisualizacion();
 }
 
 function eliminarImagen(index) {
@@ -169,7 +160,7 @@ function actualizarInputFile() {
 }
 
 function actualizarOrdenImagenes() {
-    imagenPrincipalIndex.value = 0; // Siempre el primero es principal
+    imagenPrincipalIndex.value = 0; // First is always principal
     ordenImagenes.value = selectedFiles.map((_, i) => i).join(',');
 }
 

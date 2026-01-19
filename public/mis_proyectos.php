@@ -82,8 +82,7 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($_SESSION['usuario_id']);
         <?php else: ?>
             <div class="grid-gallery">
                 <?php foreach ($proyectos as $proyecto): ?>
-                    <div class="card">
-                        <!-- Banner del proyecto -->
+                    <div class="card project-card">
                         <div class="project-card-header">
                             <?php if (!empty($proyecto['banner_url'])): ?>
                                 <img src="<?php echo htmlspecialchars($proyecto['banner_url']); ?>" 
@@ -91,16 +90,15 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($_SESSION['usuario_id']);
                             <?php else: ?>
                                 <div class="no-image-placeholder"><i class="fas fa-palette"></i></div>
                             <?php endif; ?>
-                            
-                            <!-- Avatar superpuesto -->
-                            <div class="project-avatar-overlay">
-                                <?php if (!empty($proyecto['avatar_url'])): ?>
-                                    <img src="<?php echo htmlspecialchars($proyecto['avatar_url']); ?>" 
-                                         alt="Avatar de <?php echo htmlspecialchars($proyecto['titulo']); ?>">
-                                <?php else: ?>
-                                    <div class="no-image-placeholder" style="font-size: 2rem;"><i class="fas fa-folder"></i></div>
-                                <?php endif; ?>
-                            </div>
+                        </div>
+
+                        <div class="project-avatar-overlay">
+                            <?php if (!empty($proyecto['avatar_url'])): ?>
+                                <img src="<?php echo htmlspecialchars($proyecto['avatar_url']); ?>" 
+                                     alt="Avatar de <?php echo htmlspecialchars($proyecto['titulo']); ?>">
+                            <?php else: ?>
+                                <div class="no-image-placeholder" style="font-size: 2rem;"><i class="fas fa-folder"></i></div>
+                            <?php endif; ?>
                         </div>
                         
                         <div class="card-body project-card-body-adjusted">

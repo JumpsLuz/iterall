@@ -16,7 +16,13 @@ $sidebar_items = [
 $active_page = $active_page ?? '';
 ?>
 
-<aside class="sidebar">
+<button type="button" class="sidebar-toggle" aria-label="Abrir menú" aria-controls="sidebar" aria-expanded="false">
+    <i class="fas fa-bars"></i>
+</button>
+
+<div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
         <img src="https://res.cloudinary.com/dyqubcdf0/image/upload/v1768787599/ITERALL_aneaxn.svg" alt="ITERALL Logo">
     </div>
@@ -78,3 +84,40 @@ $active_page = $active_page ?? '';
         </nav>
     </div>
 </aside>
+
+<script>
+(function() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.querySelector('.sidebar-toggle');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    if (!sidebar || !toggleBtn || !overlay) return;
+
+    function setOpen(isOpen) {
+        sidebar.classList.toggle('active', isOpen);
+        document.body.classList.toggle('sidebar-open', isOpen);
+        toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        overlay.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+    }
+
+    toggleBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        setOpen(!sidebar.classList.contains('active'));
+    });
+
+    overlay.addEventListener('click', function() {
+        setOpen(false);
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') setOpen(false);
+    });
+
+    sidebar.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (link && window.matchMedia('(max-width: 768px)').matches) {
+            setOpen(false);
+        }
+    });
+})();
+</script>

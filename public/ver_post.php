@@ -4,6 +4,7 @@ require_once '../app/Config/Database.php';
 require_once '../app/Models/Post.php';
 require_once '../app/Models/Iteracion.php';
 require_once '../app/Models/Miniproyecto.php';
+require_once '../app/Helpers/CategoryTagHelper.php';
 
 if (!isset($_GET['id'])) { 
     header('Location: dashboard_artista.php'); 
@@ -21,6 +22,10 @@ $post = $modeloPost->obtenerPorId($post_id, $usuario_id);
 if (!$post) { 
     die("Post no encontrado."); 
 }
+
+// Get all categories and tags for this post
+$postCategories = CategoryTagHelper::getPostCategories($post_id);
+$postTags = CategoryTagHelper::getPostTags($post_id);
 
 $iteraciones = $modeloIteracion->obtenerPorPost($post_id);
 $esDestacado = $modeloPost->esDestacado($post_id);
@@ -51,10 +56,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body style="background: #0a0a0a;">
-    <div class="app-layout" style="background: #0a0a0a;">
-        <?php $active_page = 'dashboard'; include 'includes/sidebar.php'; ?>
-
-        <main class="main-content" style="background: #0a0a0a;">
     <header class="fixed-header">
         <div class="header-content">
             <div class="breadcrumb-nav">
@@ -93,7 +94,7 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
 
     <div class="viewer-container">
         
-        <main class="main-content">
+        <div class="viewer-main">
 
             <?php if (isset($_GET['mensaje'])): ?>
                 <div class="alert-message success">
@@ -177,18 +178,33 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
 
             <?php endif; ?>
 
-        </main>
+        </div>
 
         <aside class="sidebar">
             
             <div class="post-header">
                 <h1><?php echo htmlspecialchars($post['titulo']); ?></h1>
-                <div class="badges">
-                    <span class="badge badge-category"><?php echo htmlspecialchars($post['nombre_categoria']); ?></span>
+                <div class="badges categories-badges">
+                    <?php if (!empty($postCategories)): ?>
+                        <?php foreach ($postCategories as $cat): ?>
+                            <span class="badge badge-category-sm"><?php echo htmlspecialchars($cat['nombre_categoria']); ?></span>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <span class="badge badge-category-sm"><?php echo htmlspecialchars($post['nombre_categoria']); ?></span>
+                    <?php endif; ?>
                     <?php if ($esPostIndividual): ?>
                         <span class="badge badge-individual"><i class="fas fa-file"></i> INDIVIDUAL</span>
                     <?php endif; ?>
-                </div><br>
+                </div>
+                <?php if (!empty($postTags)): ?>
+                <div class="tags-badges">
+                    <?php foreach ($postTags as $tag): ?>
+                        <?php if ($tag['nombre_etiqueta'] !== '#@#_no_mini_proyecto_#@#' && strtolower($tag['nombre_etiqueta']) !== 'destacado'): ?>
+                            <span class="badge badge-tag">#<?php echo htmlspecialchars($tag['nombre_etiqueta']); ?></span>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
                 <div class="author-info">
                 <?php if (!empty($perfil['avatar_url'])): ?>
                     <img src="<?php echo htmlspecialchars($perfil['avatar_url']); ?>" alt="" class="author-avatar">
@@ -234,10 +250,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                              data-iteration-id="<?php echo $iter['id']; ?>"
                              onclick="selectIteration(<?php echo $iter['id']; ?>)">
                             
-                            <div class="timeline-line">
-                                <div class="timeline-dot <?php echo $index === 0 ? 'current' : ''; ?>"></div>
-                            </div>
-                            
                             <div class="timeline-content">
                                 <?php if (!empty($iter['imagenes'])): ?>
                                     <div class="timeline-thumb">
@@ -253,9 +265,9 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                                         $ahora = new DateTime();
                                         $diff = $ahora->diff($fecha);
                                         
-                                        if ($diff->days == 0) echo '(Hoy)';
-                                        elseif ($diff->days == 1) echo '(Ayer)';
-                                        else echo '(' . date('d/m', strtotime($iter['fecha_creacion'])) . ')';
+                                        if ($diff->days == 0) echo 'Hoy';
+                                        elseif ($diff->days == 1) echo 'Ayer';
+                                        else echo date('d/m/Y', strtotime($iter['fecha_creacion']));
                                         ?>
                                     </span>
                                 </div>
@@ -343,7 +355,7 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
             });
 
             if (iteration.imagenes && iteration.imagenes.length > 0) {
-                const mainImg = iteration.imagenes.find(img => img.es_principal) || iteration.imagenes[0];
+                const mainImg = iteration.imagenes.find(img => img.es_principal == 1) || iteration.imagenes[0];
                 document.getElementById('mainImage').src = mainImg.url_archivo;
             }
 
@@ -365,9 +377,12 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                     item.className = 'gallery-item';
                     if (index === 0) item.classList.add('active');
                     
+                    // Check es_principal properly (could be string "1" or number 1)
+                    const esPrincipal = img.es_principal == 1 || img.es_principal === true;
+                    
                     item.innerHTML = `
                         <img src="${img.url_archivo}" alt="" data-url="${img.url_archivo}">
-                        ${img.es_principal ? '<span class="badge-principal">★ PRINCIPAL</span>' : ''}
+                        ${esPrincipal ? '<span class="badge-principal">★ PRINCIPAL</span>' : ''}
                     `;
                     
                     item.addEventListener('click', function() {
@@ -440,8 +455,8 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
             const compareIteration = iteracionesData.find(i => i.id == compareSelect.value);
 
             if (currentIteration?.imagenes?.[0] && compareIteration?.imagenes?.[0]) {
-                const currentImg = currentIteration.imagenes.find(img => img.es_principal) || currentIteration.imagenes[0];
-                const compareImg = compareIteration.imagenes.find(img => img.es_principal) || compareIteration.imagenes[0];
+                const currentImg = currentIteration.imagenes.find(img => img.es_principal == 1) || currentIteration.imagenes[0];
+                const compareImg = compareIteration.imagenes.find(img => img.es_principal == 1) || compareIteration.imagenes[0];
                 
                 document.getElementById('beforeImage').src = currentImg.url_archivo;
                 document.getElementById('afterImage').src = compareImg.url_archivo;
@@ -525,7 +540,5 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
             }
         }
     </script>
-        </main>
-    </div>
 </body>
 </html>

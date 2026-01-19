@@ -90,7 +90,7 @@ $categorias = $modeloProyecto->obtenerCategorias();
                     </div>
                 <?php endif; ?>
 
-                <form action="procesador.php?action=crear_post" method="POST" style="margin-top: 20px;">
+                <form id="formCrearPost" action="procesador.php?action=crear_post" method="POST" style="margin-top: 20px;">
                     <?php if ($miniproyecto_id): ?>
                         <input type="hidden" name="miniproyecto_id" value="<?php echo $miniproyecto_id; ?>">
                     <?php endif; ?>
@@ -132,6 +132,19 @@ $categorias = $modeloProyecto->obtenerCategorias();
 
                     <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Guardar Post</button>
                 </form>
+                
+                <script>
+                document.getElementById('formCrearPost').addEventListener('submit', function(e) {
+                    const checkboxes = document.querySelectorAll('input[name="categorias[]"]');
+                    const checkedOne = Array.from(checkboxes).some(cb => cb.checked);
+                    
+                    if (!checkedOne) {
+                        e.preventDefault();
+                        alert('Debes seleccionar al menos una categoría');
+                        return false;
+                    }
+                });
+                </script>
             </div>
         </div>
     </div>

@@ -42,6 +42,7 @@ $espacioDisponible = 50 - $totalImagenes;
     <title>Nueva Iteración | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/iteracion.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="app-layout">
@@ -112,7 +113,7 @@ $espacioDisponible = 50 - $totalImagenes;
                     <div class="form-group">
                         <label class="form-label">Imágenes * (máximo <?php echo min(20, $espacioDisponible); ?> por iteración)</label>
                         <p class="form-hint" style="margin-bottom: 10px;">
-                            <i class="fas fa-info-circle"></i> La primera imagen (#1) será la principal. Arrastra para reordenar.
+                            <i class="fas fa-info-circle"></i> La primera imagen (#1) será la principal. Usa las flechas ⬆️⬇️ para reordenar.
                         </p>
                         
                         <div class="image-preview-upload" id="uploadZone">

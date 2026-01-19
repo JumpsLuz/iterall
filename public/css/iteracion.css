@@ -38,12 +38,25 @@
 }
 
 .image-preview-upload.has-images {
-    display: none;
+    /* Mantener visible para permitir agregar más imágenes */
+    padding: 15px;
+    min-height: auto;
+    border-color: var(--primary);
+    background: var(--bg-card);
+}
+
+.image-preview-upload.has-images .placeholder-text p {
+    font-size: 0.9rem !important;
+    margin: 0 !important;
+}
+
+.image-preview-upload.has-images .placeholder-text p:first-child {
+    display: none; /* Ocultar icono grande */
 }
 
 .preview-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 15px;
     margin-top: 15px;
     max-width: 100%;
@@ -57,12 +70,8 @@
     background: var(--bg-hover);
     aspect-ratio: 1;
     width: 100%;
-    cursor: grab;
+    cursor: default;
     transition: all 0.3s;
-}
-
-.preview-item:active {
-    cursor: grabbing;
 }
 
 .preview-item:hover {
@@ -74,17 +83,6 @@
     border-color: var(--accent);
     border-width: 3px;
     box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
-}
-
-.preview-item.dragging {
-    opacity: 0.5;
-    transform: scale(0.95);
-}
-
-.preview-item.drag-over {
-    border-color: var(--primary);
-    background: rgba(59, 130, 246, 0.1);
-    transform: scale(1.05);
 }
 
 .preview-item img {
@@ -174,6 +172,86 @@
     background: var(--accent);
     color: black;
     border-color: var(--accent);
+}
+
+/* Order control buttons (up/down arrows) */
+.order-controls {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 15;
+}
+
+.order-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #444;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+}
+
+.order-btn:hover:not(.disabled) {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+.order-btn.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Make principal button (star) */
+.make-principal-btn {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #555;
+    color: #ddd;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    z-index: 15;
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+.preview-item:hover .make-principal-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.make-principal-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: black;
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+/* Ensure mobile users can see it without hover */
+@media (hover: none) {
+    .make-principal-btn {
+        opacity: 0.7;
+        transform: scale(1);
+    }
 }
 
 @media (max-width: 768px) {

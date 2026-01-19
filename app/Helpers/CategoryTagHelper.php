@@ -167,6 +167,7 @@ class CategoryTagHelper {
             INNER JOIN proyecto_etiquetas pe ON e.id = pe.etiqueta_id
             WHERE pe.proyecto_id = ?
             AND e.nombre_etiqueta != '#@#_no_mini_proyecto_#@#'
+            AND LOWER(e.nombre_etiqueta) != 'destacado'
         ");
         $stmt->execute([$proyecto_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -182,6 +183,7 @@ class CategoryTagHelper {
             INNER JOIN post_etiquetas pe ON e.id = pe.etiqueta_id
             WHERE pe.post_id = ?
             AND e.nombre_etiqueta != '#@#_no_mini_proyecto_#@#'
+            AND LOWER(e.nombre_etiqueta) != 'destacado'
         ");
         $stmt->execute([$post_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

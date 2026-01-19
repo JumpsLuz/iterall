@@ -65,15 +65,25 @@ class PostController {
     public function crear() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
+            // Build redirect URL with original parameters
+            $redirectParams = [];
+            if (!empty($_POST['miniproyecto_id'])) {
+                $redirectParams[] = 'miniproyecto_id=' . $_POST['miniproyecto_id'];
+            }
+            if (!empty($_POST['proyecto_id'])) {
+                $redirectParams[] = 'proyecto_id=' . $_POST['proyecto_id'];
+            }
+            $redirectBase = 'crear_post.php' . (!empty($redirectParams) ? '?' . implode('&', $redirectParams) : '');
+            
             // Check for either categorias array or categoria_id
             $categorias = $_POST['categorias'] ?? [];
             if (empty($categorias) && empty($_POST['categoria_id'])) {
-                header('Location: crear_post.php?error=campos_vacios');
+                header('Location: ' . $redirectBase . (strpos($redirectBase, '?') !== false ? '&' : '?') . 'error=campos_vacios');
                 exit();
             }
             
             if (empty($_POST['titulo'])) {
-                header('Location: crear_post.php?error=campos_vacios');
+                header('Location: ' . $redirectBase . (strpos($redirectBase, '?') !== false ? '&' : '?') . 'error=campos_vacios');
                 exit();
             }
 
