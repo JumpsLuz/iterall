@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * CategoryTagHelper
+ * Helper for managing categories and tags for posts and projects
+ * 
+ * Note: Posts and projects have a single categoria_id column (not many-to-many)
+ * Tags use the post_etiquetas and proyecto_etiquetas pivot tables
+ */
 class CategoryTagHelper {
     
     private static function getDb() {
@@ -7,63 +14,71 @@ class CategoryTagHelper {
     }
     
     /**
-     * Save multiple categories for a project
+     * Save category for a project (single category)
+     * Projects have categoria_id column directly
      */
     public static function saveProjectCategories($proyecto_id, $categoria_ids) {
+        if (empty($categoria_ids)) return;
+        
         $db = self::getDb();
+        // Take the first category (projects have single categoria_id)
+        $categoria_id = is_array($categoria_ids) ? $categoria_ids[0] : $categoria_ids;
         
-        $stmt = $db->prepare("DELETE FROM proyecto_categorias WHERE proyecto_id = ?");
-        $stmt->execute([$proyecto_id]);
-        
-        // Insert new
-        $stmt = $db->prepare("INSERT INTO proyecto_categorias (proyecto_id, categoria_id) VALUES (?, ?)");
-        foreach ($categoria_ids as $cat_id) {
-            $stmt->execute([$proyecto_id, $cat_id]);
-        }
+        $stmt = $db->prepare("UPDATE proyectos SET categoria_id = ? WHERE id = ?");
+        $stmt->execute([$categoria_id, $proyecto_id]);
     }
     
     /**
-     * Save multiple categories for a post
+     * Save category for a post (single category)
+     * Posts have categoria_id column directly
      */
     public static function savePostCategories($post_id, $categoria_ids) {
+        if (empty($categoria_ids)) return;
+        
         $db = self::getDb();
+        // Take the first category (posts have single categoria_id)
+        $categoria_id = is_array($categoria_ids) ? $categoria_ids[0] : $categoria_ids;
         
-        $stmt = $db->prepare("DELETE FROM post_categorias WHERE post_id = ?");
-        $stmt->execute([$post_id]);
-        
-        // Insert new
-        $stmt = $db->prepare("INSERT INTO post_categorias (post_id, categoria_id) VALUES (?, ?)");
-        foreach ($categoria_ids as $cat_id) {
-            $stmt->execute([$post_id, $cat_id]);
+        $stmt = $db->prepare("UPDATE posts SET categoria_id = ? WHERE id = ?");
+        $stmt->execute([$categoria_id, $post_id]);
+    }
+    
+    /**
+     * Get category for a project (returns array for compatibility)
+     */
+    public static function getProjectCategories($proyecto_id) {
+        try {
+            $db = self::getDb();
+            $stmt = $db->prepare("
+                SELECT c.* FROM categorias c
+                INNER JOIN proyectos p ON c.id = p.categoria_id
+                WHERE p.id = ?
+            ");
+            $stmt->execute([$proyecto_id]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching project categories: " . $e->getMessage());
+            return [];
         }
     }
     
     /**
-     * Get categories for a project
-     */
-    public static function getProjectCategories($proyecto_id) {
-        $db = self::getDb();
-        $stmt = $db->prepare("
-            SELECT c.* FROM categorias c
-            INNER JOIN proyecto_categorias pc ON c.id = pc.categoria_id
-            WHERE pc.proyecto_id = ?
-        ");
-        $stmt->execute([$proyecto_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    
-    /**
-     * Get categories for a post
+     * Get category for a post (returns array for compatibility)
      */
     public static function getPostCategories($post_id) {
-        $db = self::getDb();
-        $stmt = $db->prepare("
-            SELECT c.* FROM categorias c
-            INNER JOIN post_categorias pc ON c.id = pc.categoria_id
-            WHERE pc.post_id = ?
-        ");
-        $stmt->execute([$post_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $db = self::getDb();
+            $stmt = $db->prepare("
+                SELECT c.* FROM categorias c
+                INNER JOIN posts p ON c.id = p.categoria_id
+                WHERE p.id = ?
+            ");
+            $stmt->execute([$post_id]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching post categories: " . $e->getMessage());
+            return [];
+        }
     }
     
     /**
@@ -141,31 +156,41 @@ class CategoryTagHelper {
      * Get tags for a project
      */
     public static function getProjectTags($proyecto_id) {
-        $db = self::getDb();
-        $stmt = $db->prepare("
-            SELECT e.* FROM etiquetas e
-            INNER JOIN proyecto_etiquetas pe ON e.id = pe.etiqueta_id
-            WHERE pe.proyecto_id = ?
-            AND e.nombre_etiqueta != '#@#_no_mini_proyecto_#@#'
-            AND LOWER(e.nombre_etiqueta) != 'destacado'
-        ");
-        $stmt->execute([$proyecto_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $db = self::getDb();
+            $stmt = $db->prepare("
+                SELECT e.* FROM etiquetas e
+                INNER JOIN proyecto_etiquetas pe ON e.id = pe.etiqueta_id
+                WHERE pe.proyecto_id = ?
+                AND e.nombre_etiqueta != '#@#_no_mini_proyecto_#@#'
+                AND LOWER(e.nombre_etiqueta) != 'destacado'
+            ");
+            $stmt->execute([$proyecto_id]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching project tags: " . $e->getMessage());
+            return [];
+        }
     }
     
     /**
      * Get tags for a post
      */
     public static function getPostTags($post_id) {
-        $db = self::getDb();
-        $stmt = $db->prepare("
-            SELECT e.* FROM etiquetas e
-            INNER JOIN post_etiquetas pe ON e.id = pe.etiqueta_id
-            WHERE pe.post_id = ?
-            AND e.nombre_etiqueta != '#@#_no_mini_proyecto_#@#'
-            AND LOWER(e.nombre_etiqueta) != 'destacado'
-        ");
-        $stmt->execute([$post_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $db = self::getDb();
+            $stmt = $db->prepare("
+                SELECT e.* FROM etiquetas e
+                INNER JOIN post_etiquetas pe ON e.id = pe.etiqueta_id
+                WHERE pe.post_id = ?
+                AND e.nombre_etiqueta != '#@#_no_mini_proyecto_#@#'
+                AND LOWER(e.nombre_etiqueta) != 'destacado'
+            ");
+            $stmt->execute([$post_id]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching post tags: " . $e->getMessage());
+            return [];
+        }
     }
 }

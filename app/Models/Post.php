@@ -209,10 +209,9 @@ class Post {
             // Solo posts que pertenecen a proyectos públicos o sin proyecto
             $where[] = "(pr.es_publico = 1 OR p.proyecto_id IS NULL)";
             
-            // Filtro por categoría (buscar en tabla pivote post_categorias o categoria_id legacy)
+            // Filtro por categoría
             if (!empty($filtros['categoria_id'])) {
-                $where[] = "(p.categoria_id = ? OR EXISTS (SELECT 1 FROM post_categorias pc WHERE pc.post_id = p.id AND pc.categoria_id = ?))";
-                $params[] = $filtros['categoria_id'];
+                $where[] = "p.categoria_id = ?";
                 $params[] = $filtros['categoria_id'];
             }
             
@@ -293,8 +292,7 @@ class Post {
             $where[] = "(pr.es_publico = 1 OR p.proyecto_id IS NULL)";
             
             if (!empty($filtros['categoria_id'])) {
-                $where[] = "(p.categoria_id = ? OR EXISTS (SELECT 1 FROM post_categorias pc WHERE pc.post_id = p.id AND pc.categoria_id = ?))";
-                $params[] = $filtros['categoria_id'];
+                $where[] = "p.categoria_id = ?";
                 $params[] = $filtros['categoria_id'];
             }
             
@@ -372,9 +370,9 @@ class Post {
                     AND LOWER(e.nombre_etiqueta) != 'destacado'
                     GROUP BY e.id
                     ORDER BY uso_count DESC
-                    LIMIT ?";
+                    LIMIT " . (int)$limite;
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([$limite]);
+            $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error al obtener etiquetas populares: " . $e->getMessage());
