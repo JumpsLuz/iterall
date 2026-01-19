@@ -146,10 +146,10 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
                         <div class="comparison-container">
                             <div class="comparison-wrapper">
                                 <div class="comparison-before">
-                                    <img id="beforeImage" src="" alt="Before">
+                                    <img id="afterImage" src="" alt="After">
                                 </div>
                                 <div class="comparison-after">
-                                    <img id="afterImage" src="" alt="After">
+                                    <img id="beforeImage" src="" alt="Before">
                                 </div>
                                 <div class="comparison-slider" id="slider">
                                     <div class="slider-handle">
