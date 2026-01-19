@@ -6,13 +6,11 @@ require_once '../app/Models/Usuario.php';
 $usuario_id = $_SESSION['usuario_id'];
 $rol_id = $_SESSION['rol_id'];
 
-// Solo permitir acceso a clientes
 if ($rol_id != 2) {
     header('Location: editar_perfil.php');
     exit();
 }
 
-// Obtener datos del usuario
 $db = Database::getInstance();
 $stmt = $db->prepare("SELECT u.*, p.nombre_artistico, p.avatar_url FROM usuarios u LEFT JOIN perfiles p ON u.id = p.usuario_id WHERE u.id = ?");
 $stmt->execute([$usuario_id]);
@@ -26,177 +24,7 @@ $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
     <title>Convertirse en Artista | ITERALL</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .upgrade-container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 20px;
-        }
-        
-        .upgrade-hero {
-            text-align: center;
-            padding: 60px 40px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(212, 175, 55, 0.1));
-            border-radius: 20px;
-            margin-bottom: 40px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .upgrade-hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .upgrade-hero p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .benefits-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-        
-        .benefit-card {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 30px;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        
-        .benefit-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .benefit-icon {
-            width: 70px;
-            height: 70px;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .benefit-icon i {
-            font-size: 28px;
-            color: #fff;
-        }
-        
-        .benefit-card h3 {
-            color: #fff;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-        }
-        
-        .benefit-card p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-        
-        .action-section {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 40px;
-            text-align: center;
-        }
-        
-        .action-section h2 {
-            color: #fff;
-            margin-bottom: 15px;
-        }
-        
-        .action-section p {
-            color: var(--text-muted);
-            margin-bottom: 30px;
-        }
-        
-        .btn-upgrade {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            padding: 18px 40px;
-            font-size: 1.2rem;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
-        }
-        
-        .btn-upgrade:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
-        }
-        
-        .btn-back {
-            display: inline-block;
-            margin-top: 20px;
-            color: var(--text-muted);
-            text-decoration: none;
-        }
-        
-        .btn-back:hover {
-            color: #fff;
-        }
-        
-        .current-account {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            padding: 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            margin-bottom: 25px;
-        }
-        
-        .current-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .current-avatar img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        
-        .current-avatar i {
-            color: #fff;
-            font-size: 20px;
-        }
-        
-        .current-info strong {
-            display: block;
-            color: #fff;
-        }
-        
-        .current-info span {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-    </style>
+    <link rel="stylesheet" href="css/convertir-artista.css">
 </head>
 <body>
     <div class="app-layout">

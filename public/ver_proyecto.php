@@ -15,7 +15,6 @@ if (!$proyecto) { header('Location: mis_proyectos.php?error=not_found'); exit();
 $modeloMini = new Miniproyecto();
 $miniproyectosHijos = $modeloMini->obtenerPorProyectoPadre($proyecto['id']);
 
-// Get all categories and tags for this project
 $projectCategories = CategoryTagHelper::getProjectCategories($proyecto['id']);
 $projectTags = CategoryTagHelper::getProjectTags($proyecto['id']);
 ?>

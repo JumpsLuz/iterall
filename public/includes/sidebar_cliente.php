@@ -1,9 +1,4 @@
 <?php
-/**
- * Sidebar para Clientes/Reclutadores
- * Menú diferente al de artistas
- */
-
 $sidebar_cliente_items = [
     'explorar' => ['link' => 'explorar.php', 'label' => 'Explorar', 'icon' => 'fas fa-compass'],
     'mis_colecciones' => ['link' => 'mis_colecciones.php', 'label' => 'Mis Colecciones', 'icon' => 'fas fa-folder-open'],

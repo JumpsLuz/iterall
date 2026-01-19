@@ -9,10 +9,8 @@ const maxImagenes = parseInt(document.querySelector('[name="espacio_disponible"]
 
 let selectedFiles = [];
 
-// Click to open file picker
 uploadZone?.addEventListener('click', () => inputImagenes?.click());
 
-// Drag and drop FILES onto upload zone (not reordering)
 uploadZone?.addEventListener('dragover', (e) => {
     e.preventDefault();
     uploadZone.classList.add('dragover');
@@ -73,8 +71,6 @@ function actualizarPrevisualizacion() {
         const isLast = index === selectedFiles.length - 1;
         const totalImages = selectedFiles.length;
 
-        // Create object URL for synchronous immediate preview
-        // Note: relying on browser garbage collection or simple lifetime management
         const imageUrl = URL.createObjectURL(file);
         
         div.innerHTML = `
@@ -114,13 +110,11 @@ function actualizarPrevisualizacion() {
     actualizarInputFile();
 }
 
-// Move image up (-1) or down (+1)
 function moverImagen(index, direction) {
     const newIndex = index + direction;
     
     if (newIndex < 0 || newIndex >= selectedFiles.length) return;
     
-    // Swap files
     const temp = selectedFiles[index];
     selectedFiles[index] = selectedFiles[newIndex];
     selectedFiles[newIndex] = temp;
@@ -128,7 +122,6 @@ function moverImagen(index, direction) {
     actualizarPrevisualizacion();
 }
 
-// Make an image the principal (move to position 0)
 function hacerPrincipal(index) {
     if (index === 0) return;
     
@@ -160,7 +153,7 @@ function actualizarInputFile() {
 }
 
 function actualizarOrdenImagenes() {
-    imagenPrincipalIndex.value = 0; // First is always principal
+    imagenPrincipalIndex.value = 0;
     ordenImagenes.value = selectedFiles.map((_, i) => i).join(',');
 }
 

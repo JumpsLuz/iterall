@@ -72,12 +72,11 @@ if ($action === 'actualizar_perfil') {
         );
 
         if ($exito) {
-            // Si es upgrade de cliente a artista, actualizar el rol
             if ($esUpgrade && $_SESSION['rol_id'] == 2) {
                 $db = Database::getInstance();
                 $stmtUpgrade = $db->prepare("UPDATE usuarios SET rol_id = 1 WHERE id = ?");
                 $stmtUpgrade->execute([$usuario_id]);
-                $_SESSION['rol_id'] = 1; // Actualizar la sesión
+                $_SESSION['rol_id'] = 1;
                 
                 header('Location: dashboard_artista.php?mensaje=bienvenido_artista');
                 exit();
@@ -87,7 +86,6 @@ if ($action === 'actualizar_perfil') {
             if (!empty($validacion['errores'])) {
                 $mensaje .= '&redes_con_errores=1';
             }
-            // Redirigir según el rol
             $redirectUrl = ($_SESSION['rol_id'] == 2) ? 'explorar.php' : 'dashboard_artista.php';
             header('Location: ' . $redirectUrl . '?mensaje=' . $mensaje);
             exit();
@@ -246,9 +244,6 @@ if ($action === 'eliminar_cuenta') {
     $controller->eliminarCuenta();
 }
 
-// ===========================================
-// ACCIONES DE COLECCIONES (CLIENTES)
-// ===========================================
 
 if ($action === 'crear_coleccion') {
     require_once '../app/Config/Database.php';

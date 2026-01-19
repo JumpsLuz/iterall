@@ -130,7 +130,6 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
                         if ($esPostIndividual): 
                             $primer_post_id = $modeloMini->obtenerPrimerPostId($item['id']);
                             
-                            // Obtener la portada del post individual
                             if ($primer_post_id) {
                                 $postIndividual = $modeloPost->obtenerPorId($primer_post_id, $usuario_id);
                                 $portada = $postIndividual['portada'] ?? null;

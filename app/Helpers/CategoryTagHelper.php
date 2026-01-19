@@ -12,16 +12,6 @@ class CategoryTagHelper {
     public static function saveProjectCategories($proyecto_id, $categoria_ids) {
         $db = self::getDb();
         
-        // Create table if not exists
-        $db->exec("CREATE TABLE IF NOT EXISTS proyecto_categorias (
-            proyecto_id INT NOT NULL,
-            categoria_id INT NOT NULL,
-            PRIMARY KEY (proyecto_id, categoria_id),
-            FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE CASCADE,
-            FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
-        )");
-        
-        // Delete existing
         $stmt = $db->prepare("DELETE FROM proyecto_categorias WHERE proyecto_id = ?");
         $stmt->execute([$proyecto_id]);
         
@@ -38,16 +28,6 @@ class CategoryTagHelper {
     public static function savePostCategories($post_id, $categoria_ids) {
         $db = self::getDb();
         
-        // Create table if not exists
-        $db->exec("CREATE TABLE IF NOT EXISTS post_categorias (
-            post_id INT NOT NULL,
-            categoria_id INT NOT NULL,
-            PRIMARY KEY (post_id, categoria_id),
-            FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-            FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
-        )");
-        
-        // Delete existing
         $stmt = $db->prepare("DELETE FROM post_categorias WHERE post_id = ?");
         $stmt->execute([$post_id]);
         

@@ -7,7 +7,6 @@ $usuario_id = $_SESSION['usuario_id'];
 $rol_id = $_SESSION['rol_id'];
 $esCliente = ($rol_id == 2);
 
-// Si es cliente, redirigir a una página para convertirse en artista
 if ($esCliente) {
     header('Location: convertir_a_artista.php');
     exit();

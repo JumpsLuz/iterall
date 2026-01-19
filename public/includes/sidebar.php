@@ -1,8 +1,4 @@
 <?php
-// Sidebar Navigation Component
-// Usage: $active_page should be set before including this file
-// Example: $active_page = 'dashboard'; then include 'includes/sidebar.php';
-
 $sidebar_items = [
     'dashboard' => ['link' => 'dashboard_artista.php', 'label' => 'Mi Galería', 'icon' => 'fas fa-th-large'],
     'mis_proyectos' => ['link' => 'mis_proyectos.php', 'label' => 'Todos mis Proyectos', 'icon' => 'fas fa-list'],

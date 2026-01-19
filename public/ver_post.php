@@ -23,7 +23,6 @@ if (!$post) {
     die("Post no encontrado."); 
 }
 
-// Get all categories and tags for this post
 $postCategories = CategoryTagHelper::getPostCategories($post_id);
 $postTags = CategoryTagHelper::getPostTags($post_id);
 
@@ -488,7 +487,6 @@ $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
 
             container.addEventListener('click', (e) => updatePosition(e.clientX));
 
-            // Touch
             slider.addEventListener('touchstart', () => isDragging = true);
             document.addEventListener('touchmove', (e) => {
                 if (isDragging) updatePosition(e.touches[0].clientX);

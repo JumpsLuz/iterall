@@ -8,13 +8,10 @@ require_once '../app/Helpers/CategoryTagHelper.php';
 $modeloPost = new Post();
 $modeloProyecto = new Proyecto();
 
-// Obtener categorías para filtros
 $categorias = $modeloProyecto->obtenerCategorias();
 
-// Obtener etiquetas populares
 $etiquetasPopulares = $modeloPost->obtenerEtiquetasPopulares(15);
 
-// Procesar filtros
 $filtros = [
     'categoria_id' => $_GET['categoria'] ?? null,
     'busqueda' => $_GET['q'] ?? null,
@@ -24,7 +21,7 @@ $filtros = [
     'offset' => (($_GET['pagina'] ?? 1) - 1) * 24
 ];
 
-$tipoVista = $_GET['tipo'] ?? 'trabajos'; // 'trabajos' o 'proyectos'
+$tipoVista = $_GET['tipo'] ?? 'trabajos';
 $items = [];
 $totalItems = 0;
 
@@ -39,7 +36,6 @@ if ($tipoVista === 'proyectos') {
 $totalPaginas = ceil($totalItems / 24);
 $paginaActual = ($_GET['pagina'] ?? 1);
 
-// Determinar si es artista o cliente para el sidebar
 $esArtista = ($_SESSION['rol_id'] == 1);
 ?>
 <!DOCTYPE html>
