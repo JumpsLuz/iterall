@@ -8,6 +8,9 @@ class CloudinaryConfig {
     private static $instance = null;
     private $uploadApi;
 
+    const DEFAULT_AVATAR_PUBLIC_ID = 'iterall/default/default_user';
+    const DEFAULT_BANNER_PUBLIC_ID = 'iterall/default/default_banner';
+
     private function __construct() {
         $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
         $dotenv->load();
@@ -31,6 +34,20 @@ class CloudinaryConfig {
             self::$instance = new CloudinaryConfig();
         }
         return self::$instance;
+    }
+
+    /**
+     * @return string 
+     */
+    public static function getDefaultAvatarUrl() {
+        return "https://res.cloudinary.com/dyqubcdf0/image/upload/v1768774226/default_user.png";
+    }
+
+    /**
+     * @return string 
+     */
+    public static function getDefaultBannerUrl() {
+        return "https://res.cloudinary.com/dyqubcdf0/image/upload/v1768774145/default_banner.png";
     }
 
     /**

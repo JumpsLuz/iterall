@@ -102,23 +102,26 @@ $espacioDisponible = 50 - $totalImagenes;
                 <form action="procesador.php?action=crear_iteracion" method="POST" enctype="multipart/form-data" id="formIteracion">
                     <input type="hidden" name="post_id" value="<?php echo $postId; ?>">
                     <input type="hidden" name="espacio_disponible" value="<?php echo $espacioDisponible; ?>">
+                    <input type="hidden" name="imagen_principal_index" id="imagenPrincipalIndex" value="0">
+                    <input type="hidden" name="orden_imagenes" id="ordenImagenes" value="">
 
                     <div class="form-group">
                         <label class="form-label">Imágenes * (máximo <?php echo min(20, $espacioDisponible); ?> por iteración)</label>
                         <p class="form-hint" style="margin-bottom: 10px;">
                             <i class="fas fa-info-circle"></i> La primera imagen (#1) será la principal. Arrastra para reordenar.
                         </p>
-                        <div class="upload-zone" id="uploadZone">
-                            <p style="font-size: 2rem; margin-bottom: 10px;">📤</p>
-                            <p><strong>Click para seleccionar imágenes</strong></p>
-                            <p class="text-muted" style="font-size: 0.85rem;">o arrastra y suelta aquí</p>
-                            <p class="text-muted" style="font-size: 0.75rem; margin-top: 10px;">
-                                Máximo <?php echo min(20, $espacioDisponible); ?> imágenes | 5MB por archivo | JPG, PNG, GIF, WEBP
-                            </p>
+                        
+                        <div class="image-preview-upload" id="uploadZone">
+                            <div class="placeholder-text" id="placeholderText">
+                                <p style="font-size: 2rem; margin-bottom: 10px;">📤</p>
+                                <p><strong>Click para seleccionar imágenes</strong></p>
+                                <p class="text-muted" style="font-size: 0.85rem;">o arrastra y suelta aquí</p>
+                                <p class="text-muted" style="font-size: 0.75rem; margin-top: 10px;">
+                                    Máximo <?php echo min(20, $espacioDisponible); ?> imágenes | 5MB por archivo | JPG, PNG, GIF, WEBP
+                                </p>
+                            </div>
                         </div>
                         <input type="file" name="imagenes[]" id="inputImagenes" multiple accept="image/*" style="display: none;" required>
-                        <input type="hidden" name="imagen_principal_index" id="imagenPrincipalIndex" value="0">
-                        <input type="hidden" name="orden_imagenes" id="ordenImagenes" value="">
                     </div>
 
                     <div id="previewContainer" style="display: none;"></div>

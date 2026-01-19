@@ -4,10 +4,12 @@ const previewContainer = document.getElementById('previewContainer');
 const btnSubmit = document.getElementById('btnSubmit');
 const imagenPrincipalIndex = document.getElementById('imagenPrincipalIndex');
 const ordenImagenes = document.getElementById('ordenImagenes');
+const placeholderText = document.getElementById('placeholderText');
 const maxImagenes = parseInt(document.querySelector('[name="espacio_disponible"]')?.value || 20);
 
 let selectedFiles = [];
-let draggedIndex = null;
+let draggedElement = null;
+let draggedFromIndex = null;
 
 uploadZone?.addEventListener('click', () => inputImagenes?.click());
 
@@ -53,10 +55,12 @@ function actualizarPrevisualizacion() {
     
     if (selectedFiles.length === 0) {
         previewContainer.style.display = 'none';
+        uploadZone.classList.remove('has-images');
         return;
     }
 
     previewContainer.style.display = 'grid';
+    uploadZone.classList.add('has-images');
     previewContainer.className = 'preview-container';
 
     selectedFiles.forEach((file, index) => {
@@ -91,9 +95,11 @@ function actualizarPrevisualizacion() {
 }
 
 function handleDragStart(e) {
-    draggedIndex = parseInt(this.dataset.index);
+    draggedElement = this;
+    draggedFromIndex = parseInt(this.dataset.index);
     this.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
 }
 
 function handleDragEnd(e) {
@@ -101,6 +107,8 @@ function handleDragEnd(e) {
     document.querySelectorAll('.preview-item').forEach(item => {
         item.classList.remove('drag-over');
     });
+    draggedElement = null;
+    draggedFromIndex = null;
 }
 
 function handleDragOver(e) {
@@ -112,7 +120,9 @@ function handleDragOver(e) {
 }
 
 function handleDragEnter(e) {
-    this.classList.add('drag-over');
+    if (this !== draggedElement) {
+        this.classList.add('drag-over');
+    }
 }
 
 function handleDragLeave(e) {
@@ -126,17 +136,15 @@ function handleDrop(e) {
     
     const dropIndex = parseInt(this.dataset.index);
     
-    if (draggedIndex !== null && draggedIndex !== dropIndex) {
-        const draggedFile = selectedFiles[draggedIndex];
-        const targetFile = selectedFiles[dropIndex];
-        
-        selectedFiles[dropIndex] = draggedFile;
-        selectedFiles[draggedIndex] = targetFile;
+    if (draggedFromIndex !== null && draggedFromIndex !== dropIndex && draggedElement !== this) {
+        const draggedFile = selectedFiles[draggedFromIndex];
+        selectedFiles.splice(draggedFromIndex, 1);
+        selectedFiles.splice(dropIndex, 0, draggedFile);
         
         actualizarPrevisualizacion();
     }
     
-    draggedIndex = null;
+    this.classList.remove('drag-over');
     return false;
 }
 
@@ -161,7 +169,7 @@ function actualizarInputFile() {
 }
 
 function actualizarOrdenImagenes() {
-    imagenPrincipalIndex.value = 0;
+    imagenPrincipalIndex.value = 0; // Siempre el primero es principal
     ordenImagenes.value = selectedFiles.map((_, i) => i).join(',');
 }
 

@@ -230,7 +230,7 @@
     object-fit: contain;
 }
 
-.comparison-after {
+.comparison-before {
     clip-path: inset(0 0 0 50%);
 }
 
@@ -272,6 +272,7 @@
     letter-spacing: 1px;
 }
 
+/* CAMBIO: Invertir los colores para reflejar la nueva disposición */
 .label-before {
     color: #666;
 }
@@ -291,6 +292,37 @@
     margin-bottom: 8px;
     color: var(--text-muted);
     font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* NUEVO: Mejorar el estilo del select */
+.compare-selector select {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.compare-selector select:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+}
+
+.compare-selector select:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.compare-selector select option {
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 10px;
 }
 
 .iteration-gallery {
@@ -319,13 +351,18 @@
     border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: all 0.2s;
     border: 2px solid transparent;
 }
 
 .gallery-item:hover {
     transform: scale(1.05);
     border-color: var(--primary);
+}
+
+.gallery-item.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
 }
 
 .gallery-item img {

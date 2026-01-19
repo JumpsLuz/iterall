@@ -78,13 +78,31 @@ class UsuarioController {
 
             $avatarFile = null;
             $bannerFile = null;
+            $avatarUrl = null;
+            $bannerUrl = null;
 
             if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
                 $avatarFile = $_FILES['avatar'];
+            } else {
+                $stmtActual = $this->db->prepare("SELECT avatar_url FROM perfiles WHERE usuario_id = ?");
+                $stmtActual->execute([$usuario_id]);
+                $perfilActual = $stmtActual->fetch(PDO::FETCH_ASSOC);
+                
+                if (empty($perfilActual['avatar_url'])) {
+                    $avatarUrl = CloudinaryConfig::getDefaultAvatarUrl();
+                }
             }
 
             if (isset($_FILES['banner']) && $_FILES['banner']['error'] === UPLOAD_ERR_OK) {
                 $bannerFile = $_FILES['banner'];
+            } else {
+                $stmtActual = $this->db->prepare("SELECT banner_url FROM perfiles WHERE usuario_id = ?");
+                $stmtActual->execute([$usuario_id]);
+                $perfilActual = $stmtActual->fetch(PDO::FETCH_ASSOC);
+                
+                if (empty($perfilActual['banner_url'])) {
+                    $bannerUrl = CloudinaryConfig::getDefaultBannerUrl();
+                }
             }
 
             $redesSociales = [
@@ -100,7 +118,9 @@ class UsuarioController {
                 $_POST['biografia'] ?? '',
                 $redesSociales,
                 $avatarFile,
-                $bannerFile
+                $bannerFile,
+                $avatarUrl,
+                $bannerUrl
             );
 
             if ($exito) {

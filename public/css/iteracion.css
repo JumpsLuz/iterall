@@ -11,6 +11,36 @@
     margin-bottom: 10px;
 }
 
+/* Nuevo estilo para la zona de carga */
+.image-preview-upload {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+    background: var(--bg-hover);
+    cursor: pointer;
+    transition: all 0.3s;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.image-preview-upload:hover {
+    border-color: var(--primary);
+    background: var(--bg-card);
+}
+
+.image-preview-upload.dragover {
+    border-color: var(--accent);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.image-preview-upload.has-images {
+    display: none;
+}
+
 .preview-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -54,6 +84,7 @@
 .preview-item.drag-over {
     border-color: var(--primary);
     background: rgba(59, 130, 246, 0.1);
+    transform: scale(1.05);
 }
 
 .preview-item img {

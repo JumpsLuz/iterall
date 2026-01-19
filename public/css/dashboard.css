@@ -43,6 +43,18 @@ body {
     object-fit: cover;
     background-color: #eee;
 }
+.avatar-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 5px solid white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+}
 .profile-info {
     text-align: center;
     padding: 20px;
@@ -60,5 +72,11 @@ body {
     .avatar-img {
         width: 100px;
         height: 100px;
+    }
+    
+    .avatar-placeholder {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
     }
 }

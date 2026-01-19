@@ -44,7 +44,15 @@ $proyectos = $modeloProyecto->obtenerPorUsuario($usuario_id);
         </div>
         
         <div class="profile-info">
-            <img src="<?php echo $perfil['avatar_url'] ?? 'img/default-avatar.png'; ?>" class="avatar-img" alt="Avatar">
+            <div class="avatar-container">
+                <?php if (!empty($perfil['avatar_url'])): ?>
+                    <img src="<?php echo htmlspecialchars($perfil['avatar_url']); ?>" class="avatar-img" alt="Avatar">
+                <?php else: ?>
+                    <div class="avatar-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                <?php endif; ?>
+            </div>
             <h1><?php echo htmlspecialchars($perfil['nombre_artistico'] ?? 'Artista'); ?></h1>
             <p class="text-muted"><?php echo htmlspecialchars($perfil['biografia'] ?? 'Sin biografía'); ?></p>
             

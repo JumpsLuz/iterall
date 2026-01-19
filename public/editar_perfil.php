@@ -41,8 +41,14 @@ $redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
             <div class="profile-info">
                 
                 <div class="avatar-edit-wrapper" onclick="document.getElementById('avatarInput').click()">
-                    <img src="<?php echo $perfil['avatar_url'] ?? 'img/default-avatar.png'; ?>" 
-                         class="avatar-img" id="avatarPreview" alt="Avatar">
+                    <?php if (!empty($perfil['avatar_url'])): ?>
+                        <img src="<?php echo htmlspecialchars($perfil['avatar_url']); ?>" 
+                             class="avatar-img" id="avatarPreview" alt="Avatar">
+                    <?php else: ?>
+                        <div class="avatar-placeholder" id="avatarPreview">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display: none;">
                 

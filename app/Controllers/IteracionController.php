@@ -43,7 +43,8 @@ class IteracionController {
                 'tiempo_dedicado_min' => !empty($_POST['tiempo_dedicado_min']) ? (int)$_POST['tiempo_dedicado_min'] : null
             ];
 
-            $imagenPrincipalIndex = isset($_POST['imagen_principal_index']) ? (int)$_POST['imagen_principal_index'] : 0;
+            // IMPORTANTE: Solo la primera imagen (índice 0) será la principal
+            $imagenPrincipalIndex = 0;
 
             $imagenes = $this->procesarImagenesMultiples($_FILES['imagenes'], $imagenPrincipalIndex);
 
@@ -162,6 +163,7 @@ class IteracionController {
                     'tmp_name' => $filesArray['tmp_name'][$i],
                     'error' => $filesArray['error'][$i],
                     'size' => $filesArray['size'][$i],
+                    // CORRECCIÓN: Solo marcar como principal la imagen en el índice especificado
                     'es_principal' => ($i === $principalIndex) ? 1 : 0
                 ];
             }
