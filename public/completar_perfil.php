@@ -211,7 +211,7 @@ $esCliente = ($_SESSION['rol_id'] == 2);
                     <div style="display: flex; gap: 10px;">
                         <input type="url" name="redes[${tipo}]" class="form-control red-input" 
                                placeholder="${red.placeholder}" 
-                               data-patron="${red.patron.source}"
+                               data-tipo="${tipo}"
                                data-ayuda="${red.ayuda}">
                         <button type="button" class="btn btn-danger" onclick="eliminarRed(this)" 
                                 style="padding: 0 15px;"><i class="fas fa-trash"></i></button>
@@ -249,14 +249,24 @@ $esCliente = ($_SESSION['rol_id'] == 2);
                 return;
             }
 
-            const patron = new RegExp(input.dataset.patron);
+            const tipo = input.dataset.tipo || input.closest('.red-social-item').dataset.tipo;
+            const red = redesDisponibles[tipo];
+            let urlValidar = url;
+            
+            // Si no tiene https://, agregarlo para validación
+            if (!urlValidar.match(/^https?:\/\//)) {
+                urlValidar = 'https://' + urlValidar;
+            }
+            
+            // Remove the / delimiters from PHP regex pattern
+            const patron = new RegExp(red.patron.slice(1, -1));
 
-            if (patron.test(url)) {
+            if (patron.test(urlValidar)) {
                 input.style.borderColor = 'var(--success)';
                 errorSpan.style.display = 'none';
             } else {
                 input.style.borderColor = 'var(--danger)';
-                errorSpan.textContent = 'X ' + input.dataset.ayuda;
+                errorSpan.textContent = 'X ' + red.ayuda;
                 errorSpan.style.display = 'block';
             }
         }
