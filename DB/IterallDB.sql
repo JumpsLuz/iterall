@@ -183,14 +183,14 @@ CREATE TABLE items_coleccion (
 );
 
 INSERT INTO categorias (nombre_categoria) VALUES
-('Ilustración 2D'),
+('Ilustracion 2D'),
 ('Modelado 3D'),
-('Animación'),
+('Animacion'),
 ('Concept Art'),
 ('Arte Digital'),
 ('Arte Tradicional'),
-('Diseño de Personajes'),
-('Diseño de Escenarios'),
+('Diseno de Personajes'),
+('Diseno de Escenarios'),
 ('Game Art'),
 ('Otro');
 
