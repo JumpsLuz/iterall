@@ -209,7 +209,7 @@ $esCliente = ($_SESSION['rol_id'] == 2);
                 <div class="form-group">
                     <label class="form-label"><i class="${red.icono}"></i> ${red.nombre}</label>
                     <div style="display: flex; gap: 10px;">
-                        <input type="url" name="redes[${tipo}]" class="form-control red-input" 
+                        <input type="text" name="redes[${tipo}]" class="form-control red-input" 
                                placeholder="${red.placeholder}" 
                                data-tipo="${tipo}"
                                data-ayuda="${red.ayuda}">

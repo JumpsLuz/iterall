@@ -126,7 +126,7 @@ $redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
                                 echo '<div class="form-group">';
                                 echo '<label class="form-label"><i class="' . $red['icono'] . '"></i> ' . $red['nombre'] . '</label>';
                                 echo '<div style="display: flex; gap: 10px;">';
-                                echo '<input type="url" name="redes[' . $tipo . ']" class="form-control red-input" ';
+                                echo '<input type="text" name="redes[' . $tipo . ']" class="form-control red-input" ';
                                 echo 'value="' . htmlspecialchars($url) . '" ';
                                 echo 'placeholder="' . $red['placeholder'] . '" ';
                                 echo 'data-patron="' . htmlspecialchars($red['patron']) . '" ';
@@ -243,7 +243,7 @@ $redes = json_decode($perfil['redes_sociales_json'] ?? '{}', true);
                 <div class="form-group">
                     <label class="form-label"><i class="${red.icono}"></i> ${red.nombre}</label>
                     <div style="display: flex; gap: 10px;">
-                        <input type="url" name="redes[${tipo}]" class="form-control red-input" 
+                        <input type="text" name="redes[${tipo}]" class="form-control red-input" 
                                placeholder="${red.placeholder}" 
                                data-patron="${red.patron}"
                                data-ayuda="${red.ayuda}">
